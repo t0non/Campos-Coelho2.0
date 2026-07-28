@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { notFound } from 'next/navigation'
 import { requireAdmin } from '@/lib/supabase/auth'
 import { getAdminBrandById } from '@/lib/data/admin-catalog'

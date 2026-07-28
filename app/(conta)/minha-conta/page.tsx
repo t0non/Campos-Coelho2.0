@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import type { Metadata } from 'next'
 import { getAuthContext } from '@/lib/supabase/auth'
 import { COMPANY_STATUS_LABELS } from '@/lib/utils/constants'

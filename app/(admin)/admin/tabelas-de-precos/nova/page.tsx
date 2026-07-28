@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { PriceTableForm } from '@/components/admin/PriceTableForm'
 
 export default function NewPriceTablePage() {

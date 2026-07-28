@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { requireAdmin } from '@/lib/supabase/auth'
 import { BrandForm } from '../brand-form'
 

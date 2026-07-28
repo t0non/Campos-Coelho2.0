@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { getAdminPriceTables } from '@/lib/data/admin-catalog'
 import Link from 'next/link'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'

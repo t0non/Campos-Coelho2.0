@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import type { Metadata } from 'next'
 import { requireSellerOrAdmin } from '@/lib/supabase/auth'
 import { LogoutButton } from '@/components/auth/logout-button'

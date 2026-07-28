@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic'
 import { getAdminPriceTableById, getAdminPriceEntries, getAdminCategories, getAdminBrands } from '@/lib/data/admin-catalog'
 import { PriceEntriesTable } from '@/components/admin/PriceEntriesTable'
 import { PriceTableStatusToggle } from '@/components/admin/PriceTableStatusToggle'
