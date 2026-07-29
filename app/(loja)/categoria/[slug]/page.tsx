@@ -173,7 +173,6 @@ export default async function CategoryPage({ params: paramsPromise, searchParams
                       key={product.id}
                       product={product}
                       canViewPrices={catalogData.canViewPrices}
-                      userStatus={catalogData.userStatus}
                     />
                   ))}
                 </div>

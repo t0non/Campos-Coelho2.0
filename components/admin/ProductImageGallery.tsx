@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Trash2, Star, GripVertical, Check } from 'lucide-react'
+import { Trash2, Star, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { updateImageAltTextAction, removeProductImageAction, setPrimaryImageAction, reorderProductImagesAction } from '@/app/actions/product-images'

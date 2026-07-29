@@ -1,6 +1,6 @@
 import { Star, Quote } from 'lucide-react'
 import { Container } from '@/components/ui/container'
-import type { TestimonialItem } from '@/lib/mocks/mock-testimonials'
+import type { TestimonialItem } from '@/lib/data/home'
 
 interface TestimonialsProps {
   testimonials: TestimonialItem[]

@@ -1,12 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import dynamic from 'next/dynamic'
 import { BannerList } from '@/components/admin/banners/banner-list'
-import { BannerForm } from '@/components/admin/banners/banner-form'
 import { Plus } from 'lucide-react'
 
 import { Banner } from '@/types/banner.types'
+
+const BannerForm = dynamic(() =>
+  import('@/components/admin/banners/banner-form').then((module) => module.BannerForm),
+)
 
 export default function AdminBannersPage() {
   const [banners, setBanners] = useState<Banner[]>([])
@@ -16,6 +19,7 @@ export default function AdminBannersPage() {
 
   const fetchBanners = async () => {
     setIsLoading(true)
+    const { createClient } = await import('@/lib/supabase/client')
     const supabase = createClient()
     const { data } = await supabase
       .from('banners')

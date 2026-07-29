@@ -1,5 +1,5 @@
 import { Container } from '@/components/ui/container'
-import { Skeleton, SkeletonCard } from '@/components/ui/skeleton'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function ProductLoading() {
   return (

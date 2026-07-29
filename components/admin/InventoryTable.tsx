@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { StatusBadge } from '@/components/admin/status-badge'
 import { Button } from '@/components/ui/button'
 import { History, Pencil } from 'lucide-react'
 import { InventoryAdjustmentModal } from './InventoryAdjustmentModal'

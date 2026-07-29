@@ -1,9 +1,9 @@
 const CATEGORY_PRODUCT_IMAGE_MAP: Record<string, string> = {
-  'cozinha-mesa': '/images/departments/cozinha-mesa.png',
-  'jardim-decoracao': '/images/departments/jardim-decoracao.png',
-  organizacao: '/images/departments/organizacao.png',
-  'utilidades-limpeza': '/images/departments/utilidades-limpeza.png',
-  diversos: '/images/departments/diversos.png',
+  'cozinha-mesa': '/images/departments/cozinha-mesa.webp',
+  'jardim-decoracao': '/images/departments/jardim-decoracao.webp',
+  organizacao: '/images/departments/organizacao.webp',
+  'utilidades-limpeza': '/images/departments/utilidades-limpeza.webp',
+  diversos: '/images/departments/diversos.webp',
 }
 
 export function getCategoryProductFallbackImage(

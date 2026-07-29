@@ -85,7 +85,6 @@ export default async function HomePage() {
         <CampaignGrid
           collections={homeData.collections}
           canViewPrices={homeData.canViewPrices}
-          userStatus={homeData.userStatus}
         />
 
         {/* 3. Categorias em destaque */}
@@ -94,11 +93,8 @@ export default async function HomePage() {
         {/* 4. Vitrine de lançamentos */}
         <ProductShowcase
           title="Lançamentos"
-          subtitle="Novidades para renovar o estoque e surpreender seus clientes."
-          tagline="Novidades no Catálogo"
           products={homeData.newArrivals}
           canViewPrices={homeData.canViewPrices}
-          userStatus={homeData.userStatus}
         />
 
         {/* 5. Banner promocional intermediário */}
@@ -107,11 +103,8 @@ export default async function HomePage() {
         {/* 6. Vitrine de mais vendidos */}
         <ProductShowcase
           title="Mais Vendidos"
-          subtitle="Produtos que já fazem parte do estoque de muitos lojistas."
-          tagline="Alta Rotatividade"
           products={homeData.bestSellers}
           canViewPrices={homeData.canViewPrices}
-          userStatus={homeData.userStatus}
         />
 
         {/* 7. Marcas parceiras */}
@@ -120,11 +113,8 @@ export default async function HomePage() {
         {/* 8. Vitrine de oportunidades */}
         <ProductShowcase
           title="Oportunidades da Semana"
-          subtitle="Produtos selecionados para melhorar a margem da sua loja."
-          tagline="Preços Promocionais"
           products={homeData.weeklyOpportunities}
           canViewPrices={homeData.canViewPrices}
-          userStatus={homeData.userStatus}
         />
 
         {/* 9. Chamada para cadastro empresarial */}

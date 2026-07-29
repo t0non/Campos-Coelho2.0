@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { Drawer } from '@/components/ui/drawer'
 import { Logo } from '@/components/ui/logo'
-import { mockCompany } from '@/lib/mocks/mock-company'
+import { WHATSAPP_NUMBER } from '@/lib/config/contact'
 import type { AuthContext } from '@/types/auth.types'
 
 interface MobileNavDrawerProps {
@@ -199,7 +199,7 @@ export function MobileNavDrawer({
             </Link>
           )}
           <a
-            href={`https://wa.me/55${mockCompany.contact.whatsapp.replace(/\D/g, '')}`}
+            href={`https://wa.me/${WHATSAPP_NUMBER}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-3 py-1.5 text-xs font-semibold text-neutral-700"

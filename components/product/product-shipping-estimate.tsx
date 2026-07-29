@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Truck, Calculator, MapPin } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { Truck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 export function ProductShippingEstimate() {

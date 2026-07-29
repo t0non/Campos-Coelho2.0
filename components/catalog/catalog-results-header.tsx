@@ -2,7 +2,7 @@
 
 import { SlidersHorizontal } from 'lucide-react'
 import { CatalogSortSelect } from './catalog-sort-select'
-import type { CatalogParams, CatalogSort } from '@/lib/utils/catalog-params'
+import type { CatalogParams } from '@/lib/utils/catalog-params'
 
 interface CatalogResultsHeaderProps {
   total: number

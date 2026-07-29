@@ -1,5 +1,4 @@
 import * as xlsx from 'xlsx'
-import * as fs from 'fs'
 import * as path from 'path'
 
 function createTestExcel() {

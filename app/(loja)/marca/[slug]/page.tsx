@@ -118,7 +118,6 @@ export default async function BrandPage({ params: paramsPromise, searchParams }:
                     key={product.id}
                     product={product}
                     canViewPrices={catalogData.canViewPrices}
-                    userStatus={catalogData.userStatus}
                   />
                 ))}
               </div>

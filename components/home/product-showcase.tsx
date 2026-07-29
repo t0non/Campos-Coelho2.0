@@ -1,27 +1,20 @@
 'use client'
 
 import { useRef } from 'react'
-import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { ProductCard } from '@/components/product/product-card'
 import type { CatalogProduct } from '@/types/product.types'
 
 interface ProductShowcaseProps {
   title: string
-  subtitle?: string
-  tagline?: string
   products: CatalogProduct[]
   canViewPrices: boolean
-  userStatus: 'visitor' | 'pending' | 'approved' | 'rejected' | 'suspended'
-  seeAllHref?: string
 }
 
 export function ProductShowcase({
   title,
   products,
   canViewPrices,
-  userStatus,
-  seeAllHref = '/catalogo',
 }: ProductShowcaseProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -75,7 +68,6 @@ export function ProductShowcase({
               <ProductCard
                 product={product}
                 canViewPrices={canViewPrices}
-                userStatus={userStatus}
               />
             </div>
           ))}

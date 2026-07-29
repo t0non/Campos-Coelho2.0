@@ -1,8 +1,5 @@
 'use client'
 
-import { format } from 'date-fns'
-import { ptBR } from 'date-fns/locale'
-
 export type CustomerSummary = {
   id: string
   cnpj: string
@@ -33,6 +30,13 @@ const statusLabels = {
 function formatCNPJ(cnpj: string) {
   return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5")
 }
+
+const customerDateFormatter = new Intl.DateTimeFormat('pt-BR', {
+  day: '2-digit',
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'America/Sao_Paulo',
+})
 
 export function CustomerList({ customers, onSelectCustomer }: CustomerListProps) {
   if (customers.length === 0) {
@@ -66,7 +70,7 @@ export function CustomerList({ customers, onSelectCustomer }: CustomerListProps)
                   {customer.company_name}
                 </td>
                 <td className="p-4 text-sm text-neutral-500 whitespace-nowrap">
-                  {format(new Date(customer.created_at), "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                  {customerDateFormatter.format(new Date(customer.created_at))}
                 </td>
                 <td className="p-4 whitespace-nowrap">
                   <span className={`inline-flex px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.08em] ${statusColors[customer.status]}`}>

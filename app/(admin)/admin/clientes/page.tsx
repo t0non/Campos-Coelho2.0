@@ -1,11 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { getCustomers } from '@/lib/actions/admin/customers'
 import { CustomerList, CustomerSummary } from '@/components/admin/customers/customer-list'
-import { CustomerDetailsModal } from '@/components/admin/customers/customer-details-modal'
 import { Search, Filter } from 'lucide-react'
-import { useDebounce } from 'use-debounce'
+
+const CustomerDetailsModal = dynamic(() =>
+  import('@/components/admin/customers/customer-details-modal').then(
+    (module) => module.CustomerDetailsModal,
+  ),
+)
 
 export default function AdminCustomersPage() {
   const [customers, setCustomers] = useState<CustomerSummary[]>([])
@@ -13,11 +18,16 @@ export default function AdminCustomersPage() {
   
   // Filtros
   const [searchTerm, setSearchTerm] = useState('')
-  const [debouncedSearch] = useDebounce(searchTerm, 500)
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
 
   // Modal
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedSearch(searchTerm), 400)
+    return () => window.clearTimeout(timer)
+  }, [searchTerm])
 
   const fetchList = async () => {
     setIsLoading(true)

@@ -140,7 +140,6 @@ export default async function SearchPage({ searchParams }: PageProps) {
                     key={product.id}
                     product={product}
                     canViewPrices={catalogData.canViewPrices}
-                    userStatus={catalogData.userStatus}
                   />
                 ))}
               </div>

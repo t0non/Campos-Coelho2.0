@@ -62,7 +62,6 @@ export function LoginDrawer({ isOpen, onClose }: LoginDrawerProps) {
               width={220}
               height={55}
               className="h-auto object-contain"
-              priority
             />
           </Link>
 

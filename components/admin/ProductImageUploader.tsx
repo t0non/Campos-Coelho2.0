@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { UploadCloud, FileImage, XCircle } from 'lucide-react'
+import { UploadCloud, XCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { useRouter } from 'next/navigation'

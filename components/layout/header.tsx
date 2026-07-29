@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import {
   User,
@@ -16,14 +17,20 @@ import {
   Keyboard,
   FileText,
 } from 'lucide-react'
-import { CartSlideOver } from './cart-slide-over'
-import { MobileNavDrawer } from './mobile-nav-drawer'
-import { LoginDrawer } from '@/components/auth/login-drawer'
 import { formatPrice } from '@/lib/utils/format'
-import { createClient } from '@/lib/supabase/client'
 import type { AuthContext } from '@/types/auth.types'
 import type { CartLineItem, CartSummary } from '@/lib/types/cart'
 import type { CatalogProduct } from '@/types/product.types'
+
+const CartSlideOver = dynamic(() =>
+  import('./cart-slide-over').then((module) => module.CartSlideOver),
+)
+const MobileNavDrawer = dynamic(() =>
+  import('./mobile-nav-drawer').then((module) => module.MobileNavDrawer),
+)
+const LoginDrawer = dynamic(() =>
+  import('@/components/auth/login-drawer').then((module) => module.LoginDrawer),
+)
 
 interface HeaderProps {
   authContext?: AuthContext
@@ -166,6 +173,7 @@ export function Header({
     setIsLoggingOut(true)
     setIsUserMenuOpen(false)
 
+    const { createClient } = await import('@/lib/supabase/client')
     const supabase = createClient()
     const { error } = await supabase.auth.signOut({ scope: 'local' })
 
@@ -448,27 +456,31 @@ export function Header({
       </header>
 
       {/* Mobile Navigation Drawer */}
-      <MobileNavDrawer
-        isOpen={isMobileNavOpen}
-        onClose={() => setIsMobileNavOpen(false)}
-        authContext={authContext}
-        categories={categories}
-      />
+      {isMobileNavOpen && (
+        <MobileNavDrawer
+          isOpen
+          onClose={() => setIsMobileNavOpen(false)}
+          authContext={authContext}
+          categories={categories}
+        />
+      )}
 
       {/* Cart Slide-Over */}
-      <CartSlideOver
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        canViewPrices={canViewPrices}
-        userStatus={userStatus}
-        initialItems={cartItems}
-        previewOnly={isAdminPreview}
-        onPreviewItemsChange={isAdminPreview ? setAdminPreviewItems : undefined}
-      />
+      {isCartOpen && (
+        <CartSlideOver
+          isOpen
+          onClose={() => setIsCartOpen(false)}
+          canViewPrices={canViewPrices}
+          userStatus={userStatus}
+          initialItems={cartItems}
+          previewOnly={isAdminPreview}
+          onPreviewItemsChange={isAdminPreview ? setAdminPreviewItems : undefined}
+        />
+      )}
 
-      {!user && (
+      {!user && isLoginOpen && (
         <LoginDrawer
-          isOpen={isLoginOpen}
+          isOpen
           onClose={() => setIsLoginOpen(false)}
         />
       )}

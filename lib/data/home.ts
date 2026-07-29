@@ -1,6 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { SupabaseClient } from '@supabase/supabase-js'
-import { Database } from '@/types/database.types'
 import type { AuthContext } from '@/types/auth.types'
 import type { CatalogProduct, PriceInfo } from '@/types/product.types'
 import { getProductImageUrl } from '@/lib/utils/storage-url'
@@ -97,10 +95,10 @@ export interface HomePageData {
 }
 
 const SEASONAL_IMAGE_MAP: Record<string, string> = {
-  'festa-junina': '/images/seasonal/festa-junina.png',
-  inverno: '/images/seasonal/inverno.png',
-  'dia-dos-pais': '/images/seasonal/dia-dos-pais.png',
-  natal: '/images/seasonal/natal.png',
+  'festa-junina': '/images/seasonal/festa-junina.webp',
+  inverno: '/images/seasonal/inverno.webp',
+  'dia-dos-pais': '/images/seasonal/dia-dos-pais.webp',
+  natal: '/images/seasonal/natal.webp',
 }
 
 function getStoreBannerHref(value: string | null | undefined) {
@@ -181,12 +179,47 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
   const userStatus = authContext?.company?.status ?? (authContext?.user ? 'pending' : 'visitor')
   const supabase = await createClient()
 
-  // 1. Categorias Ativas no Supabase
-  const { data: dbCategoriesData } = await supabase
+  // As consultas independentes começam juntas para evitar esperas em cascata.
+  const categoriesPromise = supabase
     .from('categories')
     .select('id, name, slug')
     .eq('is_active', true)
     .order('name')
+    .then((result) => result)
+
+  const brandsPromise = supabase
+    .from('brands')
+    .select('id, name, slug')
+    .eq('is_active', true)
+    .order('name')
+    .then((result) => result)
+
+  const bannersPromise = supabase
+    .from('banners')
+    .select('*')
+    .eq('is_active', true)
+    .order('position', { ascending: true })
+    .then((result) => result)
+
+  const collectionsPromise = supabase
+    .from('collections')
+    .select(
+      `
+      id,
+      name,
+      slug,
+      description,
+      banner_url,
+      collection_products(product_id, position)
+      `,
+    )
+    .eq('is_active', true)
+    .order('updated_at', { ascending: false })
+    .limit(4)
+    .then((result) => result)
+
+  // 1. Categorias Ativas no Supabase
+  const { data: dbCategoriesData } = await categoriesPromise
 
   const dbCategories = (dbCategoriesData ?? []) as Array<{ id: string; name: string; slug: string }>
 
@@ -199,11 +232,7 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
   }))
 
   // 2. Marcas Ativas no Supabase (As 20 mais famosas)
-  const { data: dbBrandsData } = await supabase
-    .from('brands')
-    .select('id, name, slug')
-    .eq('is_active', true)
-    .order('name')
+  const { data: dbBrandsData } = await brandsPromise
 
   const dbBrands = (dbBrandsData ?? []) as Array<{ id: string; name: string; slug: string }>
 
@@ -243,7 +272,7 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
     MAXXIMO: { url: '/logo_Maxximo.svg' },
     METALTRU: { url: '/logo_Metaltru.png' },
     'ORIGINAL LINE': { url: '/logo_originalline.png' },
-    PLASUTIL: { url: '/logo_Plasútil.png' },
+    PLASUTIL: { url: '/logo_plasutil.webp' },
     STOLF: { url: '/logo_stolf.png' },
     'VASO BELLO': { url: '/logo_vasobello.png', background: '#111111' },
   }
@@ -384,11 +413,7 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
     fetchProductsGroup(),
   ])
 
-  const { data: dbBannersData } = await supabase
-    .from('banners')
-    .select('*')
-    .eq('is_active', true)
-    .order('position', { ascending: true })
+  const { data: dbBannersData } = await bannersPromise
 
   const dbBanners = dbBannersData ?? []
   const secondaryBannerRow = dbBanners.find(
@@ -436,21 +461,7 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
       }
     : null
 
-  const { data: dbCollectionsData } = await supabase
-    .from('collections')
-    .select(
-      `
-      id,
-      name,
-      slug,
-      description,
-      banner_url,
-      collection_products(product_id, position)
-      `,
-    )
-    .eq('is_active', true)
-    .order('updated_at', { ascending: false })
-    .limit(4)
+  const { data: dbCollectionsData } = await collectionsPromise
 
   const dbCollections = (dbCollectionsData ?? []) as Array<{
     id: string

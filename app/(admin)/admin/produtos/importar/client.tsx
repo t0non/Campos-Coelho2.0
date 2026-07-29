@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { AdminPageHeader } from '@/components/admin/admin-page-header'
 import { Button } from '@/components/ui/button'
-import { AlertCircle, Upload, CheckCircle2, FileSpreadsheet, Loader2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, FileSpreadsheet, Loader2 } from 'lucide-react'
 
 type PriceTable = { id: string; name: string }
 
@@ -20,12 +20,9 @@ type Step = 1 | 2 | 3 | 4 | 5
 
 export default function ImportarPlanilhaClient({ initialPriceTables }: { initialPriceTables: PriceTable[] }) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const initialMode = 'import_update'
-
   const [step, setStep] = useState<Step>(1)
   const [file, setFile] = useState<File | null>(null)
-  const [mode, setMode] = useState<'import_update' | 'replace'>(initialMode)
+  const [mode] = useState<'import_update' | 'replace'>('import_update')
   const [priceTableId, setPriceTableId] = useState<string>('')
   const [publish, setPublish] = useState(true)
   const [confirmGlobal, setConfirmGlobal] = useState(false)

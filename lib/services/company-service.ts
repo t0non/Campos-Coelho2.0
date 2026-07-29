@@ -2,10 +2,6 @@ import 'server-only'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthContext, requireAdmin } from '@/lib/supabase/auth'
 import { validateCNPJ } from '@/lib/utils/masks'
-import type { Database } from '@/types/database.types'
-
-type CompanyRow = Database['public']['Tables']['companies']['Row']
-type AddressRow = Database['public']['Tables']['addresses']['Row']
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyClient = any

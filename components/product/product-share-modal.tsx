@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Copy, Check, Share2, MessageCircle, Mail } from 'lucide-react'
+import { Copy, Check, MessageCircle } from 'lucide-react'
 import { Modal } from '@/components/ui/modal'
 
 interface ProductShareModalProps {

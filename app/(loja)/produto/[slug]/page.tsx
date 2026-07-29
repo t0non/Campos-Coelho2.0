@@ -13,7 +13,6 @@ import {
 import { CatalogBreadcrumb } from '@/components/catalog/catalog-breadcrumb'
 import { ProductGallery } from '@/components/product/product-gallery'
 import { ProductSummary } from '@/components/product/product-summary'
-import { ProductPricing } from '@/components/product/product-pricing'
 import { ProductPurchasePanelWrapper } from '@/components/product/product-purchase-panel-wrapper'
 import { ProductShippingEstimate } from '@/components/product/product-shipping-estimate'
 import { ProductBenefits } from '@/components/product/product-benefits'
@@ -22,7 +21,6 @@ import { ProductSpecifications } from '@/components/product/product-specificatio
 import { ProductPackaging } from '@/components/product/product-packaging'
 import { FrequentlyBoughtTogether } from '@/components/product/frequently-bought-together'
 import { ProductShowcase } from '@/components/home/product-showcase'
-import { RecentlyViewedProducts } from '@/components/product/recently-viewed-products'
 import { BusinessRegistrationCTA } from '@/components/home/business-registration-cta'
 import { getSiteUrl } from '@/lib/utils/site-url'
 
@@ -182,19 +180,10 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
           {relatedProducts.length > 0 && (
             <ProductShowcase
               title="Produtos Relacionados"
-              subtitle="Itens do mesmo departamento recomendados para a sua loja."
               products={relatedProducts}
               canViewPrices={product.canViewPrices}
-              userStatus={product.userStatus}
             />
           )}
-
-          {/* Produtos Vistos Recentemente */}
-          <RecentlyViewedProducts
-            currentProductSlug={slug}
-            canViewPrices={product.canViewPrices}
-            userStatus={product.userStatus}
-          />
 
           {/* Chamada para Cadastro Empresarial se não aprovado */}
           {!product.canViewPrices && <BusinessRegistrationCTA />}

@@ -6,7 +6,7 @@ import { invalidateInventoryCache } from '@/lib/utils/cache'
 import { InventoryAdjustmentInputSchema } from '@/lib/validations/admin-catalog'
 
 export async function adjustInventoryAction(data: any) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const parsed = InventoryAdjustmentInputSchema.parse(data)
 
   // Allowlist administrativa rigorosa

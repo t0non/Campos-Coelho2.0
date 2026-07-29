@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { getImageProps } from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import type { HeroBannerItem } from '@/lib/mocks/mock-banners'
+import type { HeroBannerItem } from '@/lib/data/home'
 
 interface HeroCarouselProps {
   banners: HeroBannerItem[]
@@ -57,35 +57,44 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
         className="flex transition-transform duration-500 ease-out"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
-        {banners.map((banner, idx) => (
-          <div key={banner.id} className="w-full shrink-0 relative">
-            <Link href={banner.primaryCta?.href || '/catalogo'} className="block w-full h-full">
-              {/* Desktop Image (Hidden on small screens) */}
-              <div className="hidden md:block relative w-full aspect-[21/6] lg:aspect-[19/6]">
-                <Image
-                  src={banner.desktopImage}
-                  alt={banner.title}
-                  fill
-                  preload={idx === 0}
-                  className="object-cover"
-                  sizes="100vw"
-                />
-              </div>
+        {banners.map((banner, idx) => {
+          const common = { alt: banner.title, sizes: '100vw' }
+          const {
+            props: { srcSet: desktopSrcSet },
+          } = getImageProps({
+            ...common,
+            src: banner.desktopImage,
+            width: 1920,
+            height: 600,
+            quality: 75,
+          })
+          const {
+            props: { srcSet: mobileSrcSet, ...mobileImageProps },
+          } = getImageProps({
+            ...common,
+            src: banner.mobileImage,
+            width: 1080,
+            height: 1350,
+            quality: 75,
+          })
 
-              {/* Mobile Image (Visible only on small screens) */}
-              <div className="block md:hidden relative w-full aspect-[4/5] sm:aspect-[1/1]">
-                <Image
-                  src={banner.mobileImage}
-                  alt={banner.title}
-                  fill
-                  preload={idx === 0}
-                  className="object-cover"
-                  sizes="100vw"
-                />
-              </div>
-            </Link>
-          </div>
-        ))}
+          return (
+            <div key={banner.id} className="relative w-full shrink-0">
+              <Link href={banner.primaryCta?.href || '/catalogo'} className="block h-full w-full">
+                <picture className="relative block aspect-[4/5] w-full sm:aspect-square md:aspect-[21/6] lg:aspect-[19/6]">
+                  <source media="(min-width: 768px)" srcSet={desktopSrcSet} />
+                  <source media="(max-width: 767px)" srcSet={mobileSrcSet} />
+                  <img
+                    {...mobileImageProps}
+                    alt={banner.title}
+                    fetchPriority={idx === 0 ? 'high' : 'auto'}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                </picture>
+              </Link>
+            </div>
+          )
+        })}
       </div>
 
       {/* Navigation Arrows */}

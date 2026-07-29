@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
 import { Plus, Check, ShoppingBag } from 'lucide-react'
 import { PriceBlocked } from './price-blocked'
 import { formatPrice } from '@/lib/utils/format'

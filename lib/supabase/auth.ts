@@ -1,13 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { cache } from 'react'
 import type { AuthContext, UserCompany, UserProfile } from '@/types/auth.types'
 import type { Database } from '@/types/database.types'
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row']
-type CompanyRow = Pick<
-  Database['public']['Tables']['companies']['Row'],
-  'id' | 'cnpj' | 'company_name' | 'trade_name' | 'status' | 'seller_id' | 'price_table_id'
->
 
 /**
  * Resolve o contexto de autenticação completo no servidor.
@@ -19,7 +16,7 @@ type CompanyRow = Pick<
  * Se o usuário existe mas o perfil não, encerra a sessão para evitar
  * estados inconsistentes.
  */
-export async function getAuthContext(): Promise<AuthContext> {
+export const getAuthContext = cache(async (): Promise<AuthContext> => {
   const supabase = await createClient()
 
   // getUser() valida o JWT no servidor — mais seguro que getSession()
@@ -119,7 +116,7 @@ export async function getAuthContext(): Promise<AuthContext> {
     canViewPrices: isApproved,
     canOrder: isApproved,
   }
-}
+})
 
 /**
  * Retorna o destino correto do usuário após o login, baseado em role e status.
