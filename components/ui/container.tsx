@@ -10,8 +10,8 @@ export function Container({ children, clean = false, className, ...props }: Cont
   return (
     <div
       className={cn(
-        'mx-auto w-full max-w-[80rem]', // 1280px max-width
-        !clean && 'px-4 sm:px-6 lg:px-8',
+        'mx-auto w-full max-w-[75rem]',
+        !clean && 'px-4 sm:px-6',
         className,
       )}
       {...props}

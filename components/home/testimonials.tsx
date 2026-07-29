@@ -8,13 +8,13 @@ interface TestimonialsProps {
 
 export function Testimonials({ testimonials }: TestimonialsProps) {
   return (
-    <section className="py-12 bg-slate-50 border-b border-slate-200">
-      <Container className="space-y-8">
-        <div className="text-center max-w-xl mx-auto space-y-1">
-          <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
+    <section className="site-section border-b border-slate-200 bg-slate-50">
+      <Container>
+        <div className="site-section-header mx-auto max-w-xl space-y-2 text-center">
+          <span className="site-section-eyebrow text-orange-600">
             Prova Social
           </span>
-          <h2 className="text-2xl font-extrabold text-slate-900">
+          <h2 className="site-section-title text-slate-900">
             Quem Compra, Recomenda
           </h2>
           <p className="text-xs text-slate-500">

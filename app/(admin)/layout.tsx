@@ -24,11 +24,11 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen min-w-0 bg-neutral-50">
       <SidebarAdmin />
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col">
         {/* Topbar admin */}
-        <header className="border-b border-gray-100 bg-white px-6 py-4">
+        <header className="border-b border-gray-100 bg-white py-4 pl-16 pr-4 sm:pr-6 md:px-6">
           <div className="flex items-center justify-between">
             <span className="text-sm font-semibold text-gray-900">
               Painel Administrativo
@@ -38,7 +38,7 @@ export default async function AdminLayout({
             </span>
           </div>
         </header>
-        <main className="flex-1 p-6">{children}</main>
+        <main className="min-w-0 flex-1 p-4 sm:p-6">{children}</main>
       </div>
     </div>
   )

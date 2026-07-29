@@ -18,8 +18,7 @@ interface PageProps {
 
 export default async function CadastroSucessoPage({ searchParams }: PageProps) {
   const { protocol } = await searchParams
-  const displayProtocol = protocol || 'DEMO-2026-0001'
-  const isLiveProtocol = displayProtocol.startsWith('B2B-')
+  const displayProtocol = protocol || 'Não informado'
 
   return (
     <div className="py-16 bg-slate-50 min-h-[75vh] flex items-center justify-center select-none">
@@ -37,9 +36,8 @@ export default async function CadastroSucessoPage({ searchParams }: PageProps) {
             Cadastro Preenchido com Sucesso!
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
-            {isLiveProtocol
-              ? 'Recebemos a solicitação de cadastro empresarial. Seus dados foram enviados com sucesso para análise comercial.'
-              : 'Recebemos a solicitação de cadastro empresarial no fluxo de demonstração da plataforma Central Atacado B2B.'}
+            Recebemos a solicitação de cadastro empresarial. Seus dados foram enviados com
+            sucesso para análise comercial.
           </p>
         </div>
 
@@ -47,12 +45,11 @@ export default async function CadastroSucessoPage({ searchParams }: PageProps) {
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 space-y-1.5 text-left">
           <div className="flex items-center gap-2 font-bold text-amber-800">
             <ShieldCheck className="h-4 w-4 text-amber-600 shrink-0" />
-            <span>{isLiveProtocol ? 'Status Cadastral: Pendente de Análise' : 'Nota de Demonstração:'}</span>
+            <span>Status cadastral: pendente de análise</span>
           </div>
           <p className="text-amber-800 leading-relaxed">
-            {isLiveProtocol
-              ? 'O cadastro da sua empresa está em análise pela equipe comercial. Você receberá um e-mail assim que o acesso aos preços e compras for liberado.'
-              : 'Este projeto pode operar em modo de simulação visual ou conectado ao Supabase. Ao submeter cadastros em ambiente conectado, o sistema registra os acessos automaticamente.'}
+            O cadastro da sua empresa está em análise pela equipe comercial. Você receberá uma
+            confirmação assim que o acesso aos preços e pedidos for liberado.
           </p>
         </div>
 

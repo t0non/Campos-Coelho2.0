@@ -27,7 +27,7 @@ export default function ImportarPlanilhaClient({ initialPriceTables }: { initial
   const [file, setFile] = useState<File | null>(null)
   const [mode, setMode] = useState<'import_update' | 'replace'>(initialMode)
   const [priceTableId, setPriceTableId] = useState<string>('')
-  const [publish, setPublish] = useState(false)
+  const [publish, setPublish] = useState(true)
   const [confirmGlobal, setConfirmGlobal] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -193,7 +193,7 @@ export default function ImportarPlanilhaClient({ initialPriceTables }: { initial
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Modo de Importação</label>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div 
                     className={`border rounded-lg p-4 transition-colors border-navy-600 bg-navy-50`}
                   >
@@ -239,7 +239,7 @@ export default function ImportarPlanilhaClient({ initialPriceTables }: { initial
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Tabela de Preços (Opcional)</label>
                   <select 
@@ -256,11 +256,11 @@ export default function ImportarPlanilhaClient({ initialPriceTables }: { initial
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Publicação de Novos Produtos</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Publicação no Catálogo</label>
                   <div className="flex items-center h-10">
                     <label className="flex items-center gap-2 text-sm">
                       <input type="checkbox" checked={publish} onChange={e => setPublish(e.target.checked)} className="rounded border-slate-300" />
-                      Publicar automaticamente novos produtos
+                      Manter produtos ativos publicados
                     </label>
                   </div>
                 </div>
@@ -281,7 +281,7 @@ export default function ImportarPlanilhaClient({ initialPriceTables }: { initial
           <div className="space-y-6">
             <h3 className="text-lg font-medium">Prévia da Importação</h3>
             
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <div className="p-4 border rounded-lg bg-slate-50">
                 <p className="text-sm text-slate-500">Total Analisado</p>
                 <p className="text-2xl font-semibold">{stats.total}</p>
@@ -364,7 +364,7 @@ export default function ImportarPlanilhaClient({ initialPriceTables }: { initial
               ></div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 max-w-md mx-auto mt-6 text-sm text-slate-600">
+            <div className="mx-auto mt-6 grid max-w-md grid-cols-1 gap-4 text-sm text-slate-600 sm:grid-cols-2">
               <div className="text-right">Criados: <strong>{results.created}</strong></div>
               <div className="text-left">Atualizados: <strong>{results.updated}</strong></div>
             </div>

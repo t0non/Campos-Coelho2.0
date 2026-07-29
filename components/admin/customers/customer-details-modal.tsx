@@ -112,7 +112,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 border-b pb-3 mb-4">
               <Building2 className="h-5 w-5 text-[#111111]" /> Dados Cadastrais
             </h3>
-            <div className="grid grid-cols-2 gap-y-4 gap-x-6 text-sm">
+            <div className="grid grid-cols-1 gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
               <div><span className="block text-gray-500 mb-1">Nome Fantasia</span><strong className="text-gray-900">{trade_name || '-'}</strong></div>
               <div><span className="block text-gray-500 mb-1">Inscrição Estadual</span><strong className="text-gray-900">{state_registration || '-'}</strong></div>
               <div><span className="block text-gray-500 mb-1">E-mail Comercial</span><strong className="text-gray-900">{email || '-'}</strong></div>
@@ -144,7 +144,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
               <User className="h-5 w-5 text-[#111111]" /> Responsável pela Compra
             </h3>
             {mainContact ? (
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                 <div><span className="block text-gray-500 mb-1">Nome</span><strong className="text-gray-900">{mainContact.full_name}</strong></div>
                 <div><span className="block text-gray-500 mb-1">E-mail</span><strong className="text-gray-900">{mainContact.email}</strong></div>
                 <div><span className="block text-gray-500 mb-1">Telefone Pessoal</span><strong className="text-gray-900">{mainContact.phone || '-'}</strong></div>
@@ -162,7 +162,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
             {documents && documents.length > 0 ? (
               <div className="space-y-3">
                 {documents.map((doc: any) => (
-                  <div key={doc.id} className="flex items-center justify-between p-3 border rounded-md hover:bg-gray-50">
+                  <div key={doc.id} className="flex flex-col gap-3 rounded-md border p-3 hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <p className="font-semibold text-sm text-gray-900">{doc.document_type === 'cnpj_card' ? 'Cartão CNPJ' : doc.document_type === 'social_contract' ? 'Contrato Social' : 'Outro Documento'}</p>
                       <p className="text-xs text-gray-500">{doc.file_name}</p>

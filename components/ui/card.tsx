@@ -9,7 +9,7 @@ export function Card({ children, className, ...props }: CardProps) {
   return (
     <div
       className={cn(
-        'rounded-xl border border-gray-200 bg-white shadow-sm',
+        'rounded-2xl border border-gray-200 bg-white shadow-sm',
         className,
       )}
       {...props}
@@ -22,7 +22,7 @@ export function Card({ children, className, ...props }: CardProps) {
 export function CardHeader({ children, className, ...props }: CardProps) {
   return (
     <div
-      className={cn('border-b border-gray-100 px-6 py-4', className)}
+      className={cn('border-b border-gray-100 px-6 py-5', className)}
       {...props}
     >
       {children}
@@ -32,7 +32,7 @@ export function CardHeader({ children, className, ...props }: CardProps) {
 
 export function CardBody({ children, className, ...props }: CardProps) {
   return (
-    <div className={cn('px-6 py-4', className)} {...props}>
+    <div className={cn('p-6', className)} {...props}>
       {children}
     </div>
   )
@@ -41,7 +41,7 @@ export function CardBody({ children, className, ...props }: CardProps) {
 export function CardFooter({ children, className, ...props }: CardProps) {
   return (
     <div
-      className={cn('border-t border-gray-100 px-6 py-4', className)}
+      className={cn('border-t border-gray-100 px-6 py-5', className)}
       {...props}
     >
       {children}

@@ -49,7 +49,7 @@ export default async function CheckoutPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Container className="py-8 max-w-5xl">
+      <Container className="max-w-5xl py-10 sm:py-12">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">Finalizar Pedido</h1>

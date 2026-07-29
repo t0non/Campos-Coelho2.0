@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import * as xlsx from 'xlsx'
 import crypto from 'crypto'
+import { parseCatalogMoney } from '@/lib/catalog/catalog-money'
+import { standardizeCatalogProductName } from '@/lib/catalog/product-name'
 
 type ExcelCell = string | number | boolean | null | undefined
 type ExcelRow = ExcelCell[]
@@ -122,8 +124,9 @@ export async function POST(request: NextRequest) {
       const row = rawDataFormatted[i]
       if (!Array.isArray(row) || row.length === 0 || row.every(c => !String(c).trim())) continue
 
-      let rawCode = String(row[colCode] || '').trim()
+      const rawCode = String(row[colCode] || '').trim()
       const rawDesc = String(row[colDesc] || '').trim()
+      const normalizedName = standardizeCatalogProductName(rawDesc)
       const rawBarcode = colBarcode !== -1 ? String(row[colBarcode] || '').trim() : null
       const rawUnit = colUnit !== -1 ? String(row[colUnit] || '').trim() : 'UN'
       const rawPrice = colPrice !== -1 ? String(row[colPrice] || '').trim() : null
@@ -149,32 +152,29 @@ export async function POST(request: NextRequest) {
       // Preço
       let salePrice = null
       if (rawPrice) {
-        const cleanPrice = rawPrice.replace(/[R$\s]/gi, '').replace(/\./g, '').replace(',', '.')
-        salePrice = parseFloat(cleanPrice)
+        salePrice = parseCatalogMoney(rawPrice)
         if (isNaN(salePrice)) {
           errors.push({ type: 'invalid_price', message: 'Preço inválido' })
         } else if (salePrice === 0) {
           warnings.push({ type: 'zero_price', message: 'Preço zero (não será comercializável)' })
         }
+      } else {
+        warnings.push({ type: 'missing_price', message: 'Preço não informado' })
       }
 
       const isInactive = ['sim', 'true', '1', 'inativo'].includes(rawInactive)
 
       if (errors.length > 0) {
         status = 'error'
-        errorCount++
       } else if (warnings.length > 0) {
         status = 'warning'
-        warningCount++
-      } else {
-        validCount++
       }
 
       rowsToInsert.push({
         session_id: session.id,
         raw_row_number: i + 1,
         sku: rawCode,
-        name: rawDesc,
+        name: normalizedName,
         barcode: rawBarcode,
         unit: rawUnit || 'UN',
         sale_price: salePrice,
@@ -196,12 +196,50 @@ export async function POST(request: NextRequest) {
       if (skuMap.has(row.sku)) {
         row.validation_status = 'error'
         row.errors.push({ type: 'duplicate_sku', message: 'Código duplicado na própria planilha' })
-        errorCount++
-        if (row.validation_status === 'valid') validCount-- 
       } else {
         skuMap.set(row.sku, true)
       }
     }
+
+    // Se o mesmo produto aparece com outro SKU e um único preço positivo,
+    // use esse valor para completar a linha zerada/sem preço.
+    const pricesByName = new Map<string, Set<number>>()
+    for (const row of rowsToInsert) {
+      if (row.validation_status === 'error' || !row.sale_price || row.sale_price <= 0) continue
+      const key = row.name.toLocaleLowerCase('pt-BR')
+      const prices = pricesByName.get(key) ?? new Set<number>()
+      prices.add(row.sale_price)
+      pricesByName.set(key, prices)
+    }
+
+    for (const row of rowsToInsert) {
+      if (row.validation_status === 'error' || (row.sale_price != null && row.sale_price > 0)) continue
+
+      const matchingPrices = pricesByName.get(row.name.toLocaleLowerCase('pt-BR'))
+      if (matchingPrices?.size === 1) {
+        row.sale_price = Array.from(matchingPrices)[0]
+        row.warnings = row.warnings.filter(
+          warning => warning.type !== 'zero_price' && warning.type !== 'missing_price',
+        )
+        row.warnings.push({
+          type: 'price_from_matching_product',
+          message: 'Preço preenchido a partir do produto idêntico na mesma planilha',
+        })
+      }
+    }
+
+    for (const row of rowsToInsert) {
+      row.validation_status =
+        row.errors.length > 0
+          ? 'error'
+          : row.warnings.length > 0
+            ? 'warning'
+            : 'valid'
+    }
+
+    validCount = rowsToInsert.filter(row => row.validation_status === 'valid').length
+    warningCount = rowsToInsert.filter(row => row.validation_status === 'warning').length
+    errorCount = rowsToInsert.filter(row => row.validation_status === 'error').length
 
     // Inserir linhas em lotes
     const CHUNK_SIZE = 500

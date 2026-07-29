@@ -2,9 +2,11 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/supabase/auth'
+import { redirect } from 'next/navigation'
 import { createAuditLog } from '@/lib/utils/audit'
 import { invalidateCategoryCache, invalidateBrandCache, invalidateProductCache } from '@/lib/utils/cache'
 import { CategoryInputSchema, BrandInputSchema, ProductInputSchema, ProductVariantInputSchema } from '@/lib/validations/admin-catalog'
+import { correlateAllProductCategories } from '@/lib/data/product-category-correlation'
 
 // CATEGORIAS
 export async function createCategoryAction(data: any) {
@@ -245,6 +247,22 @@ export async function toggleProductStatusAction(id: string, isActive: boolean) {
   await createAuditLog(actionName, 'products', id, { is_active: isActive })
   invalidateProductCache()
   return { success: true }
+}
+
+export async function correlateProductCategoriesAction() {
+  const { user } = await requireAdmin()
+  if (!user) throw new Error('Não autenticado')
+
+  const supabase = (await createClient()) as any
+  const result = await correlateAllProductCategories(supabase)
+
+  await createAuditLog('PRODUCT_CATEGORIES_CORRELATED', 'products', user.id, result)
+  invalidateProductCache()
+  invalidateCategoryCache()
+
+  redirect(
+    `/admin/produtos?categorias=correlacionadas&processados=${result.processed}&atualizados=${result.updated}`,
+  )
 }
 
 // VARIANTES

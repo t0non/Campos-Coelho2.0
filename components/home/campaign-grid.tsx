@@ -1,66 +1,137 @@
-import Link from 'next/link'
+'use client'
+
+import { useRef, useState } from 'react'
 import Image from 'next/image'
-import { ArrowRight, Tag } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { Container } from '@/components/ui/container'
-import type { CollectionCampaign } from '@/lib/mocks/mock-collections'
+import { ProductCard } from '@/components/product/product-card'
+import type { CollectionCampaign } from '@/lib/data/home'
 
 interface CampaignGridProps {
   collections: CollectionCampaign[]
+  canViewPrices: boolean
+  userStatus: 'visitor' | 'pending' | 'approved' | 'rejected' | 'suspended'
 }
 
-export function CampaignGrid({ collections }: CampaignGridProps) {
+export function CampaignGrid({
+  collections,
+  canViewPrices,
+  userStatus,
+}: CampaignGridProps) {
+  const [selectedIndex, setSelectedIndex] = useState(() => {
+    const firstCampaignWithProducts = collections.findIndex(
+      (campaign) => campaign.products?.length > 0,
+    )
+    return firstCampaignWithProducts >= 0 ? firstCampaignWithProducts : 0
+  })
+  const productsTrackRef = useRef<HTMLDivElement>(null)
+
+  if (!collections || collections.length === 0) return null
+
+  const selectedCampaign = collections[selectedIndex] ?? collections[0]
+  const selectedProducts = selectedCampaign.products ?? []
+
+  const scrollProducts = (direction: -1 | 1) => {
+    productsTrackRef.current?.scrollBy({
+      left: direction * Math.max(240, productsTrackRef.current.clientWidth * 0.82),
+      behavior: 'smooth',
+    })
+  }
+
   return (
-    <section className="py-12 bg-slate-50 border-b border-slate-200">
-      <Container className="space-y-8">
-        <div className="border-b border-slate-200 pb-4">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-orange-600 uppercase tracking-wider mb-1">
-            <Tag className="h-4 w-4" />
-            <span>Campanhas Sazonais & Temáticas</span>
-          </div>
-          <h2 className="text-2xl font-extrabold text-slate-900">
-            Campanhas em Destaque
-          </h2>
-          <p className="text-xs text-slate-500 mt-1">
-            Coleções selecionadas para atender os picos de demanda dos seus clientes.
-          </p>
-        </div>
+    <section
+      aria-label="Campanhas sazonais"
+      className="site-section-compact border-b border-neutral-100 bg-white"
+    >
+      <Container>
+        <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-7 sm:overflow-visible sm:px-0 lg:grid-cols-4 lg:gap-10">
+          {collections.slice(0, 4).map((item, index) => {
+            const isSelected = selectedCampaign.id === item.id
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {collections.map((item) => (
-            <div
-              key={item.id}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-xs hover:border-orange-500 hover:shadow-md transition-all"
-            >
-              {item.badge && (
-                <span className="absolute top-4 right-4 rounded-full bg-orange-500 px-2.5 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">
-                  {item.badge}
-                </span>
-              )}
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setSelectedIndex(index)}
+                aria-pressed={isSelected}
+                className="group flex min-w-[165px] snap-start flex-col items-center text-center sm:min-w-0"
+              >
+                <div className="relative h-28 w-full sm:h-32 lg:h-36">
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.title}
+                    fill
+                    sizes="(min-width: 1024px) 250px, (min-width: 640px) 45vw, 165px"
+                    className={`object-contain transition-transform duration-300 group-hover:scale-105 ${
+                      isSelected ? 'scale-105' : ''
+                    }`}
+                  />
+                </div>
 
-              <div className="space-y-3">
-                <h3 className="text-lg font-bold text-slate-900 group-hover:text-orange-600 transition-colors">
-                  {item.title}
-                </h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  {item.description}
-                </p>
-                <p className="text-[11px] font-semibold text-slate-400">
-                  {item.itemCount} opções em catálogo
-                </p>
-              </div>
-
-              <div className="pt-6">
-                <Link
-                  href={`/categoria/${item.slug}`}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-orange-600 group-hover:text-orange-700 group-hover:underline"
+                <span
+                  className={`mt-3 border-b-2 pb-1 text-sm font-extrabold uppercase tracking-wide transition-colors sm:text-base ${
+                    isSelected
+                      ? 'border-black text-black'
+                      : 'border-transparent text-neutral-600 group-hover:text-black'
+                  }`}
                 >
-                  <span>{item.ctaLabel}</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-            </div>
-          ))}
+                  {item.title}
+                </span>
+              </button>
+            )
+          })}
         </div>
+
+        {selectedProducts.length > 0 && (
+          <div className="mt-8 border-t border-neutral-200 pt-7">
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-neutral-500">
+                  Seleção da campanha
+                </p>
+                <h2 className="site-section-title mt-1 text-black">
+                  {selectedCampaign.title}
+                </h2>
+              </div>
+
+              {selectedProducts.length > 1 && (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => scrollProducts(-1)}
+                    aria-label="Ver produtos anteriores"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-600 transition-colors hover:border-black hover:bg-neutral-100 hover:text-black"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => scrollProducts(1)}
+                    aria-label="Ver próximos produtos"
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-white shadow-md transition-all hover:scale-105 hover:bg-neutral-800"
+                  >
+                    <ChevronRight className="h-5 w-5" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div
+              ref={productsTrackRef}
+              className="grid snap-x snap-mandatory grid-flow-col auto-cols-[78%] gap-4 overflow-x-auto pb-3 sm:auto-cols-[46%] md:auto-cols-[31%] lg:auto-cols-[216px] xl:auto-cols-[220px]"
+            >
+              {selectedProducts.map((product) => (
+                <div key={product.id} className="snap-start">
+                  <ProductCard
+                    product={product}
+                    canViewPrices={canViewPrices}
+                    userStatus={userStatus}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </Container>
     </section>
   )

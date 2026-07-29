@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2, UploadCloud, X, FileText } from 'lucide-react'
@@ -110,17 +111,30 @@ export function ContinuousRegistrationForm() {
   const docIdFiles = uploadedFiles.filter((f) => f.category === 'doc_responsavel')
 
   return (
-    <div className="max-w-[1200px] mx-auto bg-white p-6 sm:p-10 shadow-sm border border-gray-200 rounded-lg my-12">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-[#111111]">Cadastre-se</h1>
-        <p className="text-gray-600 mt-2">
+    <div className="registration-importec w-full bg-white px-[3.5vw] py-12 sm:py-14">
+      <nav aria-label="Breadcrumb" className="mb-8 text-sm text-[#333333]">
+        <span>Você está em:</span>{' '}
+        <Link href="/" className="text-[#171717] hover:underline">
+          Página inicial
+        </Link>
+      </nav>
+
+      <div className="mb-12">
+        <h1 className="text-3xl sm:text-[34px] leading-tight font-extrabold text-[#171717]">
+          Cadastre-se
+        </h1>
+        <p className="text-[#333333] mt-4">
           Para efetuar seu cadastro, basta preencher o formulário abaixo com os seus dados.
         </p>
-        <p className="text-sm text-red-600 mt-1 italic">
+        <p className="text-sm text-red-600 mt-3 italic">
           Atenção: Os campos marcados com * são de preenchimento obrigatório.
         </p>
-        <p className="text-sm text-gray-600 mt-4">
+        <p className="text-base text-[#333333] mt-6">
           Cadastro exclusivo para clientes com CNPJ e Inscrição Estadual.
+        </p>
+        <p className="text-base text-[#333333] mt-6 leading-relaxed">
+          Após o envio, os dados serão analisados pela nossa equipe comercial. Em breve entraremos
+          em contato para confirmar o cadastro e liberar o acesso às condições de atacado.
         </p>
       </div>
 
@@ -130,32 +144,39 @@ export function ContinuousRegistrationForm() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-12">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-12"
+        data-registration-form
+      >
         {/* ═══════════════ 1. Cadastro da Empresa ═══════════════ */}
         <section>
-          <h2 className="text-xl font-bold text-[#111111] mb-4 border-b pb-2">
+          <h2 className="text-xl font-extrabold text-[#171717] mb-6">
             Cadastro da Empresa
           </h2>
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid sm:grid-cols-2 gap-x-8 gap-y-6">
             <Input
               label="CNPJ *"
-              placeholder="00.000.000/0001-00"
+              placeholder="*CNPJ"
               {...register('company.cnpj')}
               onChange={(e) => handleMaskChange('company.cnpj', e.target.value, maskCNPJ)}
               error={errors.company?.cnpj?.message}
             />
             <Input
               label="Nome Fantasia *"
+              placeholder="*Nome Fantasia"
               {...register('company.tradingName')}
               error={errors.company?.tradingName?.message}
             />
             <Input
               label="Razão Social *"
+              placeholder="*Razão Social"
               {...register('company.companyName')}
               error={errors.company?.companyName?.message}
             />
             <Input
               label="E-mail *"
+              placeholder="*E-mail"
               type="email"
               {...register('company.email')}
               error={errors.company?.email?.message}
@@ -164,6 +185,7 @@ export function ContinuousRegistrationForm() {
             <div className="space-y-2">
               <Input
                 label="Inscrição Estadual"
+                placeholder="*Inscrição Estadual"
                 disabled={isStateRegistrationExempt}
                 {...register('company.stateRegistration')}
                 error={errors.company?.stateRegistration?.message}
@@ -180,6 +202,7 @@ export function ContinuousRegistrationForm() {
 
             <Input
               label="Telefone *"
+              placeholder="*Telefone"
               {...register('company.phone')}
               onChange={(e) => handleMaskChange('company.phone', e.target.value, maskPhone)}
               error={errors.company?.phone?.message}
@@ -187,6 +210,7 @@ export function ContinuousRegistrationForm() {
 
             <Select
               label="Segmento de Atuação *"
+              placeholder="*Segmento de Atuação"
               options={[
                 { label: 'Supermercado / Mercearia', value: 'supermercado' },
                 { label: 'Loja de Utilidades Domésticas', value: 'utilidades' },
@@ -201,6 +225,7 @@ export function ContinuousRegistrationForm() {
 
             <Select
               label="Tipo de Negócio *"
+              placeholder="*Tipo de Negócio"
               options={[
                 { label: 'Matriz', value: 'matriz' },
                 { label: 'Filial', value: 'filial' },
@@ -213,6 +238,7 @@ export function ContinuousRegistrationForm() {
 
             <Select
               label="Número de funcionários *"
+              placeholder="*Número de funcionários"
               options={[
                 { label: '1 a 5', value: '1-5' },
                 { label: '6 a 15', value: '6-15' },
@@ -225,6 +251,7 @@ export function ContinuousRegistrationForm() {
 
             <Input
               label="WhatsApp"
+              placeholder="WhatsApp"
               {...register('company.whatsapp')}
               onChange={(e) => handleMaskChange('company.whatsapp', e.target.value, maskPhone)}
               error={errors.company?.whatsapp?.message}
@@ -234,15 +261,15 @@ export function ContinuousRegistrationForm() {
 
         {/* ═══════════════ 2. Documentos ═══════════════ */}
         <section>
-          <h2 className="text-xl font-bold text-[#111111] mb-4 border-b pb-2">Documentos</h2>
+          <h2 className="sr-only">Documentos</h2>
           <div className="grid md:grid-cols-2 gap-8">
             {/* Contrato Social */}
             <div>
-              <p className="text-[#111111] text-sm font-semibold mb-2">
+              <p className="text-[#333333] text-sm mb-2">
                 *Inserir contrato social
               </p>
               <label
-                className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-white hover:bg-gray-50 transition-colors"
+                className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded cursor-pointer bg-[#fcfcfc] hover:bg-[#f7f9fc] transition-colors"
                 onDragOver={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
@@ -255,10 +282,10 @@ export function ContinuousRegistrationForm() {
                 }}
               >
                 <div className="flex flex-col items-center justify-center py-4">
-                  <UploadCloud className="w-10 h-10 mb-2 text-[#111111]" />
+                  <UploadCloud className="w-10 h-10 mb-2 text-[#171717]" />
                   <p className="text-sm text-gray-500">
                     Arraste e solte seus arquivos ou{' '}
-                    <span className="text-[#111111] font-semibold">Clique para localizar</span>
+                    <span className="text-[#171717] font-semibold">Clique para localizar</span>
                   </p>
                 </div>
                 <input
@@ -308,11 +335,11 @@ export function ContinuousRegistrationForm() {
 
             {/* Documento de Identidade do Responsável */}
             <div>
-              <p className="text-[#111111] text-sm font-semibold mb-2">
+              <p className="text-[#333333] text-sm mb-2">
                 *Inserir documento de identidade da pessoa responsável
               </p>
               <label
-                className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-white hover:bg-gray-50 transition-colors"
+                className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded cursor-pointer bg-[#fcfcfc] hover:bg-[#f7f9fc] transition-colors"
                 onDragOver={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
@@ -325,10 +352,10 @@ export function ContinuousRegistrationForm() {
                 }}
               >
                 <div className="flex flex-col items-center justify-center py-4">
-                  <UploadCloud className="w-10 h-10 mb-2 text-[#111111]" />
+                  <UploadCloud className="w-10 h-10 mb-2 text-[#171717]" />
                   <p className="text-sm text-gray-500">
                     Arraste e solte seus arquivos ou{' '}
-                    <span className="text-[#111111] font-semibold">Clique para localizar</span>
+                    <span className="text-[#171717] font-semibold">Clique para localizar</span>
                   </p>
                 </div>
                 <input
@@ -380,7 +407,7 @@ export function ContinuousRegistrationForm() {
 
         {/* ═══════════════ 3. Áreas de interesse ═══════════════ */}
         <section>
-          <h2 className="text-xl font-bold text-[#111111] mb-4 border-b pb-2">
+          <h2 className="text-xl font-extrabold text-[#171717] mb-6">
             Áreas de interesse
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -406,6 +433,7 @@ export function ContinuousRegistrationForm() {
           <div className="grid sm:grid-cols-4 gap-4 mt-6">
             <Select
               label="Canal de Vendas *"
+              placeholder="*Canal de Vendas"
               options={[
                 { label: 'Loja Física', value: 'fisica' },
                 { label: 'Online', value: 'online' },
@@ -416,6 +444,7 @@ export function ContinuousRegistrationForm() {
             />
             <Select
               label="Frequência de Compra *"
+              placeholder="*Frequência de Compra"
               options={[
                 { label: 'Semanal', value: 'semanal' },
                 { label: 'Quinzenal', value: 'quinzenal' },
@@ -426,6 +455,7 @@ export function ContinuousRegistrationForm() {
             />
             <Select
               label="Volume Médio *"
+              placeholder="*Volume Médio"
               options={[
                 { label: 'Até R$ 5.000', value: 'ate_5k' },
                 { label: 'R$ 5.000 a R$ 20.000', value: '5k_20k' },
@@ -436,6 +466,7 @@ export function ContinuousRegistrationForm() {
             />
             <Select
               label="Como nos conheceu? *"
+              placeholder="*Como nos conheceu?"
               options={[
                 { label: 'Google', value: 'google' },
                 { label: 'Instagram', value: 'instagram' },
@@ -450,6 +481,7 @@ export function ContinuousRegistrationForm() {
           <div className="grid sm:grid-cols-2 gap-4 mt-4">
             <Select
               label="Número de Lojas *"
+              placeholder="*Número de Lojas"
               options={[
                 { label: '1 loja', value: '1' },
                 { label: '2 a 5 lojas', value: '2-5' },
@@ -479,10 +511,11 @@ export function ContinuousRegistrationForm() {
 
         {/* ═══════════════ 4. Endereço ═══════════════ */}
         <section>
-          <h2 className="text-xl font-bold text-[#111111] mb-4 border-b pb-2">Endereço</h2>
+          <h2 className="text-xl font-extrabold text-[#171717] mb-6">Endereço</h2>
           <div className="grid sm:grid-cols-4 gap-4">
             <Input
               label="CEP *"
+              placeholder="*CEP"
               {...register('addresses.fiscal.cep')}
               onChange={(e) =>
                 handleMaskChange('addresses.fiscal.cep', e.target.value, maskCEP)
@@ -492,32 +525,38 @@ export function ContinuousRegistrationForm() {
             <div className="sm:col-span-2">
               <Input
                 label="Endereço *"
+                placeholder="*Endereço"
                 {...register('addresses.fiscal.street')}
                 error={errors.addresses?.fiscal?.street?.message}
               />
             </div>
             <Input
               label="Número *"
+              placeholder="*Número"
               {...register('addresses.fiscal.number')}
               error={errors.addresses?.fiscal?.number?.message}
             />
 
             <Input
               label="Complemento"
+              placeholder="Complemento"
               {...register('addresses.fiscal.complement')}
             />
             <Input
               label="Bairro *"
+              placeholder="*Bairro"
               {...register('addresses.fiscal.neighborhood')}
               error={errors.addresses?.fiscal?.neighborhood?.message}
             />
             <Input
               label="Cidade *"
+              placeholder="*Cidade"
               {...register('addresses.fiscal.city')}
               error={errors.addresses?.fiscal?.city?.message}
             />
             <Input
               label="Estado *"
+              placeholder="*Estado"
               {...register('addresses.fiscal.state')}
               error={errors.addresses?.fiscal?.state?.message}
             />
@@ -534,23 +573,26 @@ export function ContinuousRegistrationForm() {
 
         {/* ═══════════════ 5. Contato Responsável ═══════════════ */}
         <section>
-          <h2 className="text-xl font-bold text-[#111111] mb-4 border-b pb-2">
+          <h2 className="text-xl font-extrabold text-[#171717] mb-6">
             Contato Responsável
           </h2>
           <div className="grid sm:grid-cols-3 gap-4">
             <Input
               label="Nome Completo *"
+              placeholder="*Nome Completo"
               {...register('responsible.fullName')}
               error={errors.responsible?.fullName?.message}
             />
             <Input
               label="CPF *"
+              placeholder="*CPF"
               {...register('responsible.cpf')}
               onChange={(e) => handleMaskChange('responsible.cpf', e.target.value, maskCPF)}
               error={errors.responsible?.cpf?.message}
             />
             <Select
               label="Cargo *"
+              placeholder="*Cargo"
               options={[
                 { label: 'Proprietário(a)', value: 'proprietario' },
                 { label: 'Comprador(a)', value: 'comprador' },
@@ -563,18 +605,21 @@ export function ContinuousRegistrationForm() {
 
             <Input
               label="E-mail *"
+              placeholder="*E-mail"
               type="email"
               {...register('responsible.email')}
               error={errors.responsible?.email?.message}
             />
             <Input
               label="Telefone *"
+              placeholder="*Telefone"
               {...register('responsible.phone')}
               onChange={(e) => handleMaskChange('responsible.phone', e.target.value, maskPhone)}
               error={errors.responsible?.phone?.message}
             />
             <Input
               label="WhatsApp *"
+              placeholder="*WhatsApp"
               {...register('responsible.whatsapp')}
               onChange={(e) =>
                 handleMaskChange('responsible.whatsapp', e.target.value, maskPhone)
@@ -584,12 +629,14 @@ export function ContinuousRegistrationForm() {
 
             <Input
               label="Senha *"
+              placeholder="*Senha"
               type="password"
               {...register('responsible.password')}
               error={errors.responsible?.password?.message}
             />
             <Input
               label="Confirmar Senha *"
+              placeholder="*Confirmar Senha"
               type="password"
               {...register('responsible.confirmPassword')}
               error={errors.responsible?.confirmPassword?.message}
@@ -598,70 +645,103 @@ export function ContinuousRegistrationForm() {
         </section>
 
         {/* ═══════════════ 6. Termos e Condições ═══════════════ */}
-        <section className="bg-slate-50 p-4 rounded-lg border border-slate-200">
-          <h2 className="font-semibold text-sm mb-3">Termos e Condições</h2>
-          <div className="space-y-3">
+        <section className="border-t border-slate-200 pt-8">
+          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-xl font-extrabold text-[#171717]">
+                Termos e declarações
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Revise e confirme cada item antes de concluir o cadastro.
+              </p>
+            </div>
+            <span className="w-fit rounded-full bg-[#f0f0f0] px-3 py-1 text-xs font-bold text-[#050505]">
+              4 confirmações obrigatórias
+            </span>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
             <Controller
               name="consents.termsOfUse"
               control={control}
               render={({ field }) => (
-                <Checkbox
-                  label={
-                    <span className="text-sm">
-                      Aceito os <strong>Termos de Uso</strong> *
-                    </span>
-                  }
-                  checked={field.value}
-                  onChange={field.onChange}
-                />
+                <div className="rounded-md border border-slate-200 bg-white p-4 transition-colors hover:border-[#171717]/40">
+                  <Checkbox
+                    label={
+                      <span className="block leading-snug">
+                        <strong className="block text-[#171717]">Termos de Uso</strong>
+                        <span className="mt-1 block text-xs font-normal text-slate-500">
+                          Li e aceito as regras de utilização da plataforma.
+                        </span>
+                      </span>
+                    }
+                    checked={field.value}
+                    onChange={field.onChange}
+                  />
+                </div>
               )}
             />
             <Controller
               name="consents.privacyPolicy"
               control={control}
               render={({ field }) => (
-                <Checkbox
-                  label={
-                    <span className="text-sm">
-                      Aceito a <strong>Política de Privacidade</strong> *
-                    </span>
-                  }
-                  checked={field.value}
-                  onChange={field.onChange}
-                />
+                <div className="rounded-md border border-slate-200 bg-white p-4 transition-colors hover:border-[#171717]/40">
+                  <Checkbox
+                    label={
+                      <span className="block leading-snug">
+                        <strong className="block text-[#171717]">Política de Privacidade</strong>
+                        <span className="mt-1 block text-xs font-normal text-slate-500">
+                          Declaro que li como os meus dados serão utilizados.
+                        </span>
+                      </span>
+                    }
+                    checked={field.value}
+                    onChange={field.onChange}
+                  />
+                </div>
               )}
             />
             <Controller
               name="consents.lgpdDataProcessing"
               control={control}
               render={({ field }) => (
-                <Checkbox
-                  label={
-                    <span className="text-sm">
-                      Autorizo o tratamento de dados de acordo com a LGPD *
-                    </span>
-                  }
-                  checked={field.value}
-                  onChange={field.onChange}
-                />
+                <div className="rounded-md border border-slate-200 bg-white p-4 transition-colors hover:border-[#171717]/40">
+                  <Checkbox
+                    label={
+                      <span className="block leading-snug">
+                        <strong className="block text-[#171717]">Tratamento de dados</strong>
+                        <span className="mt-1 block text-xs font-normal text-slate-500">
+                          Autorizo o tratamento dos dados para análise e gestão do cadastro.
+                        </span>
+                      </span>
+                    }
+                    checked={field.value}
+                    onChange={field.onChange}
+                  />
+                </div>
               )}
             />
             <Controller
               name="consents.declarationOfTruth"
               control={control}
               render={({ field }) => (
-                <Checkbox
-                  label={
-                    <span className="text-sm">
-                      Declaro que todas as informações prestadas são verdadeiras *
-                    </span>
-                  }
-                  checked={field.value}
-                  onChange={field.onChange}
-                />
+                <div className="rounded-md border border-slate-200 bg-white p-4 transition-colors hover:border-[#171717]/40">
+                  <Checkbox
+                    label={
+                      <span className="block leading-snug">
+                        <strong className="block text-[#171717]">Veracidade das informações</strong>
+                        <span className="mt-1 block text-xs font-normal text-slate-500">
+                          Confirmo que os dados e documentos informados são verdadeiros.
+                        </span>
+                      </span>
+                    }
+                    checked={field.value}
+                    onChange={field.onChange}
+                  />
+                </div>
               )}
             />
-            <div className="text-red-500 text-xs">
+            <div className="text-red-500 text-xs md:col-span-2">
               {errors.consents?.termsOfUse?.message ||
                 errors.consents?.privacyPolicy?.message ||
                 errors.consents?.lgpdDataProcessing?.message ||
@@ -675,7 +755,7 @@ export function ContinuousRegistrationForm() {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="bg-[#111111] hover:bg-[#122a52] text-white px-12 py-6 text-lg font-bold rounded-md w-full sm:w-auto"
+            className="w-full rounded-lg bg-black px-12 py-6 text-lg font-extrabold text-white transition-colors hover:bg-neutral-800 sm:w-auto"
           >
             {isSubmitting ? (
               <>

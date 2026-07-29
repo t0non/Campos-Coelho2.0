@@ -37,7 +37,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
   const queryTerm = params.query || ''
 
   return (
-    <div className="py-6 bg-slate-50 min-h-screen">
+    <div className="min-h-screen bg-slate-50 py-10 sm:py-12">
       <Container className="space-y-6">
         {/* Breadcrumb */}
         <CatalogBreadcrumb

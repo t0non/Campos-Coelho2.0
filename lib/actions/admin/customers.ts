@@ -4,8 +4,10 @@ import { createClient, createAdminClient } from '@/lib/supabase/server'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { Database } from '@/types/database.types'
 import { revalidatePath } from 'next/cache'
+import { requireAdmin } from '@/lib/supabase/auth'
 
 export async function getCustomers(search?: string, status?: string) {
+  await requireAdmin()
   const supabase = await createClient()
 
   // Verifica admin
@@ -42,6 +44,7 @@ export async function getCustomers(search?: string, status?: string) {
 }
 
 export async function getCustomerDetails(companyId: string) {
+  await requireAdmin()
   const supabase = await createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -91,6 +94,7 @@ export async function getCustomerDetails(companyId: string) {
 }
 
 export async function updateCustomerStatus(companyId: string, status: 'approved' | 'rejected' | 'pending' | 'suspended', notes?: string) {
+  await requireAdmin()
   const supabase = await createClient()
 
   // 1. Verificar quem está chamando a action
@@ -136,6 +140,7 @@ export async function updateCustomerStatus(companyId: string, status: 'approved'
 }
 
 export async function getDocumentUrl(filePath: string) {
+  await requireAdmin()
   const supabase = await createClient()
   
   // Assumindo que o bucket de documentos (company-documents) não é público e precisamos assinar a URL

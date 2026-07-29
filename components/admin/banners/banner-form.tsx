@@ -13,6 +13,9 @@ interface BannerFormProps {
 }
 
 export function BannerForm({ initialData, onClose }: BannerFormProps) {
+  const [placement, setPlacement] = useState<'hero' | 'secondary'>(
+    initialData?.subtitle === '__secondary__' ? 'secondary' : 'hero',
+  )
   const [formData, setFormData] = useState<Partial<Banner>>(
     initialData || {
       title: '',
@@ -75,7 +78,7 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
       const res = await saveBanner({
         id: formData.id,
         title: formData.title || '',
-        subtitle: formData.subtitle || null,
+        subtitle: placement === 'secondary' ? '__secondary__' : null,
         image_url: finalImageUrl || '',
         mobile_image_url: finalMobileUrl || null,
         link_url: formData.link_url || null,
@@ -175,6 +178,17 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
               className="w-full p-2 border rounded"
               placeholder="Ex: Campanha Dia dos Pais"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1">Local de Exibição</label>
+            <select
+              value={placement}
+              onChange={e => setPlacement(e.target.value as 'hero' | 'secondary')}
+              className="w-full p-2 border rounded bg-white"
+            >
+              <option value="hero">Carrossel principal</option>
+              <option value="secondary">Banner intermediário</option>
+            </select>
           </div>
           <div>
             <label className="block text-sm font-semibold mb-1">Link de Destino</label>

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function CadastroPage() {
   return (
-    <div className="bg-[#f5f5f5] min-h-screen">
+    <div className="min-h-screen bg-white">
       <ContinuousRegistrationForm />
     </div>
   )

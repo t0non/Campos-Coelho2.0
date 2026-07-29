@@ -31,13 +31,13 @@ export function HowToBuy() {
   ]
 
   return (
-    <section className="py-16 bg-slate-50 border-b border-slate-200">
+    <section className="site-section border-b border-slate-200 bg-slate-50">
       <Container className="space-y-12">
         <div className="text-center max-w-2xl mx-auto space-y-2">
-          <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
+          <span className="site-section-eyebrow text-orange-600">
             Passo a Passo Simples
           </span>
-          <h2 className="text-3xl font-extrabold text-slate-900">
+          <h2 className="site-section-title text-slate-900">
             Comprar no Atacado Ficou Mais Simples
           </h2>
           <p className="text-xs sm:text-sm text-slate-500">

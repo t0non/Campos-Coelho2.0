@@ -9,6 +9,7 @@ import { Container } from '@/components/ui/container'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import { subscribeNewsletterAction } from '@/app/actions/newsletter'
 
 const newsletterSchema = z.object({
   name: z.string().min(2, 'Informe seu nome.'),
@@ -35,26 +36,29 @@ export function NewsletterSection() {
   })
 
   const onSubmit = async (data: NewsletterInput) => {
-    // Simulação de envio da newsletter (preparado para futura gravação em newsletter_leads)
-    await new Promise((resolve) => setTimeout(resolve, 800))
+    const result = await subscribeNewsletterAction({
+      name: data.name,
+      email: data.email,
+    })
+    if (!result.success) return
     setSuccess(true)
     reset()
   }
 
   return (
-    <section className="py-12 bg-navy-900 text-white select-none">
+    <section className="site-section select-none bg-neutral-100 text-white">
       <Container>
-        <div className="rounded-3xl bg-navy-800 border border-navy-700 p-8 sm:p-12">
+        <div className="rounded-3xl border border-white/10 bg-black p-8 shadow-[0_20px_55px_rgba(0,0,0,0.16)] sm:p-12">
           <div className="grid lg:grid-cols-12 gap-8 items-center">
             {/* Lado Esquerdo - Título & Descrição */}
             <div className="lg:col-span-5 space-y-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500 text-white">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-black">
                 <Mail className="h-5 w-5" />
               </div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+              <h2 className="site-section-title text-white">
                 Receba Novidades & Oportunidades
               </h2>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              <p className="text-xs leading-relaxed text-neutral-400 sm:text-sm">
                 Cadastre-se para acompanhar lançamentos de produtos, campanhas de temporada e promoções de atacado.
               </p>
             </div>
@@ -78,14 +82,14 @@ export function NewsletterSection() {
                       placeholder="Seu nome"
                       {...register('name')}
                       error={errors.name?.message}
-                      className="bg-navy-900 border-navy-700 text-white placeholder:text-slate-500"
+                      className="border-white/15 bg-neutral-950 text-white placeholder:text-neutral-600"
                     />
                     <Input
                       type="email"
                       placeholder="Seu e-mail empresarial"
                       {...register('email')}
                       error={errors.email?.message}
-                      className="bg-navy-900 border-navy-700 text-white placeholder:text-slate-500"
+                      className="border-white/15 bg-neutral-950 text-white placeholder:text-neutral-600"
                     />
                   </div>
 
@@ -105,7 +109,7 @@ export function NewsletterSection() {
                       type="submit"
                       variant="accent"
                       loading={isSubmitting}
-                      className="w-full sm:w-auto px-8"
+                      className="w-full bg-white px-8 text-black hover:bg-neutral-200 sm:w-auto"
                     >
                       <Send className="h-4 w-4 mr-1" />
                       Inscrever-se

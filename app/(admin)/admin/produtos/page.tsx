@@ -4,11 +4,14 @@ import { AdminPageHeader } from '@/components/admin/admin-page-header'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { StatusBadge } from '@/components/admin/status-badge'
 import { Button } from '@/components/ui/button'
-import { Plus, Search, Filter } from 'lucide-react'
+import { Plus, Search, Filter, Tags } from 'lucide-react'
 import Link from 'next/link'
 import { getAdminCategories } from '@/lib/data/admin-catalog'
 import { getAdminBrands } from '@/lib/data/admin-catalog'
 import Image from 'next/image'
+import { correlateProductCategoriesAction } from '@/app/actions/catalog'
+import { synchronizeLatestImportedCatalogAction } from '@/app/actions/catalog-sync'
+import { getCategoryProductFallbackImage } from '@/lib/catalog/product-image-fallback'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +26,15 @@ export default async function AdminProductsPage({
     publication?: string
     sort?: string
     page?: string
+    categorias?: string
+    processados?: string
+    atualizados?: string
+    precos?: string
+    valores?: string
+    estoques?: string
+    sincronizacao?: string
+    produtos?: string
+    inferidos?: string
   }>
 }) {
   const { user } = await requireAdmin()
@@ -62,6 +74,17 @@ export default async function AdminProductsPage({
         description="Gerencie os produtos do seu catálogo B2B."
         action={
           <div className="flex items-center gap-2">
+            <form action={synchronizeLatestImportedCatalogAction}>
+              <Button type="submit" variant="outline" className="h-10">
+                Aplicar preços e nomes da planilha
+              </Button>
+            </form>
+            <form action={correlateProductCategoriesAction}>
+              <Button type="submit" variant="outline" className="h-10">
+                <Tags className="h-4 w-4" />
+                Correlacionar categorias
+              </Button>
+            </form>
             <Link href="/admin/produtos/importar?mode=import_update" className="inline-flex items-center justify-center gap-2 font-medium bg-slate-800 text-white hover:bg-slate-700 h-10 px-4 text-sm rounded-lg">
               Importar planilha
             </Link>
@@ -72,6 +95,32 @@ export default async function AdminProductsPage({
           </div>
         }
       />
+
+      {params.categorias === 'correlacionadas' && (
+        <div role="status" className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          Categorias correlacionadas com sucesso em {params.processados ?? 'todos os'} produtos.
+          {' '}
+          {params.atualizados ?? '0'} cadastros precisaram ser atualizados.
+        </div>
+      )}
+
+      {(params.precos === 'corrigidos' || params.precos === 'ja-corrigidos') && (
+        <div role="status" className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          {params.precos === 'corrigidos'
+            ? `${params.valores ?? '0'} preços importados foram corrigidos e os produtos foram liberados para pedidos.`
+            : `Os preços desta importação já estavam corrigidos (${params.valores ?? '0'} registros).`}
+        </div>
+      )}
+
+      {params.sincronizacao === 'concluida' && (
+        <div role="status" className="rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+          {params.produtos ?? '0'} produtos foram padronizados e {params.precos ?? '0'} preços foram sincronizados com a planilha.
+          {' '}
+          {params.inferidos === '1'
+            ? 'O único preço zerado foi preenchido pelo produto idêntico encontrado no arquivo.'
+            : `${params.inferidos ?? '0'} preços zerados foram preenchidos por produtos idênticos.`}
+        </div>
+      )}
 
       {/* FILTROS (Mínimos por GET Form para manter sem state client) */}
       <div className="bg-white p-4 rounded-md border flex flex-col sm:flex-row gap-4 items-end">
@@ -161,15 +210,19 @@ export default async function AdminProductsPage({
             ) : (
               products.map((product) => {
                 const primaryImage = product.images?.[0]?.url
+                const displayImage = primaryImage
+                  ? getImageUrl(primaryImage)!
+                  : getCategoryProductFallbackImage(product.category?.slug)
                 return (
                   <TableRow key={product.id}>
                     <TableCell>
                       <div className="h-10 w-10 relative rounded border overflow-hidden bg-muted flex items-center justify-center">
-                        {primaryImage ? (
-                          <Image src={getImageUrl(primaryImage)!} alt={product.name} fill className="object-cover" />
-                        ) : (
-                          <span className="text-xs text-muted-foreground">Sem img</span>
-                        )}
+                        <Image
+                          src={displayImage}
+                          alt={product.name}
+                          fill
+                          className="object-contain p-1"
+                        />
                       </div>
                     </TableCell>
                     <TableCell>

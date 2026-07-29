@@ -2,6 +2,10 @@ import { createClient } from '@/lib/supabase/server'
 import type { AuthContext } from '@/types/auth.types'
 import type { CatalogProduct } from '@/types/product.types'
 import type { Database } from '@/types/database.types'
+import {
+  withCategoryProductFallback,
+} from '@/lib/catalog/product-image-fallback'
+import { getProductImageUrl } from '@/lib/utils/storage-url'
 
 type CategoryRow = Database['public']['Tables']['categories']['Row']
 type BrandRow = Database['public']['Tables']['brands']['Row']
@@ -72,7 +76,10 @@ export async function getProducts(options?: {
     sku: row.sku,
     name: row.name,
     slug: row.slug,
-    images: row.product_images?.map((img) => img.url) ?? [],
+    images: withCategoryProductFallback(
+      row.product_images?.map((img) => getProductImageUrl(img.url)) ?? [],
+      row.category?.slug,
+    ),
     unit: row.unit,
     min_quantity: row.min_quantity,
     category: row.category ?? null,

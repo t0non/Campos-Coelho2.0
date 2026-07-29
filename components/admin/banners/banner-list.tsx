@@ -105,6 +105,9 @@ export function BannerList({ banners, onEdit }: BannerListProps) {
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${banner.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
                 {banner.is_active ? 'ATIVO' : 'INATIVO'}
               </span>
+              <span className="rounded bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">
+                {banner.subtitle === '__secondary__' ? 'INTERMEDIÁRIO' : 'PRINCIPAL'}
+              </span>
             </div>
           </div>
 

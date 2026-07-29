@@ -7,6 +7,7 @@ import {
   getEffectiveProductLevelPriceForCurrentCustomer,
   getCatalogPricingForCurrentCustomer,
 } from '@/lib/data/pricing'
+import { withCategoryProductFallback } from '@/lib/catalog/product-image-fallback'
 
 export interface ProductDetailInfo {
   longDescription?: string
@@ -160,13 +161,10 @@ export async function getProductBySlug(
       : await getEffectiveProductLevelPriceForCurrentCustomer(raw.id)
   }
 
-  const images = (raw.product_images ?? [])
+  const uploadedImages = (raw.product_images ?? [])
     .sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.position ?? 0) - (b.position ?? 0))
     .map((img) => getProductImageUrl(img.url))
-
-  if (images.length === 0) {
-    images.push('/placeholder-product.png')
-  }
+  const images = withCategoryProductFallback(uploadedImages, raw.categories?.slug)
 
   const categoryObj = raw.categories && raw.categories.is_active ? { id: raw.categories.id, name: raw.categories.name, slug: raw.categories.slug } : null
   const brandObj = raw.brands && raw.brands.is_active ? { id: raw.brands.id, name: raw.brands.name, slug: raw.brands.slug } : null
@@ -270,11 +268,10 @@ export async function getRelatedProducts(
   const batchPricing = canViewPrices ? await getCatalogPricingForCurrentCustomer(primaryVariantIds) : new Map<string, PriceInfo>()
 
   return rawList.map((p) => {
-    const images = (p.product_images ?? [])
+    const uploadedImages = (p.product_images ?? [])
       .sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.position ?? 0) - (b.position ?? 0))
       .map((img) => getProductImageUrl(img.url))
-
-    if (images.length === 0) images.push('/placeholder-product.png')
+    const images = withCategoryProductFallback(uploadedImages, p.categories?.slug)
 
     const activeVars = (p.product_variants ?? []).filter((v) => v.is_active)
     const primaryVar = activeVars[0]
@@ -285,6 +282,7 @@ export async function getRelatedProducts(
       sku: p.sku,
       name: p.name,
       slug: p.slug,
+      primary_variant_id: primaryVar?.id ?? null,
       images,
       unit: p.unit,
       min_quantity: p.min_quantity,

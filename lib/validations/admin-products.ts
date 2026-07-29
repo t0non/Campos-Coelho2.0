@@ -12,7 +12,7 @@ export const ProductInputSchema = z.object({
     .regex(/^[A-Za-z0-9-_]+$/, 'SKU deve conter apenas letras, números, hifens e underscores'),
   description: z.string().max(5000).optional().nullable(),
   short_description: z.string().max(500).optional().nullable(),
-  category_id: z.string().uuid('ID de categoria inválido').nullable().optional(),
+  category_id: z.string().uuid('Selecione uma categoria válida'),
   brand_id: z.string().uuid('ID de marca inválido').nullable().optional(),
   unit: z.string().min(1).max(50).default('UN'),
   min_quantity: z.number().int().positive('A quantidade mínima deve ser maior que zero').default(1),

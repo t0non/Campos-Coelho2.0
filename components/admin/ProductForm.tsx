@@ -6,10 +6,11 @@ import { createProductAction, updateProductAction } from '@/app/actions/catalog'
 import { Button } from '@/components/ui/button'
 import { FormSwitch } from '@/components/admin/form-switch'
 import { useToast } from '@/hooks/use-toast'
+import { inferProductCategorySlug } from '@/lib/catalog/product-category'
 
 interface ProductFormProps {
   initialData?: any
-  categories: { id: string; name: string }[]
+  categories: { id: string; name: string; slug: string }[]
   brands: { id: string; name: string }[]
 }
 
@@ -18,6 +19,9 @@ export function ProductForm({ initialData, categories, brands }: ProductFormProp
   const { toast } = useToast()
   
   const [loading, setLoading] = useState(false)
+  const [categoryWasManuallyChanged, setCategoryWasManuallyChanged] = useState(
+    Boolean(initialData?.category_id),
+  )
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
     slug: initialData?.slug || '',
@@ -38,7 +42,22 @@ export function ProductForm({ initialData, categories, brands }: ProductFormProp
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+    const { name, value } = e.target
+
+    if (name === 'category_id') {
+      setCategoryWasManuallyChanged(true)
+    }
+
+    setFormData((current) => {
+      const next = { ...current, [name]: value }
+
+      if (name === 'name' && !categoryWasManuallyChanged) {
+        const suggestedSlug = inferProductCategorySlug(value)
+        next.category_id = categories.find((category) => category.slug === suggestedSlug)?.id ?? ''
+      }
+
+      return next
+    })
   }
 
   const handleSwitch = (name: string, checked: boolean) => {
@@ -111,11 +130,14 @@ export function ProductForm({ initialData, categories, brands }: ProductFormProp
         <h3 className="font-medium">Organização</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-sm block mb-1">Categoria</label>
-            <select name="category_id" value={formData.category_id} onChange={handleChange} className="w-full h-9 flex rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
-              <option value="">Nenhuma</option>
+            <label className="text-sm block mb-1">Categoria *</label>
+            <select required name="category_id" value={formData.category_id} onChange={handleChange} className="w-full h-9 flex rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
+              <option value="">Selecione uma categoria</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
+            <p className="mt-1 text-xs text-slate-500">
+              A categoria é sugerida pelo nome do produto e pode ser alterada manualmente.
+            </p>
           </div>
           <div>
             <label className="text-sm block mb-1">Marca</label>

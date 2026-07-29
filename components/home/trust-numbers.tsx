@@ -6,10 +6,10 @@ interface TrustNumbersProps {
 
 export function TrustNumbers({ metrics }: TrustNumbersProps) {
   return (
-    <section className="py-12 bg-white border-b border-slate-200">
-      <Container className="space-y-6">
-        <div className="text-center max-w-xl mx-auto space-y-1">
-          <h2 className="text-xl font-bold text-slate-900">
+    <section className="site-section border-b border-slate-200 bg-white">
+      <Container>
+        <div className="site-section-header mx-auto max-w-xl space-y-2 text-center">
+          <h2 className="site-section-title text-slate-900">
             Estrutura Comercial Preparada para o Mercado B2B
           </h2>
           <span className="inline-block rounded-full bg-slate-100 px-3 py-0.5 text-[10px] font-semibold text-slate-500">

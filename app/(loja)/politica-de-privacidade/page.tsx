@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PoliticaDePrivacidadePage() {
   return (
-    <div className="py-10 bg-slate-50 min-h-screen">
+    <div className="min-h-screen bg-slate-50 py-10 sm:py-12">
       <Container className="max-w-4xl space-y-6">
         <div className="border-b border-slate-200 pb-4 space-y-2">
           <div className="flex items-center gap-2 text-xs font-bold text-orange-600 uppercase tracking-wider">
