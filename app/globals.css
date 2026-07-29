@@ -44,15 +44,9 @@
   --content-gap: clamp(1.5rem, 3vw, 2rem);
   --control-height: 2.75rem;
 
-  /*
-   * Tipografia nativa, sem download adicional.
-   * As famílias "Variable" usam os desenhos ópticos próprios para texto e
-   * títulos nos sistemas modernos, com fallbacks consistentes em cada SO.
-   */
-  --font-body-stack: "Segoe UI Variable Text", "Aptos", "Inter",
-    "Helvetica Neue", Arial, sans-serif;
-  --font-display-stack: "Segoe UI Variable Display", "Aptos Display",
-    "Inter Tight", "Helvetica Neue", Arial, sans-serif;
+  /* Montserrat variável, otimizada e hospedada pelo próprio Next.js. */
+  --font-body-stack: var(--font-montserrat), "Montserrat", Arial, sans-serif;
+  --font-display-stack: var(--font-montserrat), "Montserrat", Arial, sans-serif;
 }
 
 @theme inline {
@@ -110,6 +104,12 @@
 
   --font-sans: var(--font-body-stack);
   --font-heading: var(--font-display-stack);
+  --font-serif: var(--font-body-stack);
+  --font-mono: var(--font-body-stack);
+}
+
+html {
+  font-family: var(--font-sans);
 }
 
 body {
@@ -162,6 +162,13 @@ select,
 textarea {
   font-family: var(--font-sans);
   letter-spacing: -0.005em;
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-sans);
 }
 
 .site-section {

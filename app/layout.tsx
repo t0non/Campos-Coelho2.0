@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { montserrat } from './fonts'
 import { getSiteUrl } from '@/lib/utils/site-url'
 
 export const metadata: Metadata = {
@@ -27,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" className="h-full antialiased">
+    <html lang="pt-BR" className={`${montserrat.variable} h-full antialiased`}>
       <body className="min-h-full bg-neutral-50 font-sans text-neutral-900">
         {children}
       </body>

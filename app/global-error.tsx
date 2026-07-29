@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { montserrat } from './fonts'
 
 /**
  * Global error boundary — captura erros no layout raiz.
@@ -18,7 +19,7 @@ export default function GlobalError({
   }, [error])
 
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" className={montserrat.variable}>
       <body className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white px-4 text-center font-sans">
         <h1 className="text-2xl font-bold text-gray-900">Erro crítico</h1>
         <p className="text-gray-500">
