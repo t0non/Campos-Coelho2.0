@@ -73,13 +73,22 @@ export const addressSchema = z.object({
 })
 
 // 4. Schema do Conjunto de Endereços
-export const addressesStepSchema = z.object({
-  fiscal: addressSchema,
-  shipping: addressSchema,
-  isShippingSameAsFiscal: z.boolean().optional(),
-  billing: addressSchema,
-  isBillingSameAsFiscal: z.boolean().optional(),
-})
+export const addressesStepSchema = z
+  .object({
+    fiscal: addressSchema,
+    shipping: addressSchema.optional(),
+    isShippingSameAsFiscal: z.boolean().optional(),
+    billing: addressSchema.optional(),
+    isBillingSameAsFiscal: z.boolean().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.isShippingSameAsFiscal && !data.shipping) {
+      ctx.addIssue({ code: 'custom', path: ['shipping'], message: 'Informe o endereço de entrega.' })
+    }
+    if (!data.isBillingSameAsFiscal && !data.billing) {
+      ctx.addIssue({ code: 'custom', path: ['billing'], message: 'Informe o endereço de cobrança.' })
+    }
+  })
 
 export type AddressesStepFormValues = z.infer<typeof addressesStepSchema>
 
