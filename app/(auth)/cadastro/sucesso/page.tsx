@@ -33,7 +33,7 @@ export default async function CadastroSucessoPage({ searchParams }: PageProps) {
             Protocolo: {displayProtocol}
           </span>
           <h1 className="text-3xl font-extrabold text-slate-900 pt-1">
-            Cadastro Preenchido com Sucesso!
+            Cadastro enviado com sucesso!
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto leading-relaxed">
             Recebemos a solicitação de cadastro empresarial. Seus dados foram enviados com
@@ -48,8 +48,9 @@ export default async function CadastroSucessoPage({ searchParams }: PageProps) {
             <span>Status cadastral: pendente de análise</span>
           </div>
           <p className="text-amber-800 leading-relaxed">
-            O cadastro da sua empresa está em análise pela equipe comercial. Você receberá uma
-            confirmação assim que o acesso aos preços e pedidos for liberado.
+            O cadastro da sua empresa está em análise pela equipe comercial. Em até 5 dias úteis,
+            a decisão de aprovação ou recusa será disponibilizada na sua conta, acompanhada da
+            mensagem da nossa equipe.
           </p>
         </div>
 
@@ -59,8 +60,8 @@ export default async function CadastroSucessoPage({ searchParams }: PageProps) {
             Resumo dos Próximos Passos:
           </p>
           <ul className="space-y-1.5 list-disc list-inside text-slate-600">
-            <li>Análise dos documentos cadastrais (Prazo médio: 24h úteis)</li>
-            <li>Notificação de aprovação enviada por e-mail e WhatsApp</li>
+            <li>Análise dos dados e documentos em até 5 dias úteis</li>
+            <li>Notificação de aprovação ou recusa disponibilizada na sua conta</li>
             <li>Liberação imediata da visualização de preços e pedidos no site</li>
           </ul>
         </div>

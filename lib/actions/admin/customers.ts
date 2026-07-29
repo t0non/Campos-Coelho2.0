@@ -104,8 +104,15 @@ export async function getCustomerDetails(companyId: string) {
   }
 }
 
-export async function updateCustomerStatus(companyId: string, status: 'approved' | 'rejected' | 'pending' | 'suspended', notes?: string) {
+export async function updateCustomerStatus(
+  companyId: string,
+  status: 'approved' | 'rejected',
+  decisionMessage: string,
+) {
   await requireAdmin()
+  if (decisionMessage.trim().length < 5) {
+    return { error: 'Escreva uma mensagem para o cliente com pelo menos 5 caracteres.' }
+  }
   const supabase = await createClient()
 
   // 1. Verificar quem está chamando a action
@@ -125,15 +132,31 @@ export async function updateCustomerStatus(companyId: string, status: 'approved'
   // 2. Usar o cliente de Admin (service_role) para fazer o update ignorando as barreiras do RLS
   const adminClient = await createAdminClient()
 
+  const { data: company } = await adminClient
+    .from('companies')
+    .select('id')
+    .eq('id', companyId)
+    .single()
+
+  const { data: primaryMember } = await adminClient
+    .from('company_members')
+    .select('profile_id')
+    .eq('company_id', companyId)
+    .eq('is_primary', true)
+    .maybeSingle()
+
+  if (!company) return { error: 'Empresa não encontrada.' }
+
   const updateData: Database['public']['Tables']['companies']['Update'] = { 
     status,
-    internal_notes: notes || null
+    internal_notes: decisionMessage.trim(),
   }
 
   if (status === 'approved') {
     updateData.approved_at = new Date().toISOString()
   } else if (status === 'rejected') {
     updateData.rejected_at = new Date().toISOString()
+    updateData.rejection_reason = decisionMessage.trim()
   }
 
   const { error } = await adminClient
@@ -145,6 +168,24 @@ export async function updateCustomerStatus(companyId: string, status: 'approved'
     console.error('Erro ao atualizar status do cliente:', error)
     return { error: 'Erro ao atualizar status da empresa.' }
   }
+
+  if (primaryMember?.profile_id) {
+    await adminClient.from('notifications').insert({
+      profile_id: primaryMember.profile_id,
+      title: status === 'approved' ? 'Cadastro aprovado' : 'Cadastro não aprovado',
+      message: decisionMessage.trim(),
+      type: status === 'approved' ? 'company_approved' : 'company_rejected',
+      link_url: status === 'approved' ? '/minha-conta' : '/conta-recusada',
+    })
+  }
+
+  await adminClient.from('audit_logs').insert({
+    actor_id: user.id,
+    action: status === 'approved' ? 'company_approved' : 'company_rejected',
+    target_table: 'companies',
+    target_id: companyId,
+    payload: { message: decisionMessage.trim() },
+  })
 
   revalidatePath('/admin/clientes')
   return { success: true }
