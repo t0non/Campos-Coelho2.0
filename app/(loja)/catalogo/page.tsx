@@ -12,13 +12,14 @@ import { CatalogFilterSidebar } from '@/components/catalog/catalog-filter-sideba
 import { ProductCard } from '@/components/product/product-card'
 import { Pagination } from '@/components/ui/pagination'
 import { EmptyState } from '@/components/ui/empty-state'
+import { getSiteUrl } from '@/lib/utils/site-url'
 
 export const metadata: Metadata = {
-  title: 'Catálogo de Produtos para Revenda | Central Atacado B2B',
+  title: 'Catálogo de produtos para revenda',
   description:
     'Explore produtos para revenda em utilidades, brinquedos, ferramentas e papelaria com condições de atacado para empresas.',
   alternates: {
-    canonical: 'http://localhost:3000/catalogo',
+    canonical: `${getSiteUrl()}/catalogo`,
   },
 }
 

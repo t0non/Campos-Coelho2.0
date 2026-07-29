@@ -66,7 +66,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
                   src={banner.desktopImage}
                   alt={banner.title}
                   fill
-                  priority={idx === 0}
+                  preload={idx === 0}
                   className="object-cover"
                   sizes="100vw"
                 />
@@ -78,7 +78,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
                   src={banner.mobileImage}
                   alt={banner.title}
                   fill
-                  priority={idx === 0}
+                  preload={idx === 0}
                   className="object-cover"
                   sizes="100vw"
                 />

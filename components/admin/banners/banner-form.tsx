@@ -97,11 +97,23 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
   }
 
   return (
-    <div className="bg-white border rounded-lg p-6 shadow-sm">
+    <div className="border border-neutral-200 bg-white p-5 sm:p-7">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold">{initialData ? 'Editar Banner' : 'Novo Banner'}</h2>
-        <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full">
-          <X className="h-5 w-5" />
+        <div>
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-neutral-400">
+            Conteúdo da loja
+          </p>
+          <h2 className="mt-1 text-xl font-extrabold text-neutral-950">
+            {initialData ? 'Editar banner' : 'Novo banner'}
+          </h2>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex h-9 w-9 items-center justify-center rounded-md text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
+          aria-label="Fechar formulário de banner"
+        >
+          <X className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>
 
@@ -127,6 +139,7 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
                   src={desktopFile ? URL.createObjectURL(desktopFile) : (formData.image_url || '')}
                   alt="Desktop Preview"
                   fill
+                  sizes="(min-width: 768px) 50vw, 100vw"
                   className="object-cover"
                 />
               ) : (
@@ -155,6 +168,7 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
                   src={mobileFile ? URL.createObjectURL(mobileFile) : (formData.mobile_image_url || '')}
                   alt="Mobile Preview"
                   fill
+                  sizes="(min-width: 768px) 50vw, 100vw"
                   className="object-contain bg-black/5"
                 />
               ) : (
@@ -226,7 +240,7 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
           </button>
           <button 
             type="submit"
-            className="px-6 py-2 bg-[#111111] text-white rounded text-sm font-bold hover:bg-[#142d55] disabled:opacity-50"
+            className="min-h-10 rounded-md bg-neutral-950 px-6 py-2 text-sm font-bold text-white hover:bg-neutral-800 disabled:opacity-50"
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Salvando...' : 'Salvar Banner'}

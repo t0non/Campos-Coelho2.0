@@ -4,7 +4,7 @@ import { Container } from '@/components/ui/container'
 import { FileText, ShieldAlert } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Termos de Uso Comercial | Central Atacado',
+  title: 'Termos de uso comercial',
   description: 'Condições gerais de uso e políticas comerciais para compras no atacado B2B.',
 }
 
@@ -15,7 +15,7 @@ export default function TermosDeUsoPage() {
         <div className="border-b border-slate-200 pb-4 space-y-2">
           <div className="flex items-center gap-2 text-xs font-bold text-orange-600 uppercase tracking-wider">
             <FileText className="h-4 w-4" />
-            <span>Documento Institucional Provisório</span>
+            <span>Documento institucional</span>
           </div>
           <h1 className="text-3xl font-extrabold text-slate-900">Termos de Uso Comercial</h1>
           <p className="text-xs text-slate-500">Última atualização: Julho de 2026</p>
@@ -24,9 +24,10 @@ export default function TermosDeUsoPage() {
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs font-medium text-amber-800 flex items-start gap-3">
           <ShieldAlert className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <p className="font-bold">Aviso de Demonstração Legal:</p>
+            <p className="font-bold">Versão preliminar:</p>
             <p className="mt-0.5">
-              Este documento é uma minuta demonstrativa da plataforma Central Atacado B2B. Os textos definitivos deverão ser revisados por assessoria jurídica antes da operação em produção.
+              Este documento apresenta as condições comerciais gerais da Campos &amp; Coelho.
+              O conteúdo deve ser validado pela assessoria jurídica responsável.
             </p>
           </div>
         </div>
@@ -35,7 +36,10 @@ export default function TermosDeUsoPage() {
           <section className="space-y-2">
             <h2 className="text-base font-bold text-slate-900">1. Objeto e Condições B2B</h2>
             <p>
-              A plataforma Central Atacado destina-se exclusivamente à comercialização de produtos no atacado para pessoas jurídicas devidamente registradas com CNPJ ativo. A visualização de preços e a realização de pedidos dependem da aprovação prévia do cadastro comercial.
+              A plataforma Campos &amp; Coelho destina-se exclusivamente à comercialização de
+              produtos no atacado para pessoas jurídicas devidamente registradas com CNPJ
+              ativo. A visualização de preços e a realização de pedidos dependem da aprovação
+              prévia do cadastro comercial.
             </p>
           </section>
 

@@ -19,6 +19,7 @@ import { Drawer } from '@/components/ui/drawer'
 import { QuantitySelector } from '@/components/ui/quantity-selector'
 import type { CartLineItem } from '@/lib/types/cart'
 import { formatPrice } from '@/lib/utils/format'
+import { getProductDisplayName } from '@/lib/utils/product-display-name'
 
 interface CartSlideOverProps {
   isOpen: boolean
@@ -334,8 +335,7 @@ export function CartSlideOver({
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <h4 className="line-clamp-2 pr-1 text-sm font-bold leading-snug text-neutral-950">
-                            {item.product_name}
-                            {item.variant_name ? ` — ${item.variant_name}` : ''}
+                            {getProductDisplayName(item.product_name, item.variant_name)}
                           </h4>
                           <p className="mt-1 text-[11px] font-medium uppercase tracking-wide text-neutral-400">
                             Ref. {item.variant_sku ?? item.product_sku}

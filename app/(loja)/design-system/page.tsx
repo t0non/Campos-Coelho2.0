@@ -39,7 +39,7 @@ export default function DesignSystemPage() {
             <span>Guia de Estilo & Componentes</span>
           </div>
           <h1 className="text-3xl font-extrabold text-slate-900">
-            Design System — Central Atacado B2B
+            Guia de interface — Campos &amp; Coelho
           </h1>
           <p className="text-sm text-slate-500">
             Página interna de demonstração dos tokens visuais, componentes de interface e estados interativos.
@@ -106,7 +106,8 @@ export default function DesignSystemPage() {
             <div>
               <p className="text-xs text-slate-400 font-mono">Corpo de Texto (text-sm text-slate-600)</p>
               <p className="text-sm text-slate-600">
-                A Central Atacado oferece preços exclusivos para lojistas e revendedores cadastrados.
+                A Campos &amp; Coelho oferece preços exclusivos para lojistas e revendedores
+                cadastrados.
               </p>
             </div>
           </div>

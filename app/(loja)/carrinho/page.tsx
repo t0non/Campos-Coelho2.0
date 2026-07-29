@@ -6,13 +6,14 @@ import { getAuthContext } from '@/lib/supabase/auth'
 import { readActiveCart } from '@/lib/data/cart'
 import { Container } from '@/components/ui/container'
 import { formatPrice } from '@/lib/utils/format'
+import { getProductDisplayName } from '@/lib/utils/product-display-name'
 import { CartPageActions } from '@/components/cart/cart-page-actions'
 import { ShoppingBag, AlertTriangle, ArrowLeft, ArrowRight, Info } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Meu Carrinho | AtacadoB2B',
+  title: 'Meu carrinho',
   description: 'Revise os itens do seu pedido antes de finalizar.',
 }
 
@@ -153,8 +154,7 @@ export default async function CarrinhoPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <h3 className="text-sm font-bold text-slate-900 leading-tight">
-                          {item.product_name}
-                          {item.variant_name ? ` — ${item.variant_name}` : ''}
+                          {getProductDisplayName(item.product_name, item.variant_name)}
                         </h3>
                         <p className="text-[11px] text-slate-400 mt-0.5">
                           REF: {item.variant_sku ?? item.product_sku}

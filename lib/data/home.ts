@@ -103,6 +103,29 @@ const SEASONAL_IMAGE_MAP: Record<string, string> = {
   natal: '/images/seasonal/natal.png',
 }
 
+function getStoreBannerHref(value: string | null | undefined) {
+  if (!value) return '/catalogo'
+  if (value.startsWith('/')) return value
+
+  try {
+    const url = new URL(value)
+    if (['localhost', '127.0.0.1', '0.0.0.0'].includes(url.hostname)) {
+      return `${url.pathname}${url.search}${url.hash}` || '/catalogo'
+    }
+
+    return url.protocol === 'https:' ? url.toString() : '/catalogo'
+  } catch {
+    return '/catalogo'
+  }
+}
+
+function getStoreBannerTitle(value: string | null | undefined, index: number) {
+  const title = value?.trim()
+  if (title && !/^https?:\/\//i.test(title)) return title
+
+  return index === 0 ? 'Campos & Coelho Atacado' : `Destaque Campos & Coelho ${index + 1}`
+}
+
 const DEFAULT_SEASONAL_COLLECTIONS: CollectionCampaign[] = [
   {
     id: 'seasonal-festa-junina',
@@ -376,12 +399,15 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
   )
 
   const heroBanners: HeroBannerItem[] = heroBannerRows.length > 0 
-    ? heroBannerRows.map(b => ({
+    ? heroBannerRows.map((b, index) => ({
         id: b.id,
-        title: b.title,
+        title: getStoreBannerTitle(b.title, index),
         subtitle: b.subtitle || '',
         description: '',
-        primaryCta: b.link_url ? { label: 'Saiba Mais', href: b.link_url } : { label: 'Explorar Catálogo', href: '/catalogo' },
+        primaryCta: {
+          label: b.link_url ? 'Saiba Mais' : 'Explorar Catálogo',
+          href: getStoreBannerHref(b.link_url),
+        },
         desktopImage: b.image_url,
         mobileImage: b.mobile_image_url || b.image_url,
         theme: 'dark',
@@ -402,11 +428,11 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
   const secondaryBanner: SecondaryBannerItem | null = secondaryBannerRow
     ? {
         id: secondaryBannerRow.id,
-        title: secondaryBannerRow.title,
+        title: getStoreBannerTitle(secondaryBannerRow.title, 0),
         imageUrl: secondaryBannerRow.image_url,
         mobileImageUrl:
           secondaryBannerRow.mobile_image_url || secondaryBannerRow.image_url,
-        href: secondaryBannerRow.link_url || '/catalogo',
+        href: getStoreBannerHref(secondaryBannerRow.link_url),
       }
     : null
 

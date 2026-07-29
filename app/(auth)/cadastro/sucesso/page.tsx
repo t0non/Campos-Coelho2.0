@@ -5,7 +5,7 @@ import { Container } from '@/components/ui/container'
 import { CheckCircle2, ShieldCheck, ArrowLeft, LogIn } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Cadastro Preenchido com Sucesso | Central Atacado',
+  title: 'Cadastro enviado com sucesso',
   robots: {
     index: false,
     follow: false,

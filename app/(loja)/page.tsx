@@ -14,19 +14,22 @@ import { TrustNumbers } from '@/components/home/trust-numbers'
 import { Testimonials } from '@/components/home/testimonials'
 import { InstitutionalSection } from '@/components/home/institutional-section'
 import { NewsletterSection } from '@/components/home/newsletter-section'
+import { getSiteUrl } from '@/lib/utils/site-url'
+
+const siteUrl = getSiteUrl()
 
 export const metadata: Metadata = {
   title: 'Campos & Coelho Atacado | Produtos para revenda B2B',
   description:
     'Encontre produtos para revenda, utilidades domésticas, brinquedos, cadastre seu CNPJ e consulte condições comerciais exclusivas.',
   alternates: {
-    canonical: 'http://localhost:3000',
+    canonical: siteUrl,
   },
   openGraph: {
     title: 'Campos & Coelho Atacado | Plataforma de Atacado B2B',
     description:
       'Variedade para o seu negócio crescer. Cadastre seu CNPJ e acesse os preços de atacado.',
-    url: 'http://localhost:3000',
+    url: siteUrl,
     siteName: 'Campos & Coelho Atacado',
     locale: 'pt_BR',
     type: 'website',
@@ -46,21 +49,21 @@ export default async function HomePage() {
     '@graph': [
       {
         '@type': 'Organization',
-        '@id': 'http://localhost:3000/#organization',
-        name: 'Central Atacado',
-        url: 'http://localhost:3000',
-        logo: 'http://localhost:3000/logo.png',
-        description: 'Plataforma de comércio eletrônico para atacado B2B.',
+        '@id': `${siteUrl}/#organization`,
+        name: 'Campos & Coelho Atacado',
+        url: siteUrl,
+        logo: `${siteUrl}/logo_campos_coelho.png`,
+        description: 'Distribuidora de produtos no atacado para lojistas e empresas.',
       },
       {
         '@type': 'WebSite',
-        '@id': 'http://localhost:3000/#website',
-        url: 'http://localhost:3000',
-        name: 'Central Atacado',
-        publisher: { '@id': 'http://localhost:3000/#organization' },
+        '@id': `${siteUrl}/#website`,
+        url: siteUrl,
+        name: 'Campos & Coelho Atacado',
+        publisher: { '@id': `${siteUrl}/#organization` },
         potentialAction: {
           '@type': 'SearchAction',
-          target: 'http://localhost:3000/catalogo?q={search_term_string}',
+          target: `${siteUrl}/catalogo?q={search_term_string}`,
           'query-input': 'required name=search_term_string',
         },
       },

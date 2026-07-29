@@ -2,6 +2,7 @@
 
 import { Check, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { getProductDisplayName } from '@/lib/utils/product-display-name'
 
 interface VariantOption {
   id: string
@@ -12,6 +13,7 @@ interface VariantOption {
 }
 
 interface VariantSelectorProps {
+  productName: string
   variants: VariantOption[]
   selectedVariantId: string | null
   onSelect: (variantId: string) => void
@@ -26,6 +28,7 @@ function variantLabel(v: VariantOption): string {
 }
 
 export function VariantSelector({
+  productName,
   variants,
   selectedVariantId,
   onSelect,
@@ -33,6 +36,14 @@ export function VariantSelector({
   isPending = false,
 }: VariantSelectorProps) {
   if (variants.length === 0) return null
+  if (
+    !interactive &&
+    variants.length === 1 &&
+    getProductDisplayName(productName, variantLabel(variants[0])) ===
+      getProductDisplayName(productName)
+  ) {
+    return null
+  }
 
   return (
     <div className="space-y-2">

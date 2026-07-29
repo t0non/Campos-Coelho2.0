@@ -18,7 +18,7 @@ export function InstitutionalSection() {
             <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-navy-900 text-orange-400 mb-4 shadow-md">
               <Building2 className="h-8 w-8" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900">Central Atacado</h3>
+            <h3 className="text-xl font-bold text-slate-900">Campos &amp; Coelho</h3>
             <p className="text-xs text-slate-500 mt-1 max-w-xs">
               Variedade, agilidade e estrutura preparada para abastecer o seu negócio.
             </p>
@@ -35,7 +35,9 @@ export function InstitutionalSection() {
             </div>
 
             <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              A Central Atacado foi criada para facilitar o abastecimento de lojas, revendedores e empresas. Reunimos grande variedade de produtos, atendimento comercial especializado e uma experiência de compra moderna preparada para o mercado B2B.
+              A Campos &amp; Coelho facilita o abastecimento de lojas, revendedores e
+              empresas com variedade de produtos, atendimento comercial especializado e
+              uma operação preparada para o mercado B2B.
             </p>
 
             <div className="space-y-2">

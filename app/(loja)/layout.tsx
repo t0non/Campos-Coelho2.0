@@ -8,9 +8,9 @@ import { getCategories } from '@/lib/supabase/queries/categories'
 import type { CartSummary } from '@/lib/types/cart'
 
 export const metadata: Metadata = {
-  title: 'Central Atacado — Variedade para o seu negócio crescer',
+  title: 'Campos & Coelho Atacado — Variedade para o seu negócio crescer',
   description:
-    'Plataforma de atacado B2B para lojistas e revendedores. Cadastre seu CNPJ para liberar os preços de atacado.',
+    'Distribuidora B2B para lojistas e revendedores. Cadastre seu CNPJ para consultar preços e condições comerciais.',
 }
 
 /**

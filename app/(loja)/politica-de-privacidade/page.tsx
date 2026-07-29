@@ -4,7 +4,7 @@ import { Container } from '@/components/ui/container'
 import { ShieldCheck, ShieldAlert } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'Política de Privacidade e LGPD | Central Atacado',
+  title: 'Política de privacidade e LGPD',
   description: 'Tratamento de dados cadastrais e política de privacidade LGPD para empresas.',
 }
 
@@ -24,9 +24,11 @@ export default function PoliticaDePrivacidadePage() {
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs font-medium text-amber-800 flex items-start gap-3">
           <ShieldAlert className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
           <div>
-            <p className="font-bold">Aviso de Demonstração Legal:</p>
+            <p className="font-bold">Versão preliminar:</p>
             <p className="mt-0.5">
-              Este documento apresenta as diretrizes de privacidade da plataforma Central Atacado. Os textos legais deverão ser validados pelo Encarregado de Proteção de Dados (DPO) antes da operação real.
+              Este documento apresenta as diretrizes de privacidade da Campos &amp; Coelho. O
+              conteúdo deve ser validado pelo Encarregado de Proteção de Dados e pela
+              assessoria jurídica responsável.
             </p>
           </div>
         </div>

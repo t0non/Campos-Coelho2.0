@@ -170,7 +170,7 @@ export function CommercialInterestsStep({
 
         {/* Como Conheceu */}
         <Select
-          label="Como Conheceu a Central Atacado?"
+          label="Como conheceu a Campos & Coelho?"
           options={[
             { label: 'Busca na Internet (Google)', value: 'google' },
             { label: 'Indicação de Parceiro / Lojista', value: 'indicacao' },

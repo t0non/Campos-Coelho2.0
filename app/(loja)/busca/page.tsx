@@ -15,7 +15,7 @@ import { Pagination } from '@/components/ui/pagination'
 import { EmptyState } from '@/components/ui/empty-state'
 
 export const metadata: Metadata = {
-  title: 'Busca de Produtos no Atacado | Central Atacado',
+  title: 'Busca de produtos no atacado',
   robots: {
     index: false,
     follow: true,

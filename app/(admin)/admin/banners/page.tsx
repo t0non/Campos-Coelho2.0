@@ -48,25 +48,36 @@ export default function AdminBannersPage() {
   }
 
   if (isLoading && banners.length === 0) {
-    return <div className="p-8 text-center text-gray-500">Carregando banners...</div>
+    return (
+      <div className="mx-auto w-full max-w-6xl border border-neutral-200 bg-white px-6 py-14 text-center text-sm font-medium text-neutral-500">
+        Carregando banners...
+      </div>
+    )
   }
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-[#111111]">Banners</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Gerencie o carrossel principal e o banner intermediário. Você pode subir imagens diferentes para PC e Celular.
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-neutral-400">
+            Comunicação visual
+          </p>
+          <h1 className="mt-1 text-2xl font-extrabold tracking-tight text-neutral-950 sm:text-3xl">
+            Banners
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-500">
+            Gerencie o carrossel principal e os destaques intermediários da loja para
+            computador e celular.
           </p>
         </div>
         {!showForm && (
-          <button 
+          <button
+            type="button"
             onClick={handleAddNew}
-            className="flex items-center gap-2 bg-[#e5e5e5] text-[#111111] font-bold px-4 py-2 rounded-md hover:bg-[#cccccc] transition-colors"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-neutral-950 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-neutral-800"
           >
-            <Plus className="h-5 w-5" />
-            Novo Banner
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            Novo banner
           </button>
         )}
       </div>

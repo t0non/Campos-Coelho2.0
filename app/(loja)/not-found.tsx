@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 import { SearchX } from 'lucide-react'
 
-export const metadata: Metadata = { title: 'Página não encontrada | Central Atacado' }
+export const metadata: Metadata = { title: 'Página não encontrada' }
 
 export default function LojaNotFoundPage() {
   return (

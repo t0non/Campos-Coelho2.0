@@ -66,6 +66,7 @@ export function ProductPurchasePanelWrapper({
     <div className="space-y-4">
       {variantCount > 0 && (
         <VariantSelector
+          productName={product.name}
           variants={product.variants}
           selectedVariantId={selectedVariantId}
           onSelect={handleSelectVariant}

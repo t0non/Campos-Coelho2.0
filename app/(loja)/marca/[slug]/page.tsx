@@ -14,6 +14,7 @@ import { CatalogFilterSidebar } from '@/components/catalog/catalog-filter-sideba
 import { ProductCard } from '@/components/product/product-card'
 import { Pagination } from '@/components/ui/pagination'
 import { EmptyState } from '@/components/ui/empty-state'
+import { getSiteUrl } from '@/lib/utils/site-url'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -25,14 +26,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const brand = await getBrandBySlug(slug)
 
   if (!brand) {
-    return { title: 'Marca Não Encontrada | Central Atacado' }
+    return { title: 'Marca não encontrada' }
   }
 
   return {
     title: brand.metaTitle,
     description: brand.metaDescription,
     alternates: {
-      canonical: `http://localhost:3000/marca/${slug}`,
+      canonical: `${getSiteUrl()}/marca/${slug}`,
     },
   }
 }

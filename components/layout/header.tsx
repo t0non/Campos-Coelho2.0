@@ -182,7 +182,7 @@ export function Header({
     <>
       {/* Faixa institucional */}
       <div className="flex h-[37px] items-center justify-center bg-black px-4 text-center text-[11px] font-semibold uppercase tracking-[0.12em] text-white/80">
-        Venda para CNPJ com Inscrição Estadual - Pedido mínimo do site R$ 1000.00
+        Venda para CNPJ com Inscrição Estadual · Pedido mínimo do site R$ 1.000,00
       </div>
 
       {/* 2. Main Header Bar - White Background */}
@@ -203,7 +203,6 @@ export function Header({
               width={225}
               height={56}
               className="h-auto w-[185px] object-contain"
-              priority
             />
           </Link>
 
@@ -227,7 +226,6 @@ export function Header({
                 width={225}
                 height={56}
                 className="h-auto w-[180px] object-contain sm:w-[210px]"
-                priority
               />
             </Link>
 
@@ -239,6 +237,7 @@ export function Header({
               <input
                 ref={searchInputRef}
                 type="text"
+                aria-label="Buscar produtos"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="O que você procura?"
@@ -281,6 +280,7 @@ export function Header({
                   <button
                     type="button"
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    aria-label={`Abrir menu da conta de ${user.full_name}`}
                     className="flex cursor-pointer items-center gap-2.5 transition-colors hover:text-[#050505]"
                   >
                     <User className="h-8 w-8 text-[#171717]" />
@@ -296,6 +296,7 @@ export function Header({
                   <button
                     type="button"
                     onClick={() => setIsLoginOpen(true)}
+                    aria-label="Entrar ou cadastrar empresa"
                     className="flex items-center gap-2.5 transition-colors hover:text-[#050505]"
                   >
                     <User className="h-8 w-8 text-[#171717]" />
@@ -355,6 +356,7 @@ export function Header({
               <button
                 type="button"
                 onClick={() => setIsCartOpen(true)}
+                aria-label={`Abrir carrinho, ${cartCount} ${cartCount === 1 ? 'item' : 'itens'}`}
                 className="flex cursor-pointer items-center gap-2.5 transition-colors hover:text-[#050505]"
               >
                 <div className="relative">
@@ -380,6 +382,7 @@ export function Header({
             <form onSubmit={handleSearch} className="flex">
               <input
                 type="text"
+                aria-label="Buscar produtos"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="O que você procura?"
@@ -387,6 +390,7 @@ export function Header({
               />
               <button
                 type="submit"
+                aria-label="Buscar"
                 className="rounded-none border-0 bg-black px-4 py-2 text-xs font-bold text-white focus:outline-none focus:ring-0"
               >
                 <Search className="h-4 w-4" />
