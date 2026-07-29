@@ -13,7 +13,6 @@ import {
 import { CatalogBreadcrumb } from '@/components/catalog/catalog-breadcrumb'
 import { ProductGallery } from '@/components/product/product-gallery'
 import { ProductSummary } from '@/components/product/product-summary'
-import { ProductPricing } from '@/components/product/product-pricing'
 import { ProductPurchasePanelWrapper } from '@/components/product/product-purchase-panel-wrapper'
 import { ProductShippingEstimate } from '@/components/product/product-shipping-estimate'
 import { ProductBenefits } from '@/components/product/product-benefits'
@@ -22,8 +21,8 @@ import { ProductSpecifications } from '@/components/product/product-specificatio
 import { ProductPackaging } from '@/components/product/product-packaging'
 import { FrequentlyBoughtTogether } from '@/components/product/frequently-bought-together'
 import { ProductShowcase } from '@/components/home/product-showcase'
-import { RecentlyViewedProducts } from '@/components/product/recently-viewed-products'
 import { BusinessRegistrationCTA } from '@/components/home/business-registration-cta'
+import { getSiteUrl } from '@/lib/utils/site-url'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -32,6 +31,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
+  const siteUrl = getSiteUrl()
   const authContext = await getAuthContext()
   const product = await getProductBySlug(slug, authContext)
 
@@ -40,19 +40,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: `${product.name} no Atacado | Central Atacado B2B`,
+    title: `${product.name} no atacado`,
     description: `Compre ${product.name} no atacado. REF: ${product.sku}. Embalagem mínima: ${product.min_quantity} ${product.unit}. Cadastre seu CNPJ.`,
     alternates: {
-      canonical: `http://localhost:3000/produto/${slug}`,
+      canonical: `${siteUrl}/produto/${slug}`,
     },
     openGraph: {
-      title: `${product.name} no Atacado B2B`,
+      title: `${product.name} no atacado | Campos & Coelho`,
       description: `Compre ${product.name} no atacado direto da distribuidora.`,
-      url: `http://localhost:3000/produto/${slug}`,
-      siteName: 'Central Atacado',
+      url: `${siteUrl}/produto/${slug}`,
+      siteName: 'Campos & Coelho Atacado',
       images: [
         {
-          url: product.images[0] ?? 'http://localhost:3000/placeholder-product.png',
+          url: product.images[0] ?? `${siteUrl}/placeholder-product.png`,
           alt: product.name,
         },
       ],
@@ -68,6 +68,7 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
   const variantParam = typeof rawVariantParam === 'string' ? rawVariantParam : undefined
 
   const authContext = await getAuthContext()
+  const siteUrl = getSiteUrl()
 
   const product = await getProductBySlug(slug, authContext, variantParam)
 
@@ -90,14 +91,19 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
       {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Início', item: 'http://localhost:3000' },
+          { '@type': 'ListItem', position: 1, name: 'Início', item: siteUrl },
           {
             '@type': 'ListItem',
             position: 2,
             name: product.category?.name ?? 'Catálogo',
-            item: `http://localhost:3000/categoria/${product.category?.slug ?? 'catalogo'}`,
+            item: `${siteUrl}/categoria/${product.category?.slug ?? 'catalogo'}`,
           },
-          { '@type': 'ListItem', position: 3, name: product.name, item: `http://localhost:3000/produto/${slug}` },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: product.name,
+            item: `${siteUrl}/produto/${slug}`,
+          },
         ],
       },
       {
@@ -107,7 +113,7 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
         description: product.detail.longDescription,
         sku: product.sku,
         gtin13: product.detail.ean,
-        brand: { '@type': 'Brand', name: product.brand?.name ?? 'Central Atacado' },
+        brand: { '@type': 'Brand', name: product.brand?.name ?? 'Campos & Coelho' },
       },
     ],
   }
@@ -174,19 +180,10 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
           {relatedProducts.length > 0 && (
             <ProductShowcase
               title="Produtos Relacionados"
-              subtitle="Itens do mesmo departamento recomendados para a sua loja."
               products={relatedProducts}
               canViewPrices={product.canViewPrices}
-              userStatus={product.userStatus}
             />
           )}
-
-          {/* Produtos Vistos Recentemente */}
-          <RecentlyViewedProducts
-            currentProductSlug={slug}
-            canViewPrices={product.canViewPrices}
-            userStatus={product.userStatus}
-          />
 
           {/* Chamada para Cadastro Empresarial se não aprovado */}
           {!product.canViewPrices && <BusinessRegistrationCTA />}

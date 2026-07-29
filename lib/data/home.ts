@@ -1,6 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { SupabaseClient } from '@supabase/supabase-js'
-import { Database } from '@/types/database.types'
 import type { AuthContext } from '@/types/auth.types'
 import type { CatalogProduct, PriceInfo } from '@/types/product.types'
 import { getProductImageUrl } from '@/lib/utils/storage-url'
@@ -97,10 +95,33 @@ export interface HomePageData {
 }
 
 const SEASONAL_IMAGE_MAP: Record<string, string> = {
-  'festa-junina': '/images/seasonal/festa-junina.png',
-  inverno: '/images/seasonal/inverno.png',
-  'dia-dos-pais': '/images/seasonal/dia-dos-pais.png',
-  natal: '/images/seasonal/natal.png',
+  'festa-junina': '/images/seasonal/festa-junina.webp',
+  inverno: '/images/seasonal/inverno.webp',
+  'dia-dos-pais': '/images/seasonal/dia-dos-pais.webp',
+  natal: '/images/seasonal/natal.webp',
+}
+
+function getStoreBannerHref(value: string | null | undefined) {
+  if (!value) return '/catalogo'
+  if (value.startsWith('/')) return value
+
+  try {
+    const url = new URL(value)
+    if (['localhost', '127.0.0.1', '0.0.0.0'].includes(url.hostname)) {
+      return `${url.pathname}${url.search}${url.hash}` || '/catalogo'
+    }
+
+    return url.protocol === 'https:' ? url.toString() : '/catalogo'
+  } catch {
+    return '/catalogo'
+  }
+}
+
+function getStoreBannerTitle(value: string | null | undefined, index: number) {
+  const title = value?.trim()
+  if (title && !/^https?:\/\//i.test(title)) return title
+
+  return index === 0 ? 'Campos & Coelho Atacado' : `Destaque Campos & Coelho ${index + 1}`
 }
 
 const DEFAULT_SEASONAL_COLLECTIONS: CollectionCampaign[] = [
@@ -158,12 +179,47 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
   const userStatus = authContext?.company?.status ?? (authContext?.user ? 'pending' : 'visitor')
   const supabase = await createClient()
 
-  // 1. Categorias Ativas no Supabase
-  const { data: dbCategoriesData } = await supabase
+  // As consultas independentes começam juntas para evitar esperas em cascata.
+  const categoriesPromise = supabase
     .from('categories')
     .select('id, name, slug')
     .eq('is_active', true)
     .order('name')
+    .then((result) => result)
+
+  const brandsPromise = supabase
+    .from('brands')
+    .select('id, name, slug')
+    .eq('is_active', true)
+    .order('name')
+    .then((result) => result)
+
+  const bannersPromise = supabase
+    .from('banners')
+    .select('*')
+    .eq('is_active', true)
+    .order('position', { ascending: true })
+    .then((result) => result)
+
+  const collectionsPromise = supabase
+    .from('collections')
+    .select(
+      `
+      id,
+      name,
+      slug,
+      description,
+      banner_url,
+      collection_products(product_id, position)
+      `,
+    )
+    .eq('is_active', true)
+    .order('updated_at', { ascending: false })
+    .limit(4)
+    .then((result) => result)
+
+  // 1. Categorias Ativas no Supabase
+  const { data: dbCategoriesData } = await categoriesPromise
 
   const dbCategories = (dbCategoriesData ?? []) as Array<{ id: string; name: string; slug: string }>
 
@@ -176,11 +232,7 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
   }))
 
   // 2. Marcas Ativas no Supabase (As 20 mais famosas)
-  const { data: dbBrandsData } = await supabase
-    .from('brands')
-    .select('id, name, slug')
-    .eq('is_active', true)
-    .order('name')
+  const { data: dbBrandsData } = await brandsPromise
 
   const dbBrands = (dbBrandsData ?? []) as Array<{ id: string; name: string; slug: string }>
 
@@ -220,7 +272,7 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
     MAXXIMO: { url: '/logo_Maxximo.svg' },
     METALTRU: { url: '/logo_Metaltru.png' },
     'ORIGINAL LINE': { url: '/logo_originalline.png' },
-    PLASUTIL: { url: '/logo_Plasútil.png' },
+    PLASUTIL: { url: '/logo_plasutil.webp' },
     STOLF: { url: '/logo_stolf.png' },
     'VASO BELLO': { url: '/logo_vasobello.png', background: '#111111' },
   }
@@ -361,11 +413,7 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
     fetchProductsGroup(),
   ])
 
-  const { data: dbBannersData } = await supabase
-    .from('banners')
-    .select('*')
-    .eq('is_active', true)
-    .order('position', { ascending: true })
+  const { data: dbBannersData } = await bannersPromise
 
   const dbBanners = dbBannersData ?? []
   const secondaryBannerRow = dbBanners.find(
@@ -376,12 +424,15 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
   )
 
   const heroBanners: HeroBannerItem[] = heroBannerRows.length > 0 
-    ? heroBannerRows.map(b => ({
+    ? heroBannerRows.map((b, index) => ({
         id: b.id,
-        title: b.title,
+        title: getStoreBannerTitle(b.title, index),
         subtitle: b.subtitle || '',
         description: '',
-        primaryCta: b.link_url ? { label: 'Saiba Mais', href: b.link_url } : { label: 'Explorar Catálogo', href: '/catalogo' },
+        primaryCta: {
+          label: b.link_url ? 'Saiba Mais' : 'Explorar Catálogo',
+          href: getStoreBannerHref(b.link_url),
+        },
         desktopImage: b.image_url,
         mobileImage: b.mobile_image_url || b.image_url,
         theme: 'dark',
@@ -402,29 +453,15 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
   const secondaryBanner: SecondaryBannerItem | null = secondaryBannerRow
     ? {
         id: secondaryBannerRow.id,
-        title: secondaryBannerRow.title,
+        title: getStoreBannerTitle(secondaryBannerRow.title, 0),
         imageUrl: secondaryBannerRow.image_url,
         mobileImageUrl:
           secondaryBannerRow.mobile_image_url || secondaryBannerRow.image_url,
-        href: secondaryBannerRow.link_url || '/catalogo',
+        href: getStoreBannerHref(secondaryBannerRow.link_url),
       }
     : null
 
-  const { data: dbCollectionsData } = await supabase
-    .from('collections')
-    .select(
-      `
-      id,
-      name,
-      slug,
-      description,
-      banner_url,
-      collection_products(product_id, position)
-      `,
-    )
-    .eq('is_active', true)
-    .order('updated_at', { ascending: false })
-    .limit(4)
+  const { data: dbCollectionsData } = await collectionsPromise
 
   const dbCollections = (dbCollectionsData ?? []) as Array<{
     id: string

@@ -4,7 +4,7 @@ import { getAuthContext } from '@/lib/supabase/auth'
 import { createClient } from '@/lib/supabase/server'
 import { Badge } from '@/components/ui/badge'
 import type { BadgeVariant } from '@/components/ui/badge'
-import { FileCheck, FileText, AlertCircle, Clock, ShieldCheck } from 'lucide-react'
+import { FileCheck, FileText, ShieldCheck } from 'lucide-react'
 import { ViewDocumentButton } from '@/components/company/view-document-button'
 
 export const metadata: Metadata = { title: 'Documentos Empresariais | Minha Conta' }

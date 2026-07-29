@@ -37,7 +37,7 @@ export default async function AdminProductsPage({
     inferidos?: string
   }>
 }) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const params = await searchParams
 
   const page = parseInt(params.page || '1', 10)

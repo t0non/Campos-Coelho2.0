@@ -15,6 +15,7 @@ import { CatalogFilterSidebar } from '@/components/catalog/catalog-filter-sideba
 import { ProductCard } from '@/components/product/product-card'
 import { Pagination } from '@/components/ui/pagination'
 import { EmptyState } from '@/components/ui/empty-state'
+import { getSiteUrl } from '@/lib/utils/site-url'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -23,23 +24,24 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
+  const siteUrl = getSiteUrl()
   const category = await getCategoryBySlug(slug)
 
   if (!category) {
-    return { title: 'Categoria Não Encontrada | Central Atacado' }
+    return { title: 'Categoria não encontrada' }
   }
 
   return {
     title: category.metaTitle,
     description: category.metaDescription,
     alternates: {
-      canonical: `http://localhost:3000/categoria/${slug}`,
+      canonical: `${siteUrl}/categoria/${slug}`,
     },
     openGraph: {
       title: category.metaTitle,
       description: category.metaDescription,
-      url: `http://localhost:3000/categoria/${slug}`,
-      siteName: 'Central Atacado',
+      url: `${siteUrl}/categoria/${slug}`,
+      siteName: 'Campos & Coelho Atacado',
       type: 'website',
     },
   }
@@ -55,6 +57,7 @@ export default async function CategoryPage({ params: paramsPromise, searchParams
 
   const rawParams = await searchParams
   const authContext = await getAuthContext()
+  const siteUrl = getSiteUrl()
 
   // Força o filtro de categoria na URL/Params
   const params = parseCatalogParams({ ...rawParams, categoria: slug }, authContext.canViewPrices)
@@ -65,9 +68,14 @@ export default async function CategoryPage({ params: paramsPromise, searchParams
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Início', item: 'http://localhost:3000' },
-      { '@type': 'ListItem', position: 2, name: 'Catálogo', item: 'http://localhost:3000/catalogo' },
-      { '@type': 'ListItem', position: 3, name: category.name, item: `http://localhost:3000/categoria/${slug}` },
+      { '@type': 'ListItem', position: 1, name: 'Início', item: siteUrl },
+      { '@type': 'ListItem', position: 2, name: 'Catálogo', item: `${siteUrl}/catalogo` },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: category.name,
+        item: `${siteUrl}/categoria/${slug}`,
+      },
     ],
   }
 
@@ -165,7 +173,6 @@ export default async function CategoryPage({ params: paramsPromise, searchParams
                       key={product.id}
                       product={product}
                       canViewPrices={catalogData.canViewPrices}
-                      userStatus={catalogData.userStatus}
                     />
                   ))}
                 </div>

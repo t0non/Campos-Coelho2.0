@@ -1,10 +1,8 @@
 import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
-import type { Database } from '@/types/database.types'
 
 type ProductRow = any
-type VariantRow = any
 type ImageRow = any
 type CategoryRow = any
 type BrandRow = any

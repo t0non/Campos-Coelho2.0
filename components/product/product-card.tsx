@@ -13,18 +13,17 @@ import { addToCartAction } from '@/app/actions/cart'
 interface ProductCardProps {
   product: CatalogProduct
   canViewPrices: boolean
-  userStatus?: 'visitor' | 'pending' | 'approved' | 'rejected' | 'suspended'
   onAddToCart?: (product: CatalogProduct) => void
 }
 
 export function ProductCard({
   product,
   canViewPrices,
-  userStatus = 'visitor',
   onAddToCart,
 }: ProductCardProps) {
   const [added, setAdded] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [alternateImageRequested, setAlternateImageRequested] = useState(false)
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
 
@@ -72,7 +71,12 @@ export function ProductCard({
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-all duration-300 hover:-translate-y-1 hover:border-neutral-400 hover:shadow-[0_16px_36px_rgba(0,0,0,0.10)]">
       {/* Imagem do Produto */}
-      <Link href={`/produto/${product.slug}`} className="relative block aspect-square overflow-hidden bg-white p-4">
+      <Link
+        href={`/produto/${product.slug}`}
+        className="relative block aspect-square overflow-hidden bg-white p-4"
+        onPointerEnter={() => setAlternateImageRequested(true)}
+        onFocus={() => setAlternateImageRequested(true)}
+      >
         {/* Categoria no canto superior esquerdo */}
         {(product.category?.name || product.brand?.name) && (
           <span className="absolute left-2 top-2 z-10 rounded-md bg-neutral-900 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-white">
@@ -85,17 +89,17 @@ export function ProductCard({
           fill
           className={cn(
             'object-contain p-4 transition-all duration-300 group-hover:scale-105',
-            secondImageSrc && 'group-hover:opacity-0',
+            secondImageSrc && 'group-hover:opacity-0 group-focus-within:opacity-0',
           )}
-          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 280px"
         />
-        {secondImageSrc && (
+        {secondImageSrc && alternateImageRequested && (
           <Image
             src={secondImageSrc}
             alt={`${product.name} - Vista alternativa`}
             fill
-            className="object-contain p-4 opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-105"
-            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+            className="object-contain p-4 opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:scale-105 group-focus-within:opacity-100"
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 280px"
           />
         )}
       </Link>

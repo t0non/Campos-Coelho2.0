@@ -235,7 +235,7 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
               Documentos Comprobatórios ({documents?.length || 0})
             </h2>
             {documents && documents.length > 0 ? (
-              <AdminDocumentList companyId={id} documents={documents} />
+              <AdminDocumentList documents={documents} />
             ) : (
               <p className="text-xs text-gray-400 text-center py-4">Nenhum documento enviado.</p>
             )}

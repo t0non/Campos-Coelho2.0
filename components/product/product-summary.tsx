@@ -1,11 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { Heart, Share2, ShieldCheck, Tag } from 'lucide-react'
+import { Heart, Share2, ShieldCheck } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
-import { ProductShareModal } from './product-share-modal'
 import type { FullProductData } from '@/lib/data/products'
+
+const ProductShareModal = dynamic(() =>
+  import('./product-share-modal').then((module) => module.ProductShareModal),
+)
 
 interface ProductSummaryProps {
   product: FullProductData
@@ -81,11 +85,13 @@ export function ProductSummary({ product }: ProductSummaryProps) {
       </div>
 
       {/* Modal de Compartilhamento */}
-      <ProductShareModal
-        isOpen={isShareOpen}
-        onClose={() => setIsShareOpen(false)}
-        productName={product.name}
-      />
+      {isShareOpen && (
+        <ProductShareModal
+          isOpen
+          onClose={() => setIsShareOpen(false)}
+          productName={product.name}
+        />
+      )}
     </div>
   )
 }

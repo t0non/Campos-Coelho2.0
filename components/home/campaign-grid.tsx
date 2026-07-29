@@ -10,13 +10,11 @@ import type { CollectionCampaign } from '@/lib/data/home'
 interface CampaignGridProps {
   collections: CollectionCampaign[]
   canViewPrices: boolean
-  userStatus: 'visitor' | 'pending' | 'approved' | 'rejected' | 'suspended'
 }
 
 export function CampaignGrid({
   collections,
   canViewPrices,
-  userStatus,
 }: CampaignGridProps) {
   const [selectedIndex, setSelectedIndex] = useState(() => {
     const firstCampaignWithProducts = collections.findIndex(
@@ -125,7 +123,6 @@ export function CampaignGrid({
                   <ProductCard
                     product={product}
                     canViewPrices={canViewPrices}
-                    userStatus={userStatus}
                   />
                 </div>
               ))}

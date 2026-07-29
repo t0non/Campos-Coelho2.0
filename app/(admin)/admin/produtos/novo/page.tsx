@@ -4,7 +4,6 @@ import { getAdminCategories, getAdminBrands } from '@/lib/data/admin-catalog'
 import { ProductForm } from '@/components/admin/ProductForm'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
 

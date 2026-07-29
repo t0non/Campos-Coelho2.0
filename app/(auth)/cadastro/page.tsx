@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { ContinuousRegistrationForm } from '@/components/registration/continuous-registration-form'
 
 export const metadata: Metadata = {
-  title: 'Cadastro Empresarial B2B | Central Atacado',
+  title: 'Cadastro empresarial B2B',
   description:
     'Cadastre seu CNPJ e solicite aprovação comercial para liberar os preços de atacado e faturamento.',
   robots: {

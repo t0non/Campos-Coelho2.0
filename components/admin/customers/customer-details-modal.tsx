@@ -55,7 +55,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
   const handleViewDocument = async (filePath: string) => {
     const res = await getDocumentUrl(filePath)
     if (res.url) {
-      window.open(res.url, '_blank')
+      window.open(res.url, '_blank', 'noopener,noreferrer')
     } else {
       alert(res.error || 'Erro ao abrir documento')
     }
@@ -63,7 +63,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-end">
+      <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50" role="dialog" aria-modal="true" aria-label="Carregando cadastro da empresa">
         <div className="w-full max-w-2xl bg-white h-full p-8 animate-pulse flex flex-col">
           <div className="h-8 bg-gray-200 rounded w-1/3 mb-8"></div>
           <div className="h-32 bg-gray-100 rounded mb-4"></div>
@@ -75,11 +75,11 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
 
   if (error || !details) {
     return (
-      <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-end">
+      <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50" role="dialog" aria-modal="true" aria-labelledby="customer-error-title">
         <div className="w-full max-w-2xl bg-white h-full p-8 flex flex-col">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-red-600">Erro</h2>
-            <button onClick={onClose}><X className="h-6 w-6 text-gray-400" /></button>
+            <h2 id="customer-error-title" className="text-xl font-bold text-red-600">Erro</h2>
+            <button type="button" onClick={onClose} aria-label="Fechar análise do cadastro"><X className="h-6 w-6 text-gray-400" /></button>
           </div>
           <p>{error || 'Não foi possível carregar os dados.'}</p>
         </div>
@@ -92,14 +92,14 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
   const mainContact = members?.find((m: any) => m.is_primary)?.profile || members?.[0]?.profile
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-end">
+    <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50" role="dialog" aria-modal="true" aria-labelledby="customer-details-title">
       {/* Drawer */}
       <div className="w-full max-w-2xl bg-white h-full shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right">
         
         {/* Header */}
         <div className="flex justify-between items-start p-6 border-b">
           <div>
-            <h2 className="text-2xl font-black text-[#111111]">{company_name}</h2>
+            <h2 id="customer-details-title" className="text-2xl font-black text-[#111111]">{company_name}</h2>
             <p className="text-gray-500 mt-1">CNPJ: {cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5")}</p>
             
             <div className="mt-3 inline-flex">
@@ -109,7 +109,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
               {status === 'suspended' && <span className="bg-gray-100 text-gray-800 text-xs font-bold px-3 py-1 rounded-full uppercase">Suspenso</span>}
             </div>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full transition-colors">
+          <button type="button" onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full transition-colors" aria-label="Fechar análise do cadastro">
             <X className="h-6 w-6" />
           </button>
         </div>
@@ -205,6 +205,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
                       <p className="text-xs text-gray-500">{doc.file_name}</p>
                     </div>
                     <button 
+                      type="button"
                       onClick={() => handleViewDocument(doc.file_path)}
                       className="text-[#111111] text-sm font-semibold hover:underline"
                     >
@@ -245,6 +246,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
           <div className="mt-4 flex justify-end gap-4">
           {status === 'pending' || status === 'rejected' ? (
             <button 
+              type="button"
               disabled={isUpdating}
               onClick={() => handleStatusChange('approved')}
               className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
@@ -256,6 +258,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
 
           {status === 'pending' || status === 'approved' ? (
             <button 
+              type="button"
               disabled={isUpdating}
               onClick={() => handleStatusChange('rejected')}
               className="flex-1 bg-white hover:bg-red-50 text-red-600 border-2 border-red-200 font-bold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50"

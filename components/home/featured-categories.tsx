@@ -14,7 +14,7 @@ import {
   Utensils,
   LayoutGrid,
 } from 'lucide-react'
-import type { CategoryCardData } from '@/lib/mocks/mock-categories'
+import type { CategoryCardData } from '@/lib/data/home'
 
 interface FeaturedCategoriesProps {
   categories: CategoryCardData[]

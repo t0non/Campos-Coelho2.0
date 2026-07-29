@@ -7,7 +7,7 @@ import { invalidateProductCache } from '@/lib/utils/cache'
 import { ImageAltTextInputSchema } from '@/lib/validations/admin-products'
 
 export async function updateImageAltTextAction(data: any) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const parsed = ImageAltTextInputSchema.parse(data)
   const supabase = (await createClient()) as any
 
@@ -24,10 +24,10 @@ export async function updateImageAltTextAction(data: any) {
 }
 
 export async function setPrimaryImageAction(productId: string, imageId: string) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const supabase = (await createClient()) as any
 
-  const { data, error } = await supabase.rpc('set_primary_image', {
+  const { error } = await supabase.rpc('set_primary_image', {
     p_image_id: imageId,
     p_product_id: productId
   })
@@ -38,10 +38,10 @@ export async function setPrimaryImageAction(productId: string, imageId: string) 
 }
 
 export async function reorderProductImagesAction(productId: string, imageIds: string[]) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const supabase = (await createClient()) as any
 
-  const { data, error } = await supabase.rpc('reorder_images', {
+  const { error } = await supabase.rpc('reorder_images', {
     p_product_id: productId,
     p_image_ids: imageIds
   })
@@ -52,7 +52,7 @@ export async function reorderProductImagesAction(productId: string, imageIds: st
 }
 
 export async function removeProductImageAction(productId: string, imageId: string) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const supabase = (await createClient()) as any
 
   // RPC transacional para remover a referência do banco e retornar o caminho da imagem

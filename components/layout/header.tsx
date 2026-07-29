@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import {
   User,
@@ -16,14 +17,20 @@ import {
   Keyboard,
   FileText,
 } from 'lucide-react'
-import { CartSlideOver } from './cart-slide-over'
-import { MobileNavDrawer } from './mobile-nav-drawer'
-import { LoginDrawer } from '@/components/auth/login-drawer'
 import { formatPrice } from '@/lib/utils/format'
-import { createClient } from '@/lib/supabase/client'
 import type { AuthContext } from '@/types/auth.types'
 import type { CartLineItem, CartSummary } from '@/lib/types/cart'
 import type { CatalogProduct } from '@/types/product.types'
+
+const CartSlideOver = dynamic(() =>
+  import('./cart-slide-over').then((module) => module.CartSlideOver),
+)
+const MobileNavDrawer = dynamic(() =>
+  import('./mobile-nav-drawer').then((module) => module.MobileNavDrawer),
+)
+const LoginDrawer = dynamic(() =>
+  import('@/components/auth/login-drawer').then((module) => module.LoginDrawer),
+)
 
 interface HeaderProps {
   authContext?: AuthContext
@@ -166,6 +173,7 @@ export function Header({
     setIsLoggingOut(true)
     setIsUserMenuOpen(false)
 
+    const { createClient } = await import('@/lib/supabase/client')
     const supabase = createClient()
     const { error } = await supabase.auth.signOut({ scope: 'local' })
 
@@ -182,7 +190,7 @@ export function Header({
     <>
       {/* Faixa institucional */}
       <div className="flex h-[37px] items-center justify-center bg-black px-4 text-center text-[11px] font-semibold uppercase tracking-[0.12em] text-white/80">
-        Venda para CNPJ com Inscrição Estadual - Pedido mínimo do site R$ 1000.00
+        Venda para CNPJ com Inscrição Estadual · Pedido mínimo do site R$ 1.000,00
       </div>
 
       {/* 2. Main Header Bar - White Background */}
@@ -203,7 +211,6 @@ export function Header({
               width={225}
               height={56}
               className="h-auto w-[185px] object-contain"
-              priority
             />
           </Link>
 
@@ -227,7 +234,6 @@ export function Header({
                 width={225}
                 height={56}
                 className="h-auto w-[180px] object-contain sm:w-[210px]"
-                priority
               />
             </Link>
 
@@ -239,6 +245,7 @@ export function Header({
               <input
                 ref={searchInputRef}
                 type="text"
+                aria-label="Buscar produtos"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="O que você procura?"
@@ -281,6 +288,7 @@ export function Header({
                   <button
                     type="button"
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    aria-label={`Abrir menu da conta de ${user.full_name}`}
                     className="flex cursor-pointer items-center gap-2.5 transition-colors hover:text-[#050505]"
                   >
                     <User className="h-8 w-8 text-[#171717]" />
@@ -296,6 +304,7 @@ export function Header({
                   <button
                     type="button"
                     onClick={() => setIsLoginOpen(true)}
+                    aria-label="Entrar ou cadastrar empresa"
                     className="flex items-center gap-2.5 transition-colors hover:text-[#050505]"
                   >
                     <User className="h-8 w-8 text-[#171717]" />
@@ -355,6 +364,7 @@ export function Header({
               <button
                 type="button"
                 onClick={() => setIsCartOpen(true)}
+                aria-label={`Abrir carrinho, ${cartCount} ${cartCount === 1 ? 'item' : 'itens'}`}
                 className="flex cursor-pointer items-center gap-2.5 transition-colors hover:text-[#050505]"
               >
                 <div className="relative">
@@ -380,6 +390,7 @@ export function Header({
             <form onSubmit={handleSearch} className="flex">
               <input
                 type="text"
+                aria-label="Buscar produtos"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="O que você procura?"
@@ -387,6 +398,7 @@ export function Header({
               />
               <button
                 type="submit"
+                aria-label="Buscar"
                 className="rounded-none border-0 bg-black px-4 py-2 text-xs font-bold text-white focus:outline-none focus:ring-0"
               >
                 <Search className="h-4 w-4" />
@@ -444,27 +456,31 @@ export function Header({
       </header>
 
       {/* Mobile Navigation Drawer */}
-      <MobileNavDrawer
-        isOpen={isMobileNavOpen}
-        onClose={() => setIsMobileNavOpen(false)}
-        authContext={authContext}
-        categories={categories}
-      />
+      {isMobileNavOpen && (
+        <MobileNavDrawer
+          isOpen
+          onClose={() => setIsMobileNavOpen(false)}
+          authContext={authContext}
+          categories={categories}
+        />
+      )}
 
       {/* Cart Slide-Over */}
-      <CartSlideOver
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        canViewPrices={canViewPrices}
-        userStatus={userStatus}
-        initialItems={cartItems}
-        previewOnly={isAdminPreview}
-        onPreviewItemsChange={isAdminPreview ? setAdminPreviewItems : undefined}
-      />
+      {isCartOpen && (
+        <CartSlideOver
+          isOpen
+          onClose={() => setIsCartOpen(false)}
+          canViewPrices={canViewPrices}
+          userStatus={userStatus}
+          initialItems={cartItems}
+          previewOnly={isAdminPreview}
+          onPreviewItemsChange={isAdminPreview ? setAdminPreviewItems : undefined}
+        />
+      )}
 
-      {!user && (
+      {!user && isLoginOpen && (
         <LoginDrawer
-          isOpen={isLoginOpen}
+          isOpen
           onClose={() => setIsLoginOpen(false)}
         />
       )}

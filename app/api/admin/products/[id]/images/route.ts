@@ -57,7 +57,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   try {
-    const { user } = await requireAdmin()
+    await requireAdmin()
     
     // 1. ANTES DE formData(): Validação do limite operacional do corpo da requisição
     const contentLength = req.headers.get('content-length')
@@ -76,7 +76,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     let fileCount = 0
     let file: File | null = null
 
-    for (const [key, value] of Array.from(formData.entries())) {
+    for (const [, value] of Array.from(formData.entries())) {
       if (value instanceof File) {
         fileCount++
         file = value

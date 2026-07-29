@@ -60,7 +60,7 @@ export function PromotionalBanner({ banner }: PromotionalBannerProps) {
           <div className="absolute -right-10 bottom-[-35px] top-0 hidden w-[55%] items-end justify-end sm:flex">
             <div className="relative h-full w-1/3">
               <Image
-                src="/images/seasonal/festa-junina.png"
+                src="/images/seasonal/festa-junina.webp"
                 alt=""
                 fill
                 sizes="220px"
@@ -69,7 +69,7 @@ export function PromotionalBanner({ banner }: PromotionalBannerProps) {
             </div>
             <div className="relative h-full w-1/3">
               <Image
-                src="/images/seasonal/dia-dos-pais.png"
+                src="/images/seasonal/dia-dos-pais.webp"
                 alt=""
                 fill
                 sizes="220px"
@@ -78,7 +78,7 @@ export function PromotionalBanner({ banner }: PromotionalBannerProps) {
             </div>
             <div className="relative h-full w-1/3">
               <Image
-                src="/images/seasonal/natal.png"
+                src="/images/seasonal/natal.webp"
                 alt=""
                 fill
                 sizes="220px"

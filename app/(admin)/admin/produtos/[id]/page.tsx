@@ -7,10 +7,8 @@ import { ProductForm } from '@/components/admin/ProductForm'
 import { ProductVariantsSection } from '@/components/admin/ProductVariantsSection'
 import { ProductImageGallery } from '@/components/admin/ProductImageGallery'
 import { ProductImageUploader } from '@/components/admin/ProductImageUploader'
-import { Button } from '@/components/ui/button'
 import { ChevronLeft } from 'lucide-react'
 import Link from 'next/link'
-import { toggleProductStatusAction, publishProductAction, unpublishProductAction } from '@/app/actions/catalog'
 import { ProductPublishButton } from '@/components/admin/ProductPublishButton'
 
 export const dynamic = 'force-dynamic'
@@ -51,7 +49,6 @@ export default async function EditProductPage({ params }: { params: Promise<{ id
         <ProductPublishButton
           productId={product.id}
           isPublished={product.is_published}
-          isActive={product.is_active}
         />
       </div>
 

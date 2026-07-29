@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { ChevronLeft, ChevronRight, ZoomIn, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react'
 import { Modal } from '@/components/ui/modal'
 
 interface ProductGalleryProps {
@@ -31,7 +31,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           src={galleryImages[selectedIndex]}
           alt={`${productName} - Imagem ${selectedIndex + 1}`}
           fill
-          priority
+          preload
           className="object-contain p-4 transition-transform duration-300 group-hover:scale-105"
           sizes="(max-width: 1024px) 100vw, 50vw"
         />

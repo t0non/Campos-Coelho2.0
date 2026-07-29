@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
+import { cache } from 'react'
 import type { Database } from '@/types/database.types'
 
 type CategoryRow = Database['public']['Tables']['categories']['Row']
 type BrandRow = Database['public']['Tables']['brands']['Row']
 
-export async function getCategories() {
+export const getCategories = cache(async () => {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -18,7 +19,7 @@ export async function getCategories() {
     CategoryRow,
     'id' | 'name' | 'slug' | 'image_url' | 'parent_id' | 'position'
   >[]
-}
+})
 
 export async function getCategoryBySlug(slug: string): Promise<CategoryRow | null> {
   const supabase = await createClient()
@@ -34,7 +35,7 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryRow | nul
   return data as CategoryRow
 }
 
-export async function getBrands() {
+export const getBrands = cache(async () => {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -45,7 +46,7 @@ export async function getBrands() {
 
   if (error) throw error
   return (data ?? []) as Pick<BrandRow, 'id' | 'name' | 'slug' | 'logo_url'>[]
-}
+})
 
 export async function getBrandBySlug(slug: string): Promise<BrandRow | null> {
   const supabase = await createClient()

@@ -5,7 +5,6 @@ import { ExternalLink, Loader2, FileText, CheckCircle2, XCircle } from 'lucide-r
 import { Badge } from '@/components/ui/badge'
 import type { BadgeVariant } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { createClient } from '@/lib/supabase/client'
 
 interface DocumentItem {
   id: string
@@ -18,7 +17,6 @@ interface DocumentItem {
 }
 
 interface AdminDocumentListProps {
-  companyId: string
   documents: DocumentItem[]
 }
 
@@ -43,14 +41,15 @@ const docCategoryLabels: Record<string, string> = {
   outros: 'Outros',
 }
 
-export function AdminDocumentList({ companyId, documents }: AdminDocumentListProps) {
+export function AdminDocumentList({ documents }: AdminDocumentListProps) {
   const [loadingId, setLoadingId] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
-  const supabase = createClient()
 
   const handleView = async (filePath: string, docId: string) => {
     setLoadingId(docId)
     try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
       const { data, error } = await supabase.storage
         .from('company-documents')
         .createSignedUrl(filePath, 3600)
@@ -71,6 +70,8 @@ export function AdminDocumentList({ companyId, documents }: AdminDocumentListPro
   const handleUpdateDocStatus = async (docId: string, newStatus: 'approved' | 'rejected', note?: string) => {
     setUpdatingId(docId)
     try {
+      const { createClient } = await import('@/lib/supabase/client')
+      const supabase = createClient()
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
         .from('company_documents')

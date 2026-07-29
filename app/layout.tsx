@@ -1,13 +1,15 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { getSiteUrl } from '@/lib/utils/site-url'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
   title: {
-    default: 'AtacadoB2B — Plataforma de Atacado para Empresas',
-    template: '%s | AtacadoB2B',
+    default: 'Campos & Coelho Atacado — Distribuição para empresas',
+    template: '%s | Campos & Coelho Atacado',
   },
   description:
-    'Plataforma B2B para compras no atacado. Cadastre sua empresa e acesse preços exclusivos, pedido mínimo e condições especiais.',
+    'Distribuidora B2B para lojistas e empresas. Cadastre sua empresa e acesse preços, disponibilidade e condições comerciais.',
   robots: {
     index: true,
     follow: true,
