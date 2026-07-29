@@ -50,6 +50,7 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
   const cleanCpf = data.responsible.cpf.replace(/\D/g, '')
   let createdUserId: string | null = null
   let createdCompanyId: string | null = null
+  const uploadedPaths: string[] = []
 
   try {
     const { data: existingCompany } = await supabase.from('companies').select('id').eq('cnpj', cleanCnpj).maybeSingle()
@@ -138,14 +139,13 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
         upsert: false,
       })
       if (uploadError) throw new Error(`Falha ao enviar "${file.name}": ${uploadError.message}`)
+      uploadedPaths.push(filePath)
 
       const { error: documentError } = await supabase.from('company_documents').insert({
         company_id: company.id,
         document_type: category,
         file_path: filePath,
         file_name: file.name,
-        mime_type: file.type,
-        file_size: file.size,
         status: 'pending',
       })
       if (documentError) throw new Error(`Falha ao registrar "${file.name}": ${documentError.message}`)
@@ -177,8 +177,12 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
       },
     })
 
-    return { success: true, protocol: `B2B-${company.id.slice(0, 8).toUpperCase()}` }
+    const protocol = `B2B-${company.id.slice(0, 8).toUpperCase()}`
+    return { success: true, protocol }
   } catch (error) {
+    if (uploadedPaths.length > 0) {
+      await supabase.storage.from('company-documents').remove(uploadedPaths)
+    }
     if (createdCompanyId) await supabase.from('companies').delete().eq('id', createdCompanyId)
     if (createdUserId) await supabase.auth.admin.deleteUser(createdUserId)
     return { success: false, error: error instanceof Error ? error.message : 'Não foi possível concluir o cadastro.' }

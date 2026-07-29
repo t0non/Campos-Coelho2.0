@@ -15,6 +15,9 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
   const [isLoading, setIsLoading] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
   const [error, setError] = useState('')
+  const [actionError, setActionError] = useState('')
+  const [decisionMessage, setDecisionMessage] = useState('')
+  const [decisionFeedback, setDecisionFeedback] = useState('')
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -30,15 +33,22 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
   }, [companyId])
 
   const handleStatusChange = async (status: 'approved' | 'rejected') => {
+    if (decisionMessage.trim().length < 5) {
+      setActionError('Escreva uma mensagem para o cliente antes de concluir a análise.')
+      return
+    }
     setIsUpdating(true)
-    const res = await updateCustomerStatus(companyId, status)
+    setActionError('')
+    setDecisionFeedback('')
+    const res = await updateCustomerStatus(companyId, status, decisionMessage)
     setIsUpdating(false)
     
     if (res.error) {
-      setError(res.error)
+      setActionError(res.error)
     } else {
+      setDetails((current: any) => ({ ...current, status }))
       onUpdate()
-      onClose()
+      setDecisionFeedback('Decisão salva e disponibilizada na conta do cliente.')
     }
   }
 
@@ -210,7 +220,29 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
         </div>
 
         {/* Actions Footer */}
-        <div className="p-6 border-t bg-white flex justify-end gap-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <div className="border-t bg-white p-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+          <label className="mb-2 block text-sm font-bold text-gray-900" htmlFor="decision-message">
+            Mensagem para o cliente
+          </label>
+          <textarea
+            id="decision-message"
+            value={decisionMessage}
+            onChange={(event) => setDecisionMessage(event.target.value)}
+            placeholder="Explique a aprovação ou informe claramente o motivo da recusa e o que deve ser corrigido."
+            rows={3}
+            className="w-full rounded-lg border border-gray-300 p-3 text-sm outline-none focus:border-gray-500 focus:ring-2 focus:ring-gray-200"
+          />
+          <p className="mt-1 text-xs text-gray-500">
+            Esta mensagem ficará registrada e será exibida na conta do cliente.
+          </p>
+          {actionError && <p className="mt-2 text-sm font-medium text-red-600">{actionError}</p>}
+          {decisionFeedback && (
+            <p className="mt-2 text-sm font-medium text-green-700">
+              {decisionFeedback}
+            </p>
+          )}
+
+          <div className="mt-4 flex justify-end gap-4">
           {status === 'pending' || status === 'rejected' ? (
             <button 
               disabled={isUpdating}
@@ -232,6 +264,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
               Recusar Cliente
             </button>
           ) : null}
+          </div>
         </div>
       </div>
     </div>

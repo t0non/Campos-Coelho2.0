@@ -83,6 +83,12 @@ export function ContinuousRegistrationForm() {
       } else {
         setSubmitError(result.error || 'Erro ao processar o cadastro. Tente novamente.')
         setIsSubmitting(false)
+        requestAnimationFrame(() => {
+          document.querySelector('[data-submit-error]')?.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center',
+          })
+        })
       }
     } catch (error) {
       setSubmitError(
@@ -158,7 +164,7 @@ export function ContinuousRegistrationForm() {
       </div>
 
       {submitError && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md">
+        <div data-submit-error role="alert" className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md">
           {submitError}
         </div>
       )}
@@ -784,6 +790,11 @@ export function ContinuousRegistrationForm() {
         </section>
 
         {/* ═══════════════ Botão de Submit ═══════════════ */}
+        {submitError && (
+          <div data-submit-error role="alert" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {submitError}
+          </div>
+        )}
         <div className="flex justify-end pt-4">
           <Button
             type="submit"
