@@ -13,7 +13,6 @@ import { BusinessRegistrationCTA } from '@/components/home/business-registration
 import { TrustNumbers } from '@/components/home/trust-numbers'
 import { Testimonials } from '@/components/home/testimonials'
 import { InstitutionalSection } from '@/components/home/institutional-section'
-import { NewsletterSection } from '@/components/home/newsletter-section'
 import { getSiteUrl } from '@/lib/utils/site-url'
 
 const siteUrl = getSiteUrl()
@@ -128,9 +127,6 @@ export default async function HomePage() {
 
         {/* 12. Conteúdo institucional */}
         <InstitutionalSection />
-
-        {/* 13. Newsletter */}
-        <NewsletterSection />
       </div>
     </>
   )
