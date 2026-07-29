@@ -83,12 +83,23 @@ export async function getCustomerDetails(companyId: string) {
     .select('*')
     .eq('company_id', companyId)
 
+  const { data: registrationLog } = await supabase
+    .from('audit_logs')
+    .select('payload')
+    .eq('target_table', 'companies')
+    .eq('target_id', companyId)
+    .eq('action', 'public_registration_submitted')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
   return { 
     customer: {
       ...company,
       addresses: addresses || [],
       members: members || [],
-      documents: documents || []
+      documents: documents || [],
+      registration_data: registrationLog?.payload || null,
     } 
   }
 }

@@ -9,8 +9,7 @@ import { Loader2, UploadCloud, X, FileText } from 'lucide-react'
 
 import { fullRegistrationSchema, type FullRegistrationFormValues } from '@/lib/validations/registration'
 import { maskCNPJ, maskPhone, maskCPF, maskCEP } from '@/lib/utils/masks'
-import { submitBusinessRegistration } from '@/lib/services/registration-service'
-import type { FullRegistrationData } from '@/types/registration.types'
+import { submitPublicRegistration } from '@/app/actions/registration'
 
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
@@ -26,6 +25,7 @@ const INTEREST_CATEGORIES = [
 
 interface UploadedFile {
   id: string
+  file: File
   fileName: string
   fileSize: number
   category: 'contrato_social' | 'doc_responsavel'
@@ -71,17 +71,35 @@ export function ContinuousRegistrationForm() {
     setSubmitError(null)
 
     try {
-      const result = await submitBusinessRegistration(data as FullRegistrationData)
+      const submission = new FormData()
+      submission.set('payload', JSON.stringify(data))
+      uploadedFiles.forEach((item) => {
+        submission.append('documents', item.file, item.fileName)
+        submission.append('documentCategories', item.category)
+      })
+      const result = await submitPublicRegistration(submission)
       if (result.success) {
         router.push(`/cadastro/sucesso?protocol=${encodeURIComponent(result.protocol)}`)
       } else {
         setSubmitError(result.error || 'Erro ao processar o cadastro. Tente novamente.')
         setIsSubmitting(false)
       }
-    } catch {
-      setSubmitError('Ocorreu um erro inesperado. Tente novamente mais tarde.')
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error ? error.message : 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
+      )
       setIsSubmitting(false)
     }
+  }
+
+  const onInvalid = () => {
+    setSubmitError('Revise os campos obrigatórios destacados antes de concluir o cadastro.')
+    requestAnimationFrame(() => {
+      document.querySelector('[aria-invalid="true"]')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      })
+    })
   }
 
   const handleMaskChange = (field: any, val: string, maskFn: (v: string) => string) => {
@@ -96,6 +114,7 @@ export function ContinuousRegistrationForm() {
     }
     const newFile: UploadedFile = {
       id: `file-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      file,
       fileName: file.name,
       fileSize: file.size,
       category,
@@ -145,7 +164,7 @@ export function ContinuousRegistrationForm() {
       )}
 
       <form
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={handleSubmit(onSubmit, onInvalid)}
         className="space-y-12"
         data-registration-form
       >
@@ -490,16 +509,30 @@ export function ContinuousRegistrationForm() {
               {...register('interests.storeCount')}
               error={errors.interests?.storeCount?.message}
             />
-            <div>
-              <label className="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer mt-6">
-                <input
-                  type="checkbox"
-                  value="SP"
-                  {...register('interests.operatingStates')}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span>Estado de Atuação: São Paulo (SP)</span>
-              </label>
+            <div className="sm:col-span-2">
+              <p className="mt-1 text-sm font-medium text-gray-700">
+                Onde sua empresa vende ou atende clientes? *
+              </p>
+              <p className="mb-3 mt-1 text-xs text-gray-500">
+                Selecione os estados em que sua empresa comercializa ou entrega produtos.
+              </p>
+              <div className="grid grid-cols-5 gap-2 sm:grid-cols-9">
+                {[
+                  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
+                  'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
+                  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+                ].map((state) => (
+                  <label key={state} className="flex items-center gap-1.5 text-xs text-gray-700">
+                    <input
+                      type="checkbox"
+                      value={state}
+                      {...register('interests.operatingStates')}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    {state}
+                  </label>
+                ))}
+              </div>
               {errors.interests?.operatingStates?.message && (
                 <p className="text-red-500 text-xs mt-1">
                   {errors.interests.operatingStates.message}

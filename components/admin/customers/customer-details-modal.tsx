@@ -77,7 +77,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
     )
   }
 
-  const { company_name, cnpj, trade_name, state_registration, email, phone, whatsapp, status, addresses, members, documents } = details
+  const { company_name, cnpj, trade_name, state_registration, email, phone, whatsapp, status, addresses, members, documents, registration_data } = details
   const mainAddress = addresses?.find((a: any) => a.label === 'Principal') || addresses?.[0]
   const mainContact = members?.find((m: any) => m.is_primary)?.profile || members?.[0]?.profile
 
@@ -155,6 +155,27 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
           </section>
 
           {/* Documentos */}
+          {registration_data && (
+            <section className="bg-white p-6 rounded-lg border shadow-sm">
+              <h3 className="text-lg font-bold text-gray-900 border-b pb-3 mb-4">
+                Ficha comercial para aprovação
+              </h3>
+              <div className="grid grid-cols-1 gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+                <div><span className="block text-gray-500 mb-1">Segmento</span><strong>{registration_data.company?.segment || '-'}</strong></div>
+                <div><span className="block text-gray-500 mb-1">Tipo de negócio</span><strong>{registration_data.company?.businessType || '-'}</strong></div>
+                <div><span className="block text-gray-500 mb-1">Número de funcionários</span><strong>{registration_data.company?.employeeCount || '-'}</strong></div>
+                <div><span className="block text-gray-500 mb-1">Cargo do responsável</span><strong>{registration_data.responsible?.role || '-'}</strong></div>
+                <div><span className="block text-gray-500 mb-1">CPF do responsável</span><strong>{registration_data.responsible?.cpf || '-'}</strong></div>
+                <div><span className="block text-gray-500 mb-1">Canal de vendas</span><strong>{registration_data.interests?.salesChannel || '-'}</strong></div>
+                <div><span className="block text-gray-500 mb-1">Frequência de compra</span><strong>{registration_data.interests?.purchaseFrequency || '-'}</strong></div>
+                <div><span className="block text-gray-500 mb-1">Volume médio</span><strong>{registration_data.interests?.averageOrderValue || '-'}</strong></div>
+                <div><span className="block text-gray-500 mb-1">Número de lojas</span><strong>{registration_data.interests?.storeCount || '-'}</strong></div>
+                <div><span className="block text-gray-500 mb-1">Estados atendidos</span><strong>{registration_data.interests?.operatingStates?.join(', ') || '-'}</strong></div>
+                <div className="sm:col-span-2"><span className="block text-gray-500 mb-1">Categorias de interesse</span><strong>{registration_data.interests?.categories?.join(', ') || '-'}</strong></div>
+              </div>
+            </section>
+          )}
+
           <section className="bg-white p-6 rounded-lg border shadow-sm">
             <h3 className="flex items-center gap-2 text-lg font-bold text-gray-900 border-b pb-3 mb-4">
               <FileText className="h-5 w-5 text-[#111111]" /> Documentos Anexados
@@ -164,7 +185,13 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
                 {documents.map((doc: any) => (
                   <div key={doc.id} className="flex flex-col gap-3 rounded-md border p-3 hover:bg-gray-50 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="font-semibold text-sm text-gray-900">{doc.document_type === 'cnpj_card' ? 'Cartão CNPJ' : doc.document_type === 'social_contract' ? 'Contrato Social' : 'Outro Documento'}</p>
+                      <p className="font-semibold text-sm text-gray-900">
+                        {doc.document_type === 'contrato_social'
+                          ? 'Contrato Social'
+                          : doc.document_type === 'doc_responsavel'
+                            ? 'Documento do responsável'
+                            : 'Outro Documento'}
+                      </p>
                       <p className="text-xs text-gray-500">{doc.file_name}</p>
                     </div>
                     <button 
