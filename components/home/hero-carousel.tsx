@@ -61,7 +61,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
           <div key={banner.id} className="w-full shrink-0 relative">
             <Link href={banner.primaryCta?.href || '/catalogo'} className="block w-full h-full">
               {/* Desktop Image (Hidden on small screens) */}
-              <div className="hidden md:block relative w-full aspect-[21/6] lg:aspect-[24/6]">
+              <div className="hidden md:block relative w-full aspect-[21/6] lg:aspect-[19/6]">
                 <Image
                   src={banner.desktopImage}
                   alt={banner.title}
@@ -93,7 +93,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
         type="button"
         onClick={handlePrev}
         aria-label="Banner anterior"
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 text-[#111111] hover:bg-[#e5e5e5] shadow-lg flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-[#e5e5e5]"
+        className="absolute left-4 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/75 text-white shadow-xl backdrop-blur-sm transition-all hover:scale-105 hover:bg-black focus:outline-none focus:ring-2 focus:ring-white"
       >
         <ChevronLeft className="h-6 w-6 stroke-[3]" />
       </button>
@@ -102,7 +102,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
         type="button"
         onClick={handleNext}
         aria-label="Próximo banner"
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 text-[#111111] hover:bg-[#e5e5e5] shadow-lg flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-[#e5e5e5]"
+        className="absolute right-4 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/75 text-white shadow-xl backdrop-blur-sm transition-all hover:scale-105 hover:bg-black focus:outline-none focus:ring-2 focus:ring-white"
       >
         <ChevronRight className="h-6 w-6 stroke-[3]" />
       </button>
@@ -117,7 +117,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
             aria-label={`Ir para banner ${idx + 1}`}
             className={`rounded-full transition-all duration-300 shadow-sm ${
               idx === currentIndex
-                ? 'w-8 h-2.5 bg-[#e5e5e5]'
+                ? 'w-8 h-2.5 bg-white ring-1 ring-black/20'
                 : 'w-2.5 h-2.5 bg-white/60 hover:bg-white/90'
             }`}
           />

@@ -48,7 +48,7 @@ export function parseCatalogParams(
   }
 
   const query = getSingle('q')?.trim() || getSingle('query')?.trim()
-  const category = getSingle('categoria') || getSingle('category')
+  const category = getSingle('categoria') || getSingle('category') || getSingle('cat')
   const subcategory = getSingle('subcategoria') || getSingle('subcategory')
   const brands = getArray('marca').concat(getArray('brands'))
   const availability = getSingle('disponibilidade') || getSingle('availability')

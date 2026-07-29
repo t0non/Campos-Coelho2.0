@@ -4,6 +4,10 @@ import { Database } from '@/types/database.types'
 import type { AuthContext } from '@/types/auth.types'
 import type { CatalogProduct, PriceInfo } from '@/types/product.types'
 import { getProductImageUrl } from '@/lib/utils/storage-url'
+import {
+  getCategoryProductFallbackImage,
+  withCategoryProductFallback,
+} from '@/lib/catalog/product-image-fallback'
 
 export interface HeroBannerItem {
   id: string
@@ -15,6 +19,14 @@ export interface HeroBannerItem {
   desktopImage: string
   mobileImage: string
   theme: 'dark' | 'light'
+}
+
+export interface SecondaryBannerItem {
+  id: string
+  title: string
+  imageUrl: string
+  mobileImageUrl: string
+  href: string
 }
 
 export interface BenefitItem {
@@ -39,6 +51,8 @@ export interface BrandItem {
   slug: string
   initials: string
   category: string
+  logoUrl: string
+  logoBackground?: string
 }
 
 export interface TestimonialItem {
@@ -63,10 +77,12 @@ export interface CollectionCampaign {
   ctaLabel: string
   badge?: string
   bgClass?: string
+  products: CatalogProduct[]
 }
 
 export interface HomePageData {
   heroBanners: HeroBannerItem[]
+  secondaryBanner: SecondaryBannerItem | null
   benefits: BenefitItem[]
   featuredCategories: CategoryCardData[]
   newArrivals: CatalogProduct[]
@@ -79,6 +95,60 @@ export interface HomePageData {
   canViewPrices: boolean
   userStatus: 'visitor' | 'pending' | 'approved' | 'rejected' | 'suspended'
 }
+
+const SEASONAL_IMAGE_MAP: Record<string, string> = {
+  'festa-junina': '/images/seasonal/festa-junina.png',
+  inverno: '/images/seasonal/inverno.png',
+  'dia-dos-pais': '/images/seasonal/dia-dos-pais.png',
+  natal: '/images/seasonal/natal.png',
+}
+
+const DEFAULT_SEASONAL_COLLECTIONS: CollectionCampaign[] = [
+  {
+    id: 'seasonal-festa-junina',
+    title: 'Festa Junina',
+    slug: 'festa-junina',
+    description: 'Itens temáticos para as festas de junho.',
+    itemCount: 0,
+    imageUrl: SEASONAL_IMAGE_MAP['festa-junina'],
+    ctaLabel: 'Ver produtos',
+    badge: 'Temporada',
+    products: [],
+  },
+  {
+    id: 'seasonal-inverno',
+    title: 'Inverno',
+    slug: 'inverno',
+    description: 'Produtos para os dias mais frios.',
+    itemCount: 0,
+    imageUrl: SEASONAL_IMAGE_MAP.inverno,
+    ctaLabel: 'Ver produtos',
+    badge: 'Temporada',
+    products: [],
+  },
+  {
+    id: 'seasonal-dia-dos-pais',
+    title: 'Dia dos Pais',
+    slug: 'dia-dos-pais',
+    description: 'Sugestões de presentes para os pais.',
+    itemCount: 0,
+    imageUrl: SEASONAL_IMAGE_MAP['dia-dos-pais'],
+    ctaLabel: 'Ver produtos',
+    badge: 'Temporada',
+    products: [],
+  },
+  {
+    id: 'seasonal-natal',
+    title: 'Natal',
+    slug: 'natal',
+    description: 'Decoração, presentes e utilidades natalinas.',
+    itemCount: 0,
+    imageUrl: SEASONAL_IMAGE_MAP.natal,
+    ctaLabel: 'Ver produtos',
+    badge: 'Temporada',
+    products: [],
+  },
+]
 
 /**
  * Camada de dados real para a Home Page (Supabase remoto).
@@ -102,7 +172,7 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
     name: c.name,
     slug: c.slug,
     itemCount: 0,
-    imageUrl: '/placeholder-category.png',
+    imageUrl: getCategoryProductFallbackImage(c.slug),
   }))
 
   // 2. Marcas Ativas no Supabase (As 20 mais famosas)
@@ -137,16 +207,55 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
     'AMIGOLD': 'Utilidades & Presentes',
   }
 
-  const brands: BrandItem[] = dbBrands.map((b) => ({
-    id: b.id,
-    name: b.name,
-    slug: b.slug,
-    initials: b.name.slice(0, 2).toUpperCase(),
-    category: BRAND_CATEGORIES[b.name.toUpperCase()] || 'Atacado B2B',
-  }))
+  const BRAND_LOGOS: Record<
+    string,
+    { url: string; background?: string }
+  > = {
+    AMIGOLD: { url: '/logo_Amigold.svg' },
+    ARQPLAST: { url: '/logo_Arqplast.png', background: '#111111' },
+    BANDEIRANTE: { url: '/logo_Bandeirante.png' },
+    BANDEIRANTES: { url: '/logo_Bandeirante.png' },
+    ERCAPLAST: { url: '/logo_Ercaplast.png' },
+    JAGUAR: { url: '/Jaguar_logo.png' },
+    MAXXIMO: { url: '/logo_Maxximo.svg' },
+    METALTRU: { url: '/logo_Metaltru.png' },
+    'ORIGINAL LINE': { url: '/logo_originalline.png' },
+    PLASUTIL: { url: '/logo_Plasútil.png' },
+    STOLF: { url: '/logo_stolf.png' },
+    'VASO BELLO': { url: '/logo_vasobello.png', background: '#111111' },
+  }
+
+  const normalizeBrandName = (name: string) =>
+    name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toUpperCase()
+      .trim()
+
+  const brands: BrandItem[] = dbBrands.flatMap((b) => {
+    const normalizedName = normalizeBrandName(b.name)
+    const logo = BRAND_LOGOS[normalizedName]
+    if (!logo) return []
+
+    return [
+      {
+        id: b.id,
+        name: b.name,
+        slug: b.slug,
+        initials: b.name.slice(0, 2).toUpperCase(),
+        category: BRAND_CATEGORIES[normalizedName] || 'Atacado B2B',
+        logoUrl: logo.url,
+        logoBackground: logo.background,
+      },
+    ]
+  })
 
   // Helper para buscar produtos e transformar
-  async function fetchProductsGroup(conditionColumn?: string, conditionValue?: boolean): Promise<CatalogProduct[]> {
+  async function fetchProductsGroup(
+    conditionColumn?: string,
+    conditionValue?: boolean,
+    selectedIds?: string[],
+  ): Promise<CatalogProduct[]> {
     let query = supabase
       .from('products')
       .select(
@@ -168,10 +277,14 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
       )
       .eq('is_active', true)
       .eq('is_published', true)
-      .limit(6)
+      .limit(selectedIds?.length ? Math.min(selectedIds.length, 12) : 6)
 
     if (conditionColumn && conditionValue !== undefined) {
       query = query.eq(conditionColumn, conditionValue)
+    }
+
+    if (selectedIds?.length) {
+      query = query.in('id', selectedIds)
     }
 
     const { data } = await query
@@ -189,13 +302,12 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
       product_variants: Array<{ id: string; is_active: boolean }> | null
     }>
 
-    return Promise.all(
+    const products = await Promise.all(
       rawProds.map(async (p) => {
-        const images = (p.product_images ?? [])
+        const uploadedImages = (p.product_images ?? [])
           .sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.position ?? 0) - (b.position ?? 0))
           .map((img) => getProductImageUrl(img.url))
-
-        if (images.length === 0) images.push('/placeholder-product.png')
+        const images = withCategoryProductFallback(uploadedImages, p.categories?.slug)
 
         const primaryVar = (p.product_variants ?? []).find((v) => v.is_active)
         let priceInfo: PriceInfo | undefined = undefined
@@ -219,6 +331,7 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
           sku: p.sku,
           name: p.name,
           slug: p.slug,
+          primary_variant_id: primaryVar?.id ?? null,
           images,
           unit: p.unit,
           min_quantity: p.min_quantity,
@@ -229,6 +342,17 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
         }
       }),
     )
+
+    if (selectedIds?.length) {
+      const positionById = new Map(selectedIds.map((id, index) => [id, index]))
+      products.sort(
+        (a, b) =>
+          (positionById.get(a.id) ?? Number.MAX_SAFE_INTEGER) -
+          (positionById.get(b.id) ?? Number.MAX_SAFE_INTEGER),
+      )
+    }
+
+    return products
   }
 
   const [newArrivals, bestSellers, weeklyOpportunities] = await Promise.all([
@@ -244,9 +368,15 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
     .order('position', { ascending: true })
 
   const dbBanners = dbBannersData ?? []
+  const secondaryBannerRow = dbBanners.find(
+    (banner) => banner.subtitle === '__secondary__',
+  )
+  const heroBannerRows = dbBanners.filter(
+    (banner) => banner.subtitle !== '__secondary__',
+  )
 
-  const heroBanners: HeroBannerItem[] = dbBanners.length > 0 
-    ? dbBanners.map(b => ({
+  const heroBanners: HeroBannerItem[] = heroBannerRows.length > 0 
+    ? heroBannerRows.map(b => ({
         id: b.id,
         title: b.title,
         subtitle: b.subtitle || '',
@@ -269,6 +399,87 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
         },
       ]
 
+  const secondaryBanner: SecondaryBannerItem | null = secondaryBannerRow
+    ? {
+        id: secondaryBannerRow.id,
+        title: secondaryBannerRow.title,
+        imageUrl: secondaryBannerRow.image_url,
+        mobileImageUrl:
+          secondaryBannerRow.mobile_image_url || secondaryBannerRow.image_url,
+        href: secondaryBannerRow.link_url || '/catalogo',
+      }
+    : null
+
+  const { data: dbCollectionsData } = await supabase
+    .from('collections')
+    .select(
+      `
+      id,
+      name,
+      slug,
+      description,
+      banner_url,
+      collection_products(product_id, position)
+      `,
+    )
+    .eq('is_active', true)
+    .order('updated_at', { ascending: false })
+    .limit(4)
+
+  const dbCollections = (dbCollectionsData ?? []) as Array<{
+    id: string
+    name: string
+    slug: string
+    description: string | null
+    banner_url: string | null
+    collection_products: Array<{ product_id: string; position: number }> | null
+  }>
+
+  const collections: CollectionCampaign[] =
+    dbCollections.length > 0
+      ? await Promise.all(
+          dbCollections.map(async (collection) => {
+            const productIds = [...(collection.collection_products ?? [])]
+              .sort((a, b) => a.position - b.position)
+              .map((item) => item.product_id)
+              .slice(0, 12)
+
+            return {
+              id: collection.id,
+              title: collection.name,
+              slug: collection.slug,
+              description: collection.description ?? '',
+              itemCount: productIds.length,
+              imageUrl:
+                collection.banner_url ??
+                SEASONAL_IMAGE_MAP[collection.slug] ??
+                '/placeholder-category.png',
+              ctaLabel: 'Ver produtos',
+              badge: 'Temporada',
+              products: await fetchProductsGroup(undefined, undefined, productIds),
+            }
+          }),
+        )
+      : DEFAULT_SEASONAL_COLLECTIONS.map((collection, index) => ({
+          ...collection,
+          products:
+            index === 0
+              ? newArrivals
+              : index === 1
+                ? bestSellers
+                : index === 2
+                  ? weeklyOpportunities
+                  : newArrivals,
+          itemCount:
+            index === 0
+              ? newArrivals.length
+              : index === 1
+                ? bestSellers.length
+                : index === 2
+                  ? weeklyOpportunities.length
+                  : newArrivals.length,
+        }))
+
   const benefits: BenefitItem[] = [
     { id: 'b-1', title: 'Faturamento B2B', description: 'Boleto bancário e crédito para empresas cadastradas', iconName: 'Boxes' },
     { id: 'b-2', title: 'Entrega para Todo o Brasil', description: 'Logística integrada e transportadoras parceiras', iconName: 'Truck' },
@@ -277,12 +488,13 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
 
   return {
     heroBanners,
+    secondaryBanner,
     benefits,
     featuredCategories,
     newArrivals,
     bestSellers,
     weeklyOpportunities,
-    collections: [],
+    collections,
     brands,
     testimonials: [],
     metrics: [

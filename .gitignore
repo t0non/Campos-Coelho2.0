@@ -42,3 +42,6 @@ next-env.d.ts
 
 # Backups temporarios
 scripts/backups/
+
+# Arquivos temporários do Codex
+.codex-tmp/

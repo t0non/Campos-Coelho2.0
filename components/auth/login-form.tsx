@@ -58,7 +58,12 @@ function isRedirectAllowedForRole(
   return false
 }
 
-function LoginFormInner() {
+interface LoginFormProps {
+  variant?: 'page' | 'drawer'
+}
+
+function LoginFormInner({ variant = 'page' }: LoginFormProps) {
+  const isDrawer = variant === 'drawer'
   const [serverError, setServerError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
@@ -158,11 +163,16 @@ function LoginFormInner() {
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      className={isDrawer ? 'login-drawer-form space-y-3' : 'space-y-4'}
+    >
       {serverError && <ErrorMessage message={serverError} />}
 
       <Input
         label="E-mail"
+        placeholder={isDrawer ? '*E-mail' : undefined}
         type="email"
         autoComplete="email"
         required
@@ -174,6 +184,7 @@ function LoginFormInner() {
         <div className="relative">
           <Input
             label="Senha"
+            placeholder={isDrawer ? '*Senha' : undefined}
             type={showPassword ? 'text' : 'password'}
             autoComplete="current-password"
             required
@@ -184,7 +195,9 @@ function LoginFormInner() {
             type="button"
             tabIndex={-1}
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute right-3 top-8 text-gray-400 hover:text-gray-600 focus:outline-none"
+            className={`absolute right-3 ${
+              isDrawer ? 'top-3' : 'top-8'
+            } text-gray-400 hover:text-gray-600 focus:outline-none`}
             aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
           >
             {showPassword ? (
@@ -204,24 +217,35 @@ function LoginFormInner() {
         </div>
       </div>
 
-      <Button type="submit" loading={isSubmitting} fullWidth>
-        Entrar
+      <Button
+        type="submit"
+        loading={isSubmitting}
+        fullWidth
+        className={
+          isDrawer
+            ? 'h-10 rounded-md bg-[#171717] text-sm font-extrabold text-white hover:bg-[#050505]'
+            : undefined
+        }
+      >
+        {isDrawer ? 'ENTRAR NA LOJA' : 'Entrar'}
       </Button>
 
-      <p className="text-center text-sm text-gray-500">
-        Não tem cadastro?{' '}
-        <Link href="/cadastro" className="text-blue-600 hover:underline font-medium">
-          Cadastre sua empresa
-        </Link>
-      </p>
+      {!isDrawer && (
+        <p className="text-center text-sm text-gray-500">
+          Não tem cadastro?{' '}
+          <Link href="/cadastro" className="text-blue-600 hover:underline font-medium">
+            Cadastre sua empresa
+          </Link>
+        </p>
+      )}
     </form>
   )
 }
 
-export function LoginForm() {
+export function LoginForm({ variant = 'page' }: LoginFormProps) {
   return (
     <Suspense fallback={<div className="h-48 animate-pulse rounded-lg bg-gray-100" />}>
-      <LoginFormInner />
+      <LoginFormInner variant={variant} />
     </Suspense>
   )
 }

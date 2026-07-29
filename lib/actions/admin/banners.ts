@@ -1,17 +1,12 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { requireAdmin } from '@/lib/supabase/auth'
 import { revalidatePath } from 'next/cache'
-import { SupabaseClient } from '@supabase/supabase-js'
-import { Database } from '@/types/database.types'
 
 export async function uploadBannerImage(formData: FormData) {
-  const supabase = await createClient()
-
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) {
-    return { error: 'Não autorizado' }
-  }
+  await requireAdmin()
+  const supabase = createAdminClient()
 
   const file = formData.get('file') as File
   if (!file) {
@@ -48,10 +43,22 @@ export async function saveBanner(data: {
   is_active: boolean
   position: number
 }) {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Não autorizado' }
+  await requireAdmin()
+  const supabase = createAdminClient()
+
+  if (data.subtitle === '__secondary__') {
+    let clearSecondary = supabase
+      .from('banners')
+      .update({ subtitle: null, updated_at: new Date().toISOString() })
+      .eq('subtitle', '__secondary__')
+
+    if (data.id) {
+      clearSecondary = clearSecondary.neq('id', data.id)
+    }
+
+    const { error: clearError } = await clearSecondary
+    if (clearError) return { error: clearError.message }
+  }
 
   if (data.id) {
     const { error } = await supabase
@@ -91,10 +98,8 @@ export async function saveBanner(data: {
 }
 
 export async function deleteBanner(id: string) {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Não autorizado' }
+  await requireAdmin()
+  const supabase = createAdminClient()
 
   const { error } = await supabase
     .from('banners')
@@ -109,10 +114,8 @@ export async function deleteBanner(id: string) {
 }
 
 export async function updateBannerOrder(orderedIds: string[]) {
-  const supabase = await createClient()
-  
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Não autorizado' }
+  await requireAdmin()
+  const supabase = createAdminClient()
 
   // Simple sequential update for the order
   for (let i = 0; i < orderedIds.length; i++) {

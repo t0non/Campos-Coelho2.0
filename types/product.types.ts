@@ -29,6 +29,7 @@ export interface CatalogProduct {
   sku: string
   name: string
   slug: string
+  primary_variant_id?: string | null
   images: string[]
   unit: string
   min_quantity: number

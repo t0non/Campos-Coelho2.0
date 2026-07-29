@@ -4,17 +4,32 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import { loadEnvConfig } from '@next/env'
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://szntzeclwouyidfossrk.supabase.co'
-const SUPABASE_SECRET_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!
+loadEnvConfig(process.cwd())
 
-const ADMIN_EMAIL = 'admin@camposecoelho.com.br'
-const ADMIN_PASSWORD = 'Admin@2026!'
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const SUPABASE_SECRET_KEY = process.env.SUPABASE_SECRET_KEY
+const ADMIN_EMAIL = process.env.ADMIN_INITIAL_EMAIL
+const ADMIN_PASSWORD = process.env.ADMIN_INITIAL_PASSWORD
+
+if (!SUPABASE_URL || !SUPABASE_SECRET_KEY || !ADMIN_EMAIL || !ADMIN_PASSWORD) {
+  throw new Error(
+    'Configure NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY, ADMIN_INITIAL_EMAIL e ADMIN_INITIAL_PASSWORD no ambiente local.',
+  )
+}
+
+const config = {
+  supabaseUrl: SUPABASE_URL,
+  supabaseSecretKey: SUPABASE_SECRET_KEY,
+  adminEmail: ADMIN_EMAIL,
+  adminPassword: ADMIN_PASSWORD,
+}
 
 async function main() {
   console.log('🔧 Criando cliente admin do Supabase...')
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
+  const supabase = createClient(config.supabaseUrl, config.supabaseSecretKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false,
@@ -22,10 +37,10 @@ async function main() {
   })
 
   // 1. Criar o usuário no Auth
-  console.log(`📧 Criando usuário: ${ADMIN_EMAIL}`)
+  console.log(`📧 Criando usuário: ${config.adminEmail}`)
   const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-    email: ADMIN_EMAIL,
-    password: ADMIN_PASSWORD,
+    email: config.adminEmail,
+    password: config.adminPassword,
     email_confirm: true, // Já confirma o e-mail automaticamente
   })
 
@@ -40,7 +55,7 @@ async function main() {
         process.exit(1)
       }
 
-      const existingUser = listData.users.find((u) => u.email === ADMIN_EMAIL)
+      const existingUser = listData.users.find((u) => u.email === config.adminEmail)
       if (!existingUser) {
         console.error('❌ Não consegui encontrar o usuário existente.')
         process.exit(1)
@@ -55,7 +70,7 @@ async function main() {
           id: existingUser.id,
           role: 'admin',
           full_name: 'Administrador',
-          email: ADMIN_EMAIL,
+          email: config.adminEmail,
         }, { onConflict: 'id' })
 
       if (upsertError) {
@@ -79,7 +94,7 @@ async function main() {
         id: userId,
         role: 'admin',
         full_name: 'Administrador',
-        email: ADMIN_EMAIL,
+        email: config.adminEmail,
       }, { onConflict: 'id' })
 
     if (profileError) {
@@ -94,8 +109,8 @@ async function main() {
   console.log('═══════════════════════════════════════════')
   console.log('  🎉 ADMIN CRIADO COM SUCESSO!')
   console.log('═══════════════════════════════════════════')
-  console.log(`  📧 E-mail:  ${ADMIN_EMAIL}`)
-  console.log(`  🔑 Senha:   ${ADMIN_PASSWORD}`)
+  console.log(`  📧 E-mail:  ${config.adminEmail}`)
+  console.log('  🔑 Senha:   definida pela variável ADMIN_INITIAL_PASSWORD')
   console.log('═══════════════════════════════════════════')
   console.log('')
   console.log('Faça login em http://localhost:3000/login')

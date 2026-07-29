@@ -4,13 +4,11 @@ export const dynamic = 'force-dynamic'
 import { getAuthContext } from '@/lib/supabase/auth'
 import { getHomePageData } from '@/lib/data/home'
 import { HeroCarousel } from '@/components/home/hero-carousel'
-import { BenefitsBar } from '@/components/home/benefits-bar'
 import { FeaturedCategories } from '@/components/home/featured-categories'
 import { ProductShowcase } from '@/components/home/product-showcase'
 import { PromotionalBanner } from '@/components/home/promotional-banner'
 import { CampaignGrid } from '@/components/home/campaign-grid'
 import { BrandCarousel } from '@/components/home/brand-carousel'
-import { HowToBuy } from '@/components/home/how-to-buy'
 import { BusinessRegistrationCTA } from '@/components/home/business-registration-cta'
 import { TrustNumbers } from '@/components/home/trust-numbers'
 import { Testimonials } from '@/components/home/testimonials'
@@ -80,8 +78,12 @@ export default async function HomePage() {
         {/* 1. Hero principal em carrossel */}
         <HeroCarousel banners={homeData.heroBanners} />
 
-        {/* 2. Barra de benefícios */}
-        <BenefitsBar benefits={homeData.benefits} />
+        {/* 2. Campanhas sazonais */}
+        <CampaignGrid
+          collections={homeData.collections}
+          canViewPrices={homeData.canViewPrices}
+          userStatus={homeData.userStatus}
+        />
 
         {/* 3. Categorias em destaque */}
         <FeaturedCategories categories={homeData.featuredCategories} />
@@ -97,7 +99,7 @@ export default async function HomePage() {
         />
 
         {/* 5. Banner promocional intermediário */}
-        <PromotionalBanner />
+        <PromotionalBanner banner={homeData.secondaryBanner} />
 
         {/* 6. Vitrine de mais vendidos */}
         <ProductShowcase
@@ -109,16 +111,10 @@ export default async function HomePage() {
           userStatus={homeData.userStatus}
         />
 
-        {/* 7. Campanhas e coleções */}
-        <CampaignGrid collections={homeData.collections} />
-
-        {/* 8. Marcas parceiras */}
+        {/* 7. Marcas parceiras */}
         <BrandCarousel brands={homeData.brands} />
 
-        {/* 9. Como comprar */}
-        <HowToBuy />
-
-        {/* 10. Vitrine de oportunidades */}
+        {/* 8. Vitrine de oportunidades */}
         <ProductShowcase
           title="Oportunidades da Semana"
           subtitle="Produtos selecionados para melhorar a margem da sua loja."
@@ -128,19 +124,19 @@ export default async function HomePage() {
           userStatus={homeData.userStatus}
         />
 
-        {/* 11. Chamada para cadastro empresarial */}
+        {/* 9. Chamada para cadastro empresarial */}
         <BusinessRegistrationCTA />
 
-        {/* 12. Confiança e números */}
+        {/* 10. Confiança e números */}
         <TrustNumbers metrics={homeData.metrics} />
 
-        {/* 13. Depoimentos */}
+        {/* 11. Depoimentos */}
         <Testimonials testimonials={homeData.testimonials} />
 
-        {/* 14. Conteúdo institucional */}
+        {/* 12. Conteúdo institucional */}
         <InstitutionalSection />
 
-        {/* 15. Newsletter */}
+        {/* 13. Newsletter */}
         <NewsletterSection />
       </div>
     </>

@@ -26,9 +26,9 @@ export function SidebarAccount() {
   const pathname = usePathname()
 
   return (
-    <aside className="w-64 shrink-0">
+    <aside className="w-full shrink-0 lg:w-64">
       <nav aria-label="Menu da conta">
-        <ul className="space-y-1">
+        <ul className="flex gap-2 overflow-x-auto pb-2 lg:block lg:space-y-1 lg:overflow-visible lg:pb-0">
           {navItems.map((item) => {
             const isActive = item.exact
               ? pathname === item.href
@@ -36,11 +36,11 @@ export function SidebarAccount() {
             const Icon = item.icon
 
             return (
-              <li key={item.href}>
+              <li key={item.href} className="shrink-0">
                 <Link
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                    'flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors lg:gap-3',
                     isActive
                       ? 'bg-blue-50 text-blue-700'
                       : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900',
@@ -48,7 +48,7 @@ export function SidebarAccount() {
                   aria-current={isActive ? 'page' : undefined}
                 >
                   <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
-                  <span className="flex-1">{item.label}</span>
+                  <span className="whitespace-nowrap lg:flex-1">{item.label}</span>
                   {isActive && (
                     <ChevronRight className="h-3 w-3 text-blue-500" aria-hidden="true" />
                   )}

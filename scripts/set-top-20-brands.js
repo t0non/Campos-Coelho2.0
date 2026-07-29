@@ -1,7 +1,16 @@
 const { createClient } = require('@supabase/supabase-js');
+const { loadEnvConfig } = require('@next/env');
 
-const supabaseUrl = 'https://szntzeclwouyidfossrk.supabase.co';
-const supabaseKey = 'sb_publishable__8fluEp5frSCj8e6L4Ey7A_yD38juUJ';
+loadEnvConfig(process.cwd());
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const adminEmail = process.env.TEST_ADMIN_EMAIL;
+const adminPassword = process.env.TEST_ADMIN_PASSWORD;
+
+if (!supabaseUrl || !supabaseKey || !adminEmail || !adminPassword) {
+  throw new Error('Configure Supabase e TEST_ADMIN_EMAIL/TEST_ADMIN_PASSWORD no ambiente local.');
+}
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
@@ -48,8 +57,8 @@ const ALIASES = {
 async function main() {
   console.log('🔑 Realizando autenticação como Admin...');
   const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-    email: 'admin@camposecoelho.com.br',
-    password: 'Admin@2026!'
+    email: adminEmail,
+    password: adminPassword
   });
 
   if (authError) {

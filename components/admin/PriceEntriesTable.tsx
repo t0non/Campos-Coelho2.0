@@ -218,7 +218,7 @@ export function PriceEntriesTable({ priceTableId, variants }: PriceEntriesTableP
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <label className="block text-xs font-semibold text-muted-foreground mb-1">Preço Normal *</label>
                 <div className="relative">
@@ -264,7 +264,7 @@ export function PriceEntriesTable({ priceTableId, variants }: PriceEntriesTableP
                     />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
                     <label className="block text-[11px] text-muted-foreground mb-1">Início Promoção</label>
                     <input

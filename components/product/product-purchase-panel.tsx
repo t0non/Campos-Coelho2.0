@@ -67,6 +67,29 @@ export function ProductPurchasePanel({
       })
 
       if (!result.success) {
+        if (result.code === 'ADMIN_PREVIEW_REQUIRED') {
+          window.dispatchEvent(
+            new CustomEvent('cart:preview-add', {
+              detail: {
+                id: product.id,
+                sku: product.sku,
+                name: product.name,
+                slug: product.slug,
+                primary_variant_id: selectedVariantId,
+                images: product.images,
+                unit: product.unit,
+                min_quantity: product.min_quantity,
+                multiple_quantity: product.multiple_quantity,
+                category: product.category,
+                brand: product.brand,
+                price: product.price,
+              },
+            }),
+          )
+          setAdded(true)
+          setTimeout(() => setAdded(false), 2500)
+          return
+        }
         setError(result.message ?? 'Não foi possível adicionar ao carrinho.')
         return
       }
@@ -74,6 +97,7 @@ export function ProductPurchasePanel({
       setAdded(true)
       // Atualiza contador do header e o minicart (leitura set-based no layout).
       router.refresh()
+      window.dispatchEvent(new Event('cart:open'))
       setTimeout(() => setAdded(false), 2500)
     })
   }

@@ -53,11 +53,11 @@ export default function AdminBannersPage() {
 
   return (
     <div className="max-w-4xl space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-black text-[#111111]">Banners</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Gerencie os banners da página inicial. Você pode subir imagens diferentes para PC e Celular.
+            Gerencie o carrossel principal e o banner intermediário. Você pode subir imagens diferentes para PC e Celular.
           </p>
         </div>
         {!showForm && (

@@ -31,7 +31,31 @@ export async function getCustomerSessionPricing(): Promise<CustomerSessionPricin
 
   const profile = profileData as { role: string; company_id: string | null } | null
 
-  if (!profile || profile.role !== 'customer' || !profile.company_id) {
+  if (!profile) {
+    return { priceTableId: null, canViewPrices: false, userStatus: 'visitor' }
+  }
+
+  // O contexto global permite que administrador e vendedor consultem preços,
+  // mas esta função antes tratava qualquer perfil que não fosse cliente como
+  // visitante. Para manter o catálogo coerente, usamos a tabela padrão ativa.
+  // As políticas do banco continuam limitando o vendedor às tabelas das
+  // empresas atribuídas a ele.
+  if (profile.role === 'admin' || profile.role === 'seller') {
+    const { data: defaultPriceTable } = await supabase
+      .from('price_tables')
+      .select('id')
+      .eq('is_default', true)
+      .eq('is_active', true)
+      .maybeSingle()
+
+    return {
+      priceTableId: defaultPriceTable?.id ?? null,
+      canViewPrices: Boolean(defaultPriceTable?.id),
+      userStatus: 'approved',
+    }
+  }
+
+  if (profile.role !== 'customer' || !profile.company_id) {
     return { priceTableId: null, canViewPrices: false, userStatus: 'visitor' }
   }
 
@@ -206,7 +230,7 @@ export async function getCatalogPricingForCurrentCustomer(
       promotion_starts_at,
       promotion_ends_at,
       is_active,
-      price_tables (is_active, valid_from, valid_until)
+      price_tables (is_active, starts_at, ends_at)
       `,
     )
     .eq('price_table_id', sessionInfo.priceTableId)
@@ -222,7 +246,7 @@ export async function getCatalogPricingForCurrentCustomer(
     promotion_starts_at: string | null
     promotion_ends_at: string | null
     is_active: boolean
-    price_tables: { is_active: boolean; valid_from: string | null; valid_until: string | null } | null
+    price_tables: { is_active: boolean; starts_at: string | null; ends_at: string | null } | null
   }>
 
   const now = new Date()
@@ -230,8 +254,8 @@ export async function getCatalogPricingForCurrentCustomer(
   for (const item of typedPrices) {
     // Validar tabela ativa e período
     if (!item.price_tables || !item.price_tables.is_active) continue
-    if (item.price_tables.valid_from && new Date(item.price_tables.valid_from) > now) continue
-    if (item.price_tables.valid_until && new Date(item.price_tables.valid_until) < now) continue
+    if (item.price_tables.starts_at && new Date(item.price_tables.starts_at) > now) continue
+    if (item.price_tables.ends_at && new Date(item.price_tables.ends_at) < now) continue
 
     const hasValidPromo = isPromotionValid(
       item.promotional_price,
@@ -311,7 +335,7 @@ export async function getSellerCompanyPricing(
       promotion_starts_at,
       promotion_ends_at,
       is_active,
-      price_tables (is_active, valid_from, valid_until)
+      price_tables (is_active, starts_at, ends_at)
       `,
     )
     .eq('price_table_id', company.price_table_id)
@@ -327,7 +351,7 @@ export async function getSellerCompanyPricing(
     promotion_starts_at: string | null
     promotion_ends_at: string | null
     is_active: boolean
-    price_tables: { is_active: boolean; valid_from: string | null; valid_until: string | null } | null
+    price_tables: { is_active: boolean; starts_at: string | null; ends_at: string | null } | null
   }
 
   if (!item.price_tables || !item.price_tables.is_active) return undefined

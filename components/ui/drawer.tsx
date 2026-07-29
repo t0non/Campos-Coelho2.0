@@ -8,18 +8,30 @@ interface DrawerProps {
   isOpen: boolean
   onClose: () => void
   title?: string
+  subtitle?: string
+  titleIcon?: ReactNode
   position?: 'left' | 'right'
   children: ReactNode
   footer?: ReactNode
+  panelClassName?: string
+  headerClassName?: string
+  contentClassName?: string
+  footerClassName?: string
 }
 
 export function Drawer({
   isOpen,
   onClose,
   title,
+  subtitle,
+  titleIcon,
   position = 'right',
   children,
   footer,
+  panelClassName,
+  headerClassName,
+  contentClassName,
+  footerClassName,
 }: DrawerProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -58,11 +70,23 @@ export function Drawer({
         className={cn(
           'relative flex w-full max-w-md flex-col bg-white shadow-2xl transition-transform duration-300 ease-in-out z-10',
           position === 'right' ? 'ml-auto' : 'mr-auto',
+          panelClassName,
         )}
       >
         {/* Header */}
-        <div className="flex h-16 items-center justify-between border-b border-slate-100 px-6">
-          <h2 className="text-base font-bold text-slate-900">{title}</h2>
+        <div
+          className={cn(
+            'flex min-h-16 items-center justify-between border-b border-slate-100 px-6 py-3',
+            headerClassName,
+          )}
+        >
+          <div className="flex min-w-0 items-center gap-3">
+            {titleIcon}
+            <div className="min-w-0">
+              <h2 className="truncate text-base font-bold text-slate-900">{title}</h2>
+              {subtitle && <p className="mt-0.5 text-xs text-slate-500">{subtitle}</p>}
+            </div>
+          </div>
           <button
             type="button"
             onClick={onClose}
@@ -74,10 +98,14 @@ export function Drawer({
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-6">{children}</div>
+        <div className={cn('flex-1 overflow-y-auto p-6', contentClassName)}>{children}</div>
 
         {/* Footer */}
-        {footer && <div className="border-t border-slate-100 p-6 bg-slate-50">{footer}</div>}
+        {footer && (
+          <div className={cn('border-t border-slate-100 bg-slate-50 p-6', footerClassName)}>
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   )

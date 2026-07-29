@@ -115,7 +115,7 @@ export function VariantFormDialog({ open, onOpenChange, productId, initialData }
         {initialData ? 'Atualize as opções de variação.' : 'Adicione uma nova variação de produto.'}
       </p>
       <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="col-span-2">
               <label className="text-sm block mb-1">Nome (Ex: P, Azul)</label>
               <input required name="name" value={formData.name} onChange={handleChange} className="w-full h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" />

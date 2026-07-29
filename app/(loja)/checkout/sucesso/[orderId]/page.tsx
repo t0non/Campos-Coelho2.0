@@ -36,7 +36,7 @@ export default async function CheckoutSuccessPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Container className="py-12 max-w-2xl">
+      <Container className="max-w-2xl py-10 sm:py-12">
         <div className="flex flex-col items-center text-center mb-8">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 mb-4">
             <CheckCircle2 className="h-9 w-9" />

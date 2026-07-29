@@ -11,7 +11,7 @@ export function InstitutionalSection() {
   ]
 
   return (
-    <section className="py-12 bg-white border-b border-slate-200">
+    <section className="site-section border-b border-slate-200 bg-white">
       <Container>
         <div className="grid lg:grid-cols-12 gap-8 items-center">
           <div className="lg:col-span-5 bg-slate-100 rounded-2xl p-8 flex flex-col items-center justify-center text-center border border-slate-200 min-h-[18rem]">
@@ -26,10 +26,10 @@ export function InstitutionalSection() {
 
           <div className="lg:col-span-7 space-y-6">
             <div className="space-y-2">
-              <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
+              <span className="site-section-eyebrow text-orange-600">
                 Sobre a Empresa
               </span>
-              <h2 className="text-2xl font-extrabold text-slate-900">
+              <h2 className="site-section-title text-slate-900">
                 Uma Parceria para o Crescimento do Seu Negócio
               </h2>
             </div>
