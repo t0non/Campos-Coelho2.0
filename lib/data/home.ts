@@ -423,8 +423,18 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
     (banner) => banner.subtitle !== '__secondary__',
   )
 
-  const heroBanners: HeroBannerItem[] = heroBannerRows.length > 0 
-    ? heroBannerRows.map((b, index) => ({
+  const heroBanners: HeroBannerItem[] = [
+    {
+      id: 'banner-institucional-geral',
+      title: 'Variedade para o seu negócio',
+      subtitle: 'Atacado para lojistas e empresas',
+      description: 'Conheça a estrutura e o catálogo da Campos & Coelho.',
+      primaryCta: { label: 'Ver catálogo', href: '/catalogo' },
+      desktopImage: '/images/banners/hero-geral-desktop.webp',
+      mobileImage: '/images/banners/hero-geral-mobile.webp',
+      theme: 'dark',
+    },
+    ...heroBannerRows.map((b, index): HeroBannerItem => ({
         id: b.id,
         title: getStoreBannerTitle(b.title, index),
         subtitle: b.subtitle || '',
@@ -436,19 +446,8 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
         desktopImage: b.image_url,
         mobileImage: b.mobile_image_url || b.image_url,
         theme: 'dark',
-      })) 
-    : [
-        {
-          id: 'banner-1',
-          title: 'Soluções Completas em Atacado B2B',
-          subtitle: 'CONDIÇÕES ESPECIAIS B2B',
-          description: 'Compre direto da distribuidora com preços exclusivos por tabela comercial e condições de pagamento flexíveis.',
-          primaryCta: { label: 'Explorar Catálogo Real', href: '/catalogo' },
-          desktopImage: 'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?q=80&w=1200&auto=format&fit=crop',
-          mobileImage: 'https://images.unsplash.com/photo-1556740738-b6a63e27c4df?q=80&w=600&auto=format&fit=crop',
-          theme: 'dark',
-        },
-      ]
+      })),
+  ]
 
   const secondaryBanner: SecondaryBannerItem | null = secondaryBannerRow
     ? {
