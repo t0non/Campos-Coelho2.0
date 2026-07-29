@@ -153,10 +153,28 @@ export async function updateCustomerStatus(
   }
 
   if (status === 'approved') {
+    const { data: defaultPriceTable, error: priceTableError } = await adminClient
+      .from('price_tables')
+      .select('id')
+      .eq('is_default', true)
+      .eq('is_active', true)
+      .maybeSingle()
+
+    if (priceTableError || !defaultPriceTable) {
+      return {
+        error: 'Não existe uma tabela de preços padrão ativa. Configure-a antes de aprovar o cadastro.',
+      }
+    }
+
     updateData.approved_at = new Date().toISOString()
+    updateData.rejected_at = null
+    updateData.rejection_reason = null
+    updateData.price_table_id = defaultPriceTable.id
   } else if (status === 'rejected') {
+    updateData.approved_at = null
     updateData.rejected_at = new Date().toISOString()
     updateData.rejection_reason = decisionMessage.trim()
+    updateData.price_table_id = null
   }
 
   const { error } = await adminClient
