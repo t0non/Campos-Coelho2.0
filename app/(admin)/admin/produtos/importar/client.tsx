@@ -22,7 +22,7 @@ export default function ImportarPlanilhaClient({ initialPriceTables }: { initial
   const router = useRouter()
   const [step, setStep] = useState<Step>(1)
   const [file, setFile] = useState<File | null>(null)
-  const [mode] = useState<'import_update' | 'replace'>('import_update')
+  const [mode, setMode] = useState<'import_update' | 'replace'>('import_update')
   const [priceTableId, setPriceTableId] = useState<string>('')
   const [publish, setPublish] = useState(true)
   const [confirmGlobal, setConfirmGlobal] = useState(false)
@@ -191,19 +191,28 @@ export default function ImportarPlanilhaClient({ initialPriceTables }: { initial
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Modo de Importação</label>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <div 
-                    className={`border rounded-lg p-4 transition-colors border-navy-600 bg-navy-50`}
+                  <button
+                    type="button"
+                    onClick={() => setMode('import_update')}
+                    className={`border rounded-lg p-4 text-left transition-colors ${
+                      mode === 'import_update' ? 'border-navy-600 bg-navy-50' : 'border-slate-200 bg-white'
+                    }`}
                   >
                     <h4 className="font-semibold text-slate-900">Importar e Atualizar</h4>
                     <p className="text-xs text-slate-500 mt-1">Cria novos produtos e atualiza os existentes. Não remove nada.</p>
-                  </div>
-                  <div 
-                    className={`border rounded-lg p-4 bg-slate-50 opacity-50 cursor-not-allowed`}
-                    title="Função disponível após a homologação inicial do catálogo."
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode('replace')}
+                    className={`border rounded-lg p-4 text-left transition-colors ${
+                      mode === 'replace'
+                        ? 'border-amber-500 bg-amber-50'
+                        : 'border-slate-200 bg-white hover:border-slate-400'
+                    }`}
                   >
-                    <h4 className="font-semibold text-slate-600">Substituir Catálogo</h4>
-                    <p className="text-xs text-slate-500 mt-1">Função disponível após a homologação inicial do catálogo.</p>
-                  </div>
+                    <h4 className="font-semibold text-slate-900">Substituir Catálogo</h4>
+                    <p className="text-xs text-slate-500 mt-1">Arquiva produtos ausentes após importar a planilha completa.</p>
+                  </button>
                 </div>
               </div>
 

@@ -2,16 +2,10 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fullRegistrationSchema } from '@/lib/validations/registration'
+import { safeOriginalFilename, validateUploadedFile } from '@/lib/security/file-validation'
 
-const ALLOWED_FILE_TYPES = new Set([
-  'application/pdf',
-  'image/png',
-  'image/jpeg',
-  'application/msword',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-])
 const MAX_FILE_SIZE = 2 * 1024 * 1024
+const ALLOWED_DOCUMENT_CATEGORIES = new Set(['contrato_social', 'doc_responsavel'])
 
 export type PublicRegistrationResult =
   | { success: true; protocol: string }
@@ -40,9 +34,29 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
   if (files.length < 2) {
     return { success: false, error: 'Envie o contrato social e o documento de identidade do responsável.' }
   }
+  if (files.length > 4) {
+    return { success: false, error: 'Envie no máximo quatro documentos.' }
+  }
+  const categories = formData.getAll('documentCategories').map(String)
+  if (
+    categories.length !== files.length ||
+    categories.some((category) => !ALLOWED_DOCUMENT_CATEGORIES.has(category)) ||
+    !categories.includes('contrato_social') ||
+    !categories.includes('doc_responsavel')
+  ) {
+    return { success: false, error: 'As categorias dos documentos enviados são inválidas.' }
+  }
+
+  const validatedFiles = []
   for (const file of files) {
-    if (file.size > MAX_FILE_SIZE) return { success: false, error: `O arquivo "${file.name}" excede o limite de 2 MB.` }
-    if (!ALLOWED_FILE_TYPES.has(file.type)) return { success: false, error: `O formato do arquivo "${file.name}" não é permitido.` }
+    const validation = await validateUploadedFile(file, {
+      allowedKinds: ['pdf', 'png', 'jpeg'],
+      maxBytes: MAX_FILE_SIZE,
+    })
+    if (!validation.success) {
+      return { success: false, error: `Arquivo "${safeOriginalFilename(file.name)}": ${validation.error}` }
+    }
+    validatedFiles.push({ file, validation })
   }
 
   const supabase = createAdminClient()
@@ -72,7 +86,7 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
         success: false,
         error: duplicate
           ? 'Este e-mail já possui uma conta. Entre com a conta existente ou use outro e-mail.'
-          : `Não foi possível criar a conta: ${authError?.message ?? 'erro desconhecido'}`,
+          : 'Não foi possível criar a conta. Revise os dados e tente novamente.',
       }
     }
     createdUserId = authData.user.id
@@ -128,14 +142,11 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
       is_default: true,
     })
 
-    const categories = formData.getAll('documentCategories').map(String)
-    for (const [index, file] of files.entries()) {
+    for (const [index, { file, validation }] of validatedFiles.entries()) {
       const category = categories[index] || 'outros'
-      const safeName = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_')
-      const filePath = `${company.id}/${category}/${crypto.randomUUID()}_${safeName}`
-      const bytes = new Uint8Array(await file.arrayBuffer())
-      const { error: uploadError } = await supabase.storage.from('company-documents').upload(filePath, bytes, {
-        contentType: file.type,
+      const filePath = `${company.id}/${category}/${crypto.randomUUID()}.${validation.extension}`
+      const { error: uploadError } = await supabase.storage.from('company-documents').upload(filePath, validation.bytes, {
+        contentType: validation.mimeType,
         upsert: false,
       })
       if (uploadError) throw new Error(`Falha ao enviar "${file.name}": ${uploadError.message}`)
@@ -145,7 +156,7 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
         company_id: company.id,
         document_type: category,
         file_path: filePath,
-        file_name: file.name,
+        file_name: safeOriginalFilename(file.name),
         status: 'pending',
       })
       if (documentError) throw new Error(`Falha ao registrar "${file.name}": ${documentError.message}`)
@@ -180,11 +191,15 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
     const protocol = `B2B-${company.id.slice(0, 8).toUpperCase()}`
     return { success: true, protocol }
   } catch (error) {
+    console.error('Falha ao concluir cadastro público:', error)
     if (uploadedPaths.length > 0) {
       await supabase.storage.from('company-documents').remove(uploadedPaths)
     }
     if (createdCompanyId) await supabase.from('companies').delete().eq('id', createdCompanyId)
     if (createdUserId) await supabase.auth.admin.deleteUser(createdUserId)
-    return { success: false, error: error instanceof Error ? error.message : 'Não foi possível concluir o cadastro.' }
+    return {
+      success: false,
+      error: 'Não foi possível concluir o cadastro. Nenhum dado parcial foi mantido; tente novamente.',
+    }
   }
 }

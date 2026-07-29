@@ -128,7 +128,12 @@ export default async function AdminPedidosPage({
                   className="grid gap-4 px-5 py-5 lg:grid-cols-[1fr_1.4fr_100px_120px_180px] lg:items-center"
                 >
                   <div>
-                    <p className="text-sm font-extrabold text-neutral-950">{order.order_number}</p>
+                    <Link
+                      href={`/admin/pedidos/${order.id}`}
+                      className="text-sm font-extrabold text-neutral-950 underline-offset-4 hover:underline"
+                    >
+                      {order.order_number}
+                    </Link>
                     <time className="mt-1 block text-xs text-neutral-500">
                       {new Intl.DateTimeFormat('pt-BR', {
                         dateStyle: 'short',

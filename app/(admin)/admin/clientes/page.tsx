@@ -15,6 +15,7 @@ const CustomerDetailsModal = dynamic(() =>
 export default function AdminCustomersPage() {
   const [customers, setCustomers] = useState<CustomerSummary[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   
   // Filtros
   const [searchTerm, setSearchTerm] = useState('')
@@ -31,9 +32,13 @@ export default function AdminCustomersPage() {
 
   const fetchList = async () => {
     setIsLoading(true)
+    setLoadError('')
     const res = await getCustomers(debouncedSearch, statusFilter)
     if (res.customers) {
       setCustomers(res.customers as CustomerSummary[])
+    } else {
+      setCustomers([])
+      setLoadError(res.error || 'Não foi possível carregar os clientes.')
     }
     setIsLoading(false)
   }
@@ -83,12 +88,17 @@ export default function AdminCustomersPage() {
               <option value="pending">Pendentes</option>
               <option value="approved">Aprovados</option>
               <option value="rejected">Recusados</option>
+              <option value="suspended">Suspensos</option>
             </select>
           </div>
         </div>
       </div>
 
-      {isLoading && customers.length === 0 ? (
+      {loadError ? (
+        <div className="border border-red-200 bg-red-50 p-6 text-sm font-semibold text-red-700">
+          {loadError}
+        </div>
+      ) : isLoading && customers.length === 0 ? (
         <div className="border border-neutral-200 bg-white p-10 text-center text-sm text-neutral-500">
           Carregando lista de clientes...
         </div>

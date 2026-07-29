@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { ArrowRight, CheckCircle2, CircleAlert, CreditCard, Database, Truck } from 'lucide-react'
+import { CommercialSettingsManager } from '@/components/admin/commercial-settings-manager'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/supabase/auth'
 
@@ -20,13 +21,11 @@ export default async function AdminConfiguracoesPage() {
       .order('is_default', { ascending: false }),
     supabase
       .from('shipping_methods')
-      .select('id, name, code, estimated_days')
-      .eq('is_active', true)
+      .select('id, name, code, description, estimated_days, is_active')
       .order('name'),
     supabase
       .from('payment_terms')
-      .select('id, name, code, installments, min_order_value')
-      .eq('is_active', true)
+      .select('id, name, code, days_to_pay, installments, min_order_value, is_active')
       .order('days_to_pay'),
   ])
 
@@ -54,7 +53,7 @@ export default async function AdminConfiguracoesPage() {
     },
     {
       title: 'Formas de entrega',
-      value: `${shippingResult.data?.length ?? 0} ativa(s)`,
+      value: `${shippingResult.data?.filter((method) => method.is_active).length ?? 0} ativa(s)`,
       description: 'Opções disponíveis durante a finalização do pedido.',
       icon: Truck,
       ready: Boolean(shippingResult.data?.length),
@@ -95,68 +94,10 @@ export default async function AdminConfiguracoesPage() {
         ))}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-base font-extrabold text-neutral-950">Condições de pagamento</h2>
-              <p className="mt-1 text-xs text-neutral-500">Condições ativas para clientes aprovados.</p>
-            </div>
-            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-bold text-neutral-700">
-              {paymentResult.data?.length ?? 0}
-            </span>
-          </div>
-          <div className="mt-5 divide-y divide-neutral-100">
-            {(paymentResult.data ?? []).map((term) => (
-              <div key={term.id} className="flex items-center justify-between gap-4 py-3">
-                <div>
-                  <p className="text-sm font-bold text-neutral-900">{term.name}</p>
-                  <p className="text-xs text-neutral-500">
-                    {term.installments} parcela(s) · código {term.code}
-                  </p>
-                </div>
-                <p className="text-xs font-semibold text-neutral-600">
-                  Mín. {new Intl.NumberFormat('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL',
-                  }).format(Number(term.min_order_value))}
-                </p>
-              </div>
-            ))}
-            {!paymentResult.data?.length && (
-              <p className="py-8 text-center text-sm text-neutral-500">Nenhuma condição ativa.</p>
-            )}
-          </div>
-        </section>
-
-        <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-base font-extrabold text-neutral-950">Métodos de entrega</h2>
-              <p className="mt-1 text-xs text-neutral-500">Opções disponíveis no checkout.</p>
-            </div>
-            <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-bold text-neutral-700">
-              {shippingResult.data?.length ?? 0}
-            </span>
-          </div>
-          <div className="mt-5 divide-y divide-neutral-100">
-            {(shippingResult.data ?? []).map((method) => (
-              <div key={method.id} className="flex items-center justify-between gap-4 py-3">
-                <div>
-                  <p className="text-sm font-bold text-neutral-900">{method.name}</p>
-                  <p className="text-xs text-neutral-500">Código {method.code}</p>
-                </div>
-                <p className="text-xs font-semibold text-neutral-600">
-                  {method.estimated_days ? `até ${method.estimated_days} dias` : 'Prazo sob consulta'}
-                </p>
-              </div>
-            ))}
-            {!shippingResult.data?.length && (
-              <p className="py-8 text-center text-sm text-neutral-500">Nenhum método ativo.</p>
-            )}
-          </div>
-        </section>
-      </div>
+      <CommercialSettingsManager
+        shippingMethods={shippingResult.data ?? []}
+        paymentTerms={paymentResult.data ?? []}
+      />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Link

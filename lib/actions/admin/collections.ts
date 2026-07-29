@@ -4,13 +4,21 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/supabase/auth'
+import { validateUploadedFile } from '@/lib/security/file-validation'
 
 const campaignSchema = z.object({
   id: z.string().uuid().optional(),
   name: z.string().trim().min(2, 'Informe o nome da campanha.').max(80),
   slug: z.string().trim().max(100).optional(),
   description: z.string().trim().max(300).optional(),
-  bannerUrl: z.string().trim().min(1, 'Envie a imagem da campanha.'),
+  bannerUrl: z
+    .string()
+    .trim()
+    .min(1, 'Envie a imagem da campanha.')
+    .max(1000)
+    .refine((value) => value.startsWith('/') || /^https:\/\//i.test(value), {
+      message: 'Use uma imagem interna ou uma URL HTTPS.',
+    }),
   isActive: z.boolean(),
   productIds: z.array(z.string().uuid()).max(12, 'Selecione no máximo 12 produtos.'),
 })
@@ -24,6 +32,18 @@ function toSlug(value: string) {
     .replace(/^-+|-+$/g, '')
 }
 
+function campaignStoragePath(url: string | null | undefined) {
+  if (!url) return null
+  try {
+    const marker = '/storage/v1/object/public/banners/'
+    const pathname = new URL(url).pathname
+    const index = pathname.indexOf(marker)
+    return index === -1 ? null : decodeURIComponent(pathname.slice(index + marker.length))
+  } catch {
+    return null
+  }
+}
+
 export async function uploadCollectionImage(formData: FormData) {
   await requireAdmin()
 
@@ -32,24 +52,20 @@ export async function uploadCollectionImage(formData: FormData) {
     return { error: 'Selecione uma imagem válida.' }
   }
 
-  const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
-  if (!allowedTypes.includes(file.type)) {
-    return { error: 'Use uma imagem JPG, PNG ou WebP.' }
-  }
+  const validation = await validateUploadedFile(file, {
+    allowedKinds: ['jpeg', 'png', 'webp'],
+    maxBytes: 8 * 1024 * 1024,
+  })
+  if (!validation.success) return { error: validation.error }
 
-  if (file.size > 8 * 1024 * 1024) {
-    return { error: 'A imagem deve ter no máximo 8 MB.' }
-  }
-
-  const extension = file.name.split('.').pop()?.toLowerCase() || 'png'
-  const filePath = `seasonal/${crypto.randomUUID()}.${extension}`
+  const filePath = `seasonal/${crypto.randomUUID()}.${validation.extension}`
   const supabase = createAdminClient()
 
   const { error: uploadError } = await supabase.storage
     .from('banners')
-    .upload(filePath, file, {
-      cacheControl: '3600',
-      contentType: file.type,
+    .upload(filePath, validation.bytes, {
+      cacheControl: '86400',
+      contentType: validation.mimeType,
       upsert: false,
     })
 
@@ -151,8 +167,18 @@ export async function deleteSeasonalCampaign(id: string) {
   if (!parsedId.success) return { error: 'Campanha inválida.' }
 
   const supabase = createAdminClient()
+  const { data: campaign } = await supabase
+    .from('collections')
+    .select('banner_url')
+    .eq('id', parsedId.data)
+    .maybeSingle()
   const { error } = await supabase.from('collections').delete().eq('id', parsedId.data)
   if (error) return { error: error.message }
+  const storagePath = campaignStoragePath(campaign?.banner_url)
+  if (storagePath) {
+    const { error: storageError } = await supabase.storage.from('banners').remove([storagePath])
+    if (storageError) console.error('Falha ao remover imagem da campanha:', storageError.message)
+  }
 
   revalidatePath('/')
   revalidatePath('/admin/campanhas')

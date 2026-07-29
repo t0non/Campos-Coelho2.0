@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { updateOrderStatusAction } from '@/app/actions/orders'
 import type { Database } from '@/types/database.types'
+import { ORDER_STATUS_TRANSITIONS } from '@/lib/orders/status'
 
 type OrderStatus = Database['public']['Enums']['order_status']
 
@@ -50,7 +51,14 @@ export function OrderStatusSelect({
         className="h-9 w-full rounded-lg border border-neutral-300 bg-white px-3 text-xs font-semibold text-neutral-800 outline-none transition focus:border-black focus:ring-2 focus:ring-black/10 disabled:cursor-wait disabled:opacity-60"
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option
+            key={option.value}
+            value={option.value}
+            disabled={
+              option.value !== status &&
+              !ORDER_STATUS_TRANSITIONS[status].includes(option.value)
+            }
+          >
             {option.label}
           </option>
         ))}

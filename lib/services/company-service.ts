@@ -2,6 +2,8 @@ import 'server-only'
 import { createClient } from '@/lib/supabase/server'
 import { getAuthContext, requireAdmin } from '@/lib/supabase/auth'
 import { validateCNPJ } from '@/lib/utils/masks'
+import { z } from 'zod'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyClient = any
@@ -29,6 +31,32 @@ export interface SaveCompanyDataInput {
   state: string
 }
 
+const saveCompanyDataSchema = z.object({
+  cnpj: z.string().min(14).max(18),
+  company_name: z.string().trim().min(3).max(160),
+  trade_name: z.string().trim().max(120).optional(),
+  state_registration: z.string().trim().max(40).optional(),
+  segment: z.string().trim().max(80).optional(),
+  phone: z.string().max(20).optional(),
+  whatsapp: z.string().max(20).optional(),
+  email: z.string().trim().email().max(254).optional().or(z.literal('')),
+  website: z
+    .string()
+    .trim()
+    .url()
+    .max(300)
+    .refine((value) => /^https?:\/\//i.test(value), 'Use um endereço HTTP ou HTTPS.')
+    .optional()
+    .or(z.literal('')),
+  zip_code: z.string().min(8).max(10),
+  street: z.string().trim().min(3).max(160),
+  number: z.string().trim().min(1).max(30),
+  complement: z.string().trim().max(100).optional(),
+  neighborhood: z.string().trim().min(2).max(100),
+  city: z.string().trim().min(2).max(100),
+  state: z.string().trim().length(2),
+})
+
 /**
  * Cria ou atualiza os dados da empresa e seu endereço para o usuário logado.
  */
@@ -37,6 +65,11 @@ export async function saveClientCompanyData(input: SaveCompanyDataInput): Promis
   if (!ctx.user) {
     throw new Error('Sessão expirada ou não autenticada.')
   }
+  const parsedInput = saveCompanyDataSchema.safeParse(input)
+  if (!parsedInput.success) {
+    throw new Error(parsedInput.error.issues[0]?.message ?? 'Dados empresariais inválidos.')
+  }
+  input = parsedInput.data
 
   const cleanCNPJ = input.cnpj.replace(/\D/g, '')
   if (!validateCNPJ(cleanCNPJ)) {
@@ -251,10 +284,31 @@ export async function getDocumentSignedUrl(filePath: string, expiresInSeconds: n
     throw new Error('Acesso negado. Usuário não autenticado.')
   }
 
+  const parsed = z
+    .object({
+      filePath: z
+        .string()
+        .trim()
+        .min(1)
+        .max(500)
+        .regex(/^[0-9a-f-]{36}\/[A-Za-z0-9_-]+\/[A-Za-z0-9_.-]+$/),
+      expiresInSeconds: z.coerce.number().int().min(60).max(3600),
+    })
+    .safeParse({ filePath, expiresInSeconds })
+  if (!parsed.success || parsed.data.filePath.includes('..')) {
+    throw new Error('Caminho de documento inválido.')
+  }
+  const ownsPath = Boolean(
+    ctx.user.company_id && parsed.data.filePath.startsWith(`${ctx.user.company_id}/`),
+  )
+  if (ctx.user.role !== 'admin' && !ownsPath) {
+    throw new Error('Acesso negado a este documento.')
+  }
+
   const supabase = await createClient()
   const { data, error } = await supabase.storage
     .from('company-documents')
-    .createSignedUrl(filePath, expiresInSeconds)
+    .createSignedUrl(parsed.data.filePath, parsed.data.expiresInSeconds)
 
   if (error || !data?.signedUrl) {
     throw new Error(`Falha ao gerar link seguro: ${error?.message || 'Arquivo não encontrado'}`)
@@ -268,13 +322,17 @@ export async function getDocumentSignedUrl(filePath: string, expiresInSeconds: n
  */
 export async function approveCompanyAdmin(companyId: string, internalNotes?: string) {
   const ctx = await requireAdmin()
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supabase = await createClient() as AnyClient
+  const parsed = z.object({
+    companyId: z.string().uuid(),
+    internalNotes: z.string().trim().max(2000).optional(),
+  }).safeParse({ companyId, internalNotes })
+  if (!parsed.success) throw new Error('Dados da aprovação inválidos.')
+  const adminClient = createAdminClient() as AnyClient
 
-  const { data: company, error: fetchErr } = await supabase
+  const { data: company, error: fetchErr } = await adminClient
     .from('companies')
     .select('id, company_name, status')
-    .eq('id', companyId)
+    .eq('id', parsed.data.companyId)
     .single()
 
   if (fetchErr || !company) {
@@ -285,53 +343,55 @@ export async function approveCompanyAdmin(companyId: string, internalNotes?: str
     throw new Error('Esta empresa já foi aprovada anteriormente.')
   }
 
-  const { data: defaultPriceTable } = await supabase
+  const { data: defaultPriceTable, error: priceTableError } = await adminClient
     .from('price_tables')
     .select('id')
     .eq('is_default', true)
-    .single()
-
-  const { createAdminClient } = await import('@/lib/supabase/admin')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const adminClient = createAdminClient() as AnyClient
+    .eq('is_active', true)
+    .maybeSingle()
+  if (priceTableError || !defaultPriceTable) {
+    throw new Error('Defina uma tabela de preços padrão ativa antes de aprovar a empresa.')
+  }
 
   const { error: updateErr } = await adminClient
     .from('companies')
     .update({
       status: 'approved',
       approved_at: new Date().toISOString(),
-      price_table_id: defaultPriceTable?.id || null,
-      internal_notes: internalNotes?.trim() || null,
+      rejected_at: null,
+      rejection_reason: null,
+      price_table_id: defaultPriceTable.id,
+      internal_notes: parsed.data.internalNotes || null,
     })
-    .eq('id', companyId)
+    .eq('id', parsed.data.companyId)
 
   if (updateErr) {
     throw new Error(`Falha ao aprovar empresa: ${updateErr.message}`)
   }
 
-  const { data: members } = await supabase
+  const { data: members } = await adminClient
     .from('company_members')
     .select('profile_id')
-    .eq('company_id', companyId)
+    .eq('company_id', parsed.data.companyId)
 
   if (members && members.length > 0) {
-    for (const m of members) {
-      await supabase.from('notifications').insert({
-        profile_id: m.profile_id,
+    await adminClient.from('notifications').insert(
+      members.map((member: { profile_id: string }) => ({
+        profile_id: member.profile_id,
         title: 'Cadastro Aprovado! 🎉',
         message: 'Sua empresa foi aprovada. Você já pode visualizar preços e fazer pedidos no portal.',
         type: 'company_approved',
         link_url: '/minha-conta',
-      })
-    }
+      })),
+    )
   }
 
-  await supabase.from('audit_logs').insert({
+  await adminClient.from('audit_logs').insert({
     actor_id: ctx.user!.id,
     action: 'company_approved',
     target_table: 'companies',
-    target_id: companyId,
-    payload: { approved_at: new Date().toISOString(), internal_notes: internalNotes },
+    target_id: parsed.data.companyId,
+    payload: { approved_at: new Date().toISOString(), internal_notes: parsed.data.internalNotes },
   })
 
   return { success: true }
@@ -343,64 +403,68 @@ export async function approveCompanyAdmin(companyId: string, internalNotes?: str
 export async function rejectCompanyAdmin(companyId: string, rejectionReason: string, internalNotes?: string) {
   const ctx = await requireAdmin()
 
-  if (!rejectionReason || rejectionReason.trim().length < 5) {
-    throw new Error('Informe um motivo público de recusa claro para o cliente (mínimo 5 caracteres).')
+  const parsed = z.object({
+    companyId: z.string().uuid(),
+    rejectionReason: z.string().trim().min(5).max(1000),
+    internalNotes: z.string().trim().max(2000).optional(),
+  }).safeParse({ companyId, rejectionReason, internalNotes })
+  if (!parsed.success) {
+    throw new Error('Informe um motivo público claro, entre 5 e 1.000 caracteres.')
   }
+  const adminClient = createAdminClient() as AnyClient
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supabase = await createClient() as AnyClient
-
-  const { data: company, error: fetchErr } = await supabase
+  const { data: company, error: fetchErr } = await adminClient
     .from('companies')
     .select('id, status')
-    .eq('id', companyId)
+    .eq('id', parsed.data.companyId)
     .single()
 
   if (fetchErr || !company) {
     throw new Error('Empresa não encontrada.')
   }
 
-  const { createAdminClient } = await import('@/lib/supabase/admin')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const adminClient = createAdminClient() as AnyClient
-
   const { error: updateErr } = await adminClient
     .from('companies')
     .update({
       status: 'rejected',
       rejected_at: new Date().toISOString(),
-      rejection_reason: rejectionReason.trim(),
-      internal_notes: internalNotes?.trim() || null,
+      approved_at: null,
+      rejection_reason: parsed.data.rejectionReason,
+      price_table_id: null,
+      internal_notes: parsed.data.internalNotes || null,
     })
-    .eq('id', companyId)
+    .eq('id', parsed.data.companyId)
 
   if (updateErr) {
     throw new Error(`Falha ao recusar empresa: ${updateErr.message}`)
   }
 
-  const { data: members } = await supabase
+  const { data: members } = await adminClient
     .from('company_members')
     .select('profile_id')
-    .eq('company_id', companyId)
+    .eq('company_id', parsed.data.companyId)
 
   if (members && members.length > 0) {
-    for (const m of members) {
-      await supabase.from('notifications').insert({
-        profile_id: m.profile_id,
+    await adminClient.from('notifications').insert(
+      members.map((member: { profile_id: string }) => ({
+        profile_id: member.profile_id,
         title: 'Atualização do Cadastro Empresarial',
-        message: `Seu cadastro necessita de correções: ${rejectionReason.trim()}`,
+        message: `Seu cadastro necessita de correções: ${parsed.data.rejectionReason}`,
         type: 'company_rejected',
         link_url: '/conta-recusada',
-      })
-    }
+      })),
+    )
   }
 
-  await supabase.from('audit_logs').insert({
+  await adminClient.from('audit_logs').insert({
     actor_id: ctx.user!.id,
     action: 'company_rejected',
     target_table: 'companies',
-    target_id: companyId,
-    payload: { rejection_reason: rejectionReason, internal_notes: internalNotes },
+    target_id: parsed.data.companyId,
+    payload: {
+      rejection_reason: parsed.data.rejectionReason,
+      internal_notes: parsed.data.internalNotes,
+    },
   })
 
   return { success: true }
@@ -411,29 +475,146 @@ export async function rejectCompanyAdmin(companyId: string, rejectionReason: str
  */
 export async function assignSellerAdmin(companyId: string, sellerId: string | null) {
   const ctx = await requireAdmin()
+  const parsed = z.object({
+    companyId: z.string().uuid(),
+    sellerId: z.string().uuid().nullable(),
+  }).safeParse({ companyId, sellerId })
+  if (!parsed.success) throw new Error('Empresa ou vendedor inválido.')
 
-  const { createAdminClient } = await import('@/lib/supabase/admin')
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adminClient = createAdminClient() as AnyClient
+  if (parsed.data.sellerId) {
+    const { data: seller } = await adminClient
+      .from('profiles')
+      .select('id')
+      .eq('id', parsed.data.sellerId)
+      .eq('role', 'seller')
+      .maybeSingle()
+    if (!seller) throw new Error('O vendedor selecionado não existe ou não está ativo como vendedor.')
+  }
 
   const { error } = await adminClient
     .from('companies')
-    .update({ seller_id: sellerId })
-    .eq('id', companyId)
+    .update({ seller_id: parsed.data.sellerId })
+    .eq('id', parsed.data.companyId)
 
   if (error) {
     throw new Error(`Falha ao atribuir vendedor: ${error.message}`)
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const supabase = await createClient() as AnyClient
-  await supabase.from('audit_logs').insert({
+  await adminClient.from('audit_logs').insert({
     actor_id: ctx.user!.id,
     action: 'seller_assigned',
     target_table: 'companies',
-    target_id: companyId,
-    payload: { seller_id: sellerId },
+    target_id: parsed.data.companyId,
+    payload: { seller_id: parsed.data.sellerId },
   })
 
+  return { success: true }
+}
+
+export async function suspendCompanyAdmin(companyId: string, reason: string) {
+  const ctx = await requireAdmin()
+  const parsed = z.object({
+    companyId: z.string().uuid(),
+    reason: z.string().trim().min(5).max(1000),
+  }).safeParse({ companyId, reason })
+  if (!parsed.success) throw new Error('Informe um motivo de suspensão entre 5 e 1.000 caracteres.')
+
+  const adminClient = createAdminClient() as AnyClient
+  const { data: company } = await adminClient
+    .from('companies')
+    .select('id, status')
+    .eq('id', parsed.data.companyId)
+    .maybeSingle()
+  if (!company) throw new Error('Empresa não encontrada.')
+  if (company.status === 'suspended') throw new Error('Esta empresa já está suspensa.')
+
+  const { error } = await adminClient
+    .from('companies')
+    .update({
+      status: 'suspended',
+      price_table_id: null,
+      rejection_reason: parsed.data.reason,
+    })
+    .eq('id', parsed.data.companyId)
+  if (error) throw new Error('Não foi possível suspender a empresa.')
+
+  const { data: members } = await adminClient
+    .from('company_members')
+    .select('profile_id')
+    .eq('company_id', parsed.data.companyId)
+  if (members?.length) {
+    await adminClient.from('notifications').insert(
+      members.map((member: { profile_id: string }) => ({
+        profile_id: member.profile_id,
+        title: 'Acesso comercial suspenso',
+        message: parsed.data.reason,
+        type: 'company_suspended',
+        link_url: '/conta-recusada',
+      })),
+    )
+  }
+  await adminClient.from('audit_logs').insert({
+    actor_id: ctx.user!.id,
+    action: 'company_suspended',
+    target_table: 'companies',
+    target_id: parsed.data.companyId,
+    payload: { reason: parsed.data.reason },
+  })
+  return { success: true }
+}
+
+export async function reactivateCompanyAdmin(companyId: string, internalNotes?: string) {
+  const ctx = await requireAdmin()
+  const parsed = z.object({
+    companyId: z.string().uuid(),
+    internalNotes: z.string().trim().max(2000).optional(),
+  }).safeParse({ companyId, internalNotes })
+  if (!parsed.success) throw new Error('Dados de reativação inválidos.')
+
+  const adminClient = createAdminClient() as AnyClient
+  const { data: table } = await adminClient
+    .from('price_tables')
+    .select('id')
+    .eq('is_default', true)
+    .eq('is_active', true)
+    .maybeSingle()
+  if (!table) throw new Error('Defina uma tabela de preços padrão ativa antes de reativar a empresa.')
+
+  const { error } = await adminClient
+    .from('companies')
+    .update({
+      status: 'approved',
+      approved_at: new Date().toISOString(),
+      rejected_at: null,
+      rejection_reason: null,
+      price_table_id: table.id,
+      internal_notes: parsed.data.internalNotes || null,
+    })
+    .eq('id', parsed.data.companyId)
+  if (error) throw new Error('Não foi possível reativar a empresa.')
+
+  const { data: members } = await adminClient
+    .from('company_members')
+    .select('profile_id')
+    .eq('company_id', parsed.data.companyId)
+  if (members?.length) {
+    await adminClient.from('notifications').insert(
+      members.map((member: { profile_id: string }) => ({
+        profile_id: member.profile_id,
+        title: 'Acesso comercial reativado',
+        message: 'Sua empresa foi reativada e já pode consultar preços e fazer pedidos.',
+        type: 'company_reactivated',
+        link_url: '/minha-conta',
+      })),
+    )
+  }
+  await adminClient.from('audit_logs').insert({
+    actor_id: ctx.user!.id,
+    action: 'company_reactivated',
+    target_table: 'companies',
+    target_id: parsed.data.companyId,
+    payload: { internal_notes: parsed.data.internalNotes },
+  })
   return { success: true }
 }

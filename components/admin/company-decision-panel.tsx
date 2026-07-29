@@ -4,7 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle2, XCircle, UserCheck, ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { approveCompanyAction, rejectCompanyAction, assignSellerAction } from '@/app/actions/company'
+import {
+  approveCompanyAction,
+  rejectCompanyAction,
+  assignSellerAction,
+  reactivateCompanyAction,
+  suspendCompanyAction,
+} from '@/app/actions/company'
 
 interface SellerOption {
   id: string
@@ -38,6 +44,8 @@ export function CompanyDecisionPanel({
   const [rejectionReason, setRejectionReason] = useState<string>(currentReason || '')
   const [internalNotes, setInternalNotes] = useState<string>(currentNotes || '')
   const [showRejectForm, setShowRejectForm] = useState(false)
+  const [showSuspendForm, setShowSuspendForm] = useState(false)
+  const [suspensionReason, setSuspensionReason] = useState('')
 
   const handleApprove = async () => {
     if (!confirm('Confirmar a APROVAÇÃO desta empresa? O cliente terá acesso liberado aos preços e pedidos.')) {
@@ -93,6 +101,38 @@ export function CompanyDecisionPanel({
       router.refresh()
     } catch (err: any) {
       setErrorMsg(err.message || 'Falha ao atribuir vendedor.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleSuspend = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setLoading(true)
+    setErrorMsg(null)
+    setSuccessMsg(null)
+    try {
+      await suspendCompanyAction(companyId, suspensionReason)
+      setSuccessMsg('Empresa suspensa e cliente notificado.')
+      setShowSuspendForm(false)
+      router.refresh()
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : 'Falha ao suspender empresa.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleReactivate = async () => {
+    setLoading(true)
+    setErrorMsg(null)
+    setSuccessMsg(null)
+    try {
+      await reactivateCompanyAction(companyId, internalNotes)
+      setSuccessMsg('Empresa reativada com acesso comercial liberado.')
+      router.refresh()
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : 'Falha ao reativar empresa.')
     } finally {
       setLoading(false)
     }
@@ -161,7 +201,14 @@ export function CompanyDecisionPanel({
 
       {/* Ações de Aprovação ou Recusa */}
       <div className="pt-2 border-t border-gray-100 flex flex-wrap items-center gap-3">
-        {currentStatus !== 'approved' && (
+        {currentStatus === 'suspended' && (
+          <Button type="button" onClick={handleReactivate} loading={loading}>
+            <CheckCircle2 className="h-4 w-4 mr-2" />
+            <span>Reativar Empresa</span>
+          </Button>
+        )}
+
+        {(currentStatus === 'pending' || currentStatus === 'rejected') && (
           <Button
             type="button"
             onClick={handleApprove}
@@ -173,7 +220,7 @@ export function CompanyDecisionPanel({
           </Button>
         )}
 
-        {currentStatus !== 'rejected' && (
+        {(currentStatus === 'pending' || currentStatus === 'approved') && (
           <Button
             type="button"
             variant="outline"
@@ -182,6 +229,18 @@ export function CompanyDecisionPanel({
           >
             <XCircle className="h-4 w-4 mr-2 text-red-600" />
             <span>Recusar Cadastro...</span>
+          </Button>
+        )}
+
+        {currentStatus === 'approved' && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShowSuspendForm(!showSuspendForm)}
+            className="border-amber-200 text-amber-800 hover:bg-amber-50 font-bold"
+          >
+            <ShieldAlert className="h-4 w-4 mr-2" />
+            <span>Suspender acesso...</span>
           </Button>
         )}
       </div>
@@ -214,6 +273,30 @@ export function CompanyDecisionPanel({
               className="bg-red-600 hover:bg-red-700 text-white font-bold"
             >
               Confirmar Recusa
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {showSuspendForm && (
+        <form onSubmit={handleSuspend} className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+          <h3 className="text-xs font-bold text-amber-950">Motivo da suspensão (visível ao cliente):</h3>
+          <textarea
+            rows={3}
+            required
+            minLength={5}
+            maxLength={1000}
+            value={suspensionReason}
+            onChange={(event) => setSuspensionReason(event.target.value)}
+            placeholder="Explique por que o acesso comercial foi suspenso e como regularizar."
+            className="w-full rounded-lg border border-amber-300 bg-white p-2.5 text-xs outline-none focus:border-amber-600"
+          />
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setShowSuspendForm(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" size="sm" loading={loading} className="bg-amber-700 text-white hover:bg-amber-800">
+              Confirmar suspensão
             </Button>
           </div>
         </form>

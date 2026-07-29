@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { createProxyClient } from '@/lib/supabase/proxy-client'
 import type { Database } from '@/types/database.types'
+import { safeRedirectPath } from '@/lib/security/navigation'
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row']
 type CompanyRow = Database['public']['Tables']['companies']['Row']
@@ -21,29 +22,6 @@ type CompanyRow = Database['public']['Tables']['companies']['Row']
  * IMPORTANTE: O proxy faz proteção inicial. Os layouts e páginas privadas
  * realizam validação adicional no servidor. Nunca confiar apenas no proxy.
  */
-
-/**
- * Sanitiza um caminho de redirect para prevenir open redirect.
- * Aceita somente caminhos internos iniciados por uma única barra.
- */
-function safeRedirectPath(
-  path: string | null | undefined,
-  fallback: string = '/',
-): string {
-  if (!path || typeof path !== 'string') return fallback
-  if (path.trim() === '') return fallback
-
-  // Rejeitar qualquer string com protocolo (http:, https:, javascript:, etc.)
-  if (/^[a-zA-Z][a-zA-Z0-9+\-.]*:/.test(path)) return fallback
-
-  // Rejeitar protocol-relative URLs (//)
-  if (path.startsWith('//')) return fallback
-
-  // Deve começar com /
-  if (!path.startsWith('/')) return fallback
-
-  return path
-}
 
 /**
  * Verifica se um caminho de redirect é permitido para o role/status do usuário.

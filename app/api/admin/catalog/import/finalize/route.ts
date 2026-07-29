@@ -1,29 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getAdminApiContext } from '@/lib/supabase/api-admin'
+import { CatalogSessionSchema } from '@/lib/validations/admin-import'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = await getAdminApiContext()
+    if ('response' in auth) return auth.response
+    const { supabase, user } = auth
+    const parsed = CatalogSessionSchema.safeParse(await request.json())
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Sessão de importação inválida.' }, { status: 400 })
     }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-    }
-
-    const { session_id } = await request.json()
-
-    if (!session_id) {
-      return NextResponse.json({ error: 'Missing session_id' }, { status: 400 })
+    const { session_id } = parsed.data
+    const { data: session } = await supabase
+      .from('catalog_import_sessions')
+      .select('id')
+      .eq('id', session_id)
+      .eq('admin_id', user.id)
+      .maybeSingle()
+    if (!session) {
+      return NextResponse.json({ error: 'Sessão de importação não encontrada.' }, { status: 404 })
     }
 
     const { data, error } = await supabase.rpc('finalize_catalog_replacement_atomic', {
@@ -38,7 +34,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error: unknown) {
     console.error('Finalize API Error:', error)
-    const message = error instanceof Error ? error.message : 'Erro interno no servidor'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: 'Não foi possível finalizar a importação.' }, { status: 500 })
   }
 }

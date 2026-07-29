@@ -1,17 +1,34 @@
 'use server'
 
-import { createClient, createAdminClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { Database } from '@/types/database.types'
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/supabase/auth'
+import { z } from 'zod'
+
+const companyIdSchema = z.string().uuid()
+const companyStatusSchema = z.enum(['pending', 'approved', 'rejected', 'suspended'])
+const decisionSchema = z.object({
+  companyId: companyIdSchema,
+  status: z.enum(['approved', 'rejected']),
+  decisionMessage: z.string().trim().min(5).max(1000),
+})
+
+function safeSearchTerm(search: string | undefined) {
+  return (search ?? '')
+    .normalize('NFKC')
+    .replace(/[,%_()]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 80)
+}
 
 export async function getCustomers(search?: string, status?: string) {
   await requireAdmin()
-  const supabase = await createClient()
-
-  // Verifica admin
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Não autorizado' }
+  const supabase = createAdminClient()
+  const normalizedSearch = safeSearchTerm(search)
+  const parsedStatus = status && status !== 'all' ? companyStatusSchema.safeParse(status) : null
+  if (parsedStatus && !parsedStatus.success) return { error: 'Filtro de status inválido.' }
 
   let query = supabase
     .from('companies')
@@ -24,12 +41,14 @@ export async function getCustomers(search?: string, status?: string) {
     `)
     .order('created_at', { ascending: false })
 
-  if (search) {
-    query = query.or(`company_name.ilike.%${search}%,cnpj.ilike.%${search}%`)
+  if (normalizedSearch) {
+    query = query.or(
+      `company_name.ilike.%${normalizedSearch}%,cnpj.ilike.%${normalizedSearch}%`,
+    )
   }
 
-  if (status && status !== 'all') {
-    query = query.eq('status', status)
+  if (parsedStatus?.success) {
+    query = query.eq('status', parsedStatus.data)
   }
 
   const { data, error } = await query
@@ -44,16 +63,15 @@ export async function getCustomers(search?: string, status?: string) {
 
 export async function getCustomerDetails(companyId: string) {
   await requireAdmin()
-  const supabase = await createClient()
-
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Não autorizado' }
+  const parsedId = companyIdSchema.safeParse(companyId)
+  if (!parsedId.success) return { error: 'Empresa inválida.' }
+  const supabase = createAdminClient()
 
   // Busca a empresa
   const { data: company, error: companyError } = await supabase
     .from('companies')
     .select('*')
-    .eq('id', companyId)
+    .eq('id', parsedId.data)
     .single()
 
   if (companyError) return { error: 'Empresa não encontrada' }
@@ -62,7 +80,7 @@ export async function getCustomerDetails(companyId: string) {
   const { data: addresses } = await supabase
     .from('addresses')
     .select('*')
-    .eq('company_id', companyId)
+    .eq('company_id', parsedId.data)
 
   // Busca os membros/contatos da empresa (junto com dados do profile)
   const { data: members } = await supabase
@@ -74,19 +92,19 @@ export async function getCustomerDetails(companyId: string) {
         id, full_name, email, phone
       )
     `)
-    .eq('company_id', companyId)
+    .eq('company_id', parsedId.data)
 
   // Busca documentos da empresa
   const { data: documents } = await supabase
     .from('company_documents')
     .select('*')
-    .eq('company_id', companyId)
+    .eq('company_id', parsedId.data)
 
   const { data: registrationLog } = await supabase
     .from('audit_logs')
     .select('payload')
     .eq('target_table', 'companies')
-    .eq('target_id', companyId)
+    .eq('target_id', parsedId.data)
     .eq('action', 'public_registration_submitted')
     .order('created_at', { ascending: false })
     .limit(1)
@@ -108,39 +126,28 @@ export async function updateCustomerStatus(
   status: 'approved' | 'rejected',
   decisionMessage: string,
 ) {
-  await requireAdmin()
-  if (decisionMessage.trim().length < 5) {
-    return { error: 'Escreva uma mensagem para o cliente com pelo menos 5 caracteres.' }
-  }
-  const supabase = await createClient()
-
-  // 1. Verificar quem está chamando a action
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Não autorizado' }
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
-
-  if (!profile || profile.role !== 'admin') {
-    return { error: 'Acesso negado: Apenas administradores podem executar esta ação.' }
+  const ctx = await requireAdmin()
+  const parsed = decisionSchema.safeParse({ companyId, status, decisionMessage })
+  if (!parsed.success) {
+    return {
+      error:
+        parsed.error.issues[0]?.message ??
+        'Escreva uma mensagem válida para o cliente antes de concluir.',
+    }
   }
 
-  // 2. Usar o cliente de Admin (service_role) para fazer o update ignorando as barreiras do RLS
-  const adminClient = await createAdminClient()
+  const adminClient = createAdminClient()
 
   const { data: company } = await adminClient
     .from('companies')
     .select('id')
-    .eq('id', companyId)
+    .eq('id', parsed.data.companyId)
     .single()
 
   const { data: primaryMember } = await adminClient
     .from('company_members')
     .select('profile_id')
-    .eq('company_id', companyId)
+    .eq('company_id', parsed.data.companyId)
     .eq('is_primary', true)
     .maybeSingle()
 
@@ -148,7 +155,7 @@ export async function updateCustomerStatus(
 
   const updateData: Database['public']['Tables']['companies']['Update'] = { 
     status,
-    internal_notes: decisionMessage.trim(),
+    internal_notes: parsed.data.decisionMessage,
   }
 
   if (status === 'approved') {
@@ -172,14 +179,14 @@ export async function updateCustomerStatus(
   } else if (status === 'rejected') {
     updateData.approved_at = null
     updateData.rejected_at = new Date().toISOString()
-    updateData.rejection_reason = decisionMessage.trim()
+    updateData.rejection_reason = parsed.data.decisionMessage
     updateData.price_table_id = null
   }
 
   const { error } = await adminClient
     .from('companies')
     .update(updateData)
-    .eq('id', companyId)
+    .eq('id', parsed.data.companyId)
 
   if (error) {
     console.error('Erro ao atualizar status do cliente:', error)
@@ -190,18 +197,18 @@ export async function updateCustomerStatus(
     await adminClient.from('notifications').insert({
       profile_id: primaryMember.profile_id,
       title: status === 'approved' ? 'Cadastro aprovado' : 'Cadastro não aprovado',
-      message: decisionMessage.trim(),
+      message: parsed.data.decisionMessage,
       type: status === 'approved' ? 'company_approved' : 'company_rejected',
       link_url: status === 'approved' ? '/minha-conta' : '/conta-recusada',
     })
   }
 
   await adminClient.from('audit_logs').insert({
-    actor_id: user.id,
+    actor_id: ctx.user!.id,
     action: status === 'approved' ? 'company_approved' : 'company_rejected',
     target_table: 'companies',
-    target_id: companyId,
-    payload: { message: decisionMessage.trim() },
+    target_id: parsed.data.companyId,
+    payload: { message: parsed.data.decisionMessage },
   })
 
   revalidatePath('/admin/clientes')
@@ -210,12 +217,22 @@ export async function updateCustomerStatus(
 
 export async function getDocumentUrl(filePath: string) {
   await requireAdmin()
-  const supabase = await createClient()
+  const parsedPath = z
+    .string()
+    .trim()
+    .min(1)
+    .max(500)
+    .regex(/^[0-9a-f-]{36}\/[A-Za-z0-9_-]+\/[A-Za-z0-9_.-]+$/)
+    .safeParse(filePath)
+  if (!parsedPath.success || parsedPath.data.includes('..')) {
+    return { error: 'Caminho de documento inválido.' }
+  }
+  const supabase = createAdminClient()
   
   // Assumindo que o bucket de documentos (company-documents) não é público e precisamos assinar a URL
   const { data, error } = await supabase.storage
     .from('company-documents')
-    .createSignedUrl(filePath, 60 * 60) // 1 hora de validade
+    .createSignedUrl(parsedPath.data, 15 * 60)
 
   if (error || !data) {
     return { error: 'Não foi possível gerar a URL do documento' }

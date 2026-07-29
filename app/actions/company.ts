@@ -9,6 +9,8 @@ import {
   getDocumentSignedUrl as getSignedUrlService,
   approveCompanyAdmin as approveService,
   rejectCompanyAdmin as rejectService,
+  suspendCompanyAdmin as suspendService,
+  reactivateCompanyAdmin as reactivateService,
   assignSellerAdmin as assignSellerService,
   SaveCompanyDataInput,
 } from '@/lib/services/company-service'
@@ -31,6 +33,14 @@ export async function approveCompanyAction(companyId: string, internalNotes?: st
 
 export async function rejectCompanyAction(companyId: string, rejectionReason: string, internalNotes?: string) {
   return await rejectService(companyId, rejectionReason, internalNotes)
+}
+
+export async function suspendCompanyAction(companyId: string, reason: string) {
+  return await suspendService(companyId, reason)
+}
+
+export async function reactivateCompanyAction(companyId: string, internalNotes?: string) {
+  return await reactivateService(companyId, internalNotes)
 }
 
 export async function assignSellerAction(companyId: string, sellerId: string | null) {

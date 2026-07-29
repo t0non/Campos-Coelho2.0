@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/supabase/auth'
 import { createAuditLog } from '@/lib/utils/audit'
 import type { Database } from '@/types/database.types'
+import { canTransitionOrderStatus } from '@/lib/orders/status'
 
 type OrderStatus = Database['public']['Enums']['order_status']
 
@@ -52,6 +53,13 @@ export async function updateOrderStatusAction(
   }
 
   const nextStatus = parsedStatus.data as OrderStatus
+  if (!canTransitionOrderStatus(order.status as OrderStatus, nextStatus)) {
+    return {
+      success: false,
+      message: 'Essa mudança de status não é permitida para a etapa atual.',
+    }
+  }
+
   const { error: updateError } = await supabase
     .from('orders')
     .update({ status: nextStatus, updated_at: new Date().toISOString() })
@@ -70,6 +78,18 @@ export async function updateOrderStatusAction(
 
   if (historyError) {
     console.error('Falha ao registrar histórico do pedido:', historyError.message)
+    const { error: rollbackError } = await supabase
+      .from('orders')
+      .update({ status: order.status, updated_at: new Date().toISOString() })
+      .eq('id', order.id)
+      .eq('status', nextStatus)
+    if (rollbackError) {
+      console.error('Falha crítica ao reverter status sem histórico:', rollbackError.message)
+    }
+    return {
+      success: false,
+      message: 'A atualização foi cancelada porque o histórico não pôde ser registrado.',
+    }
   }
 
   await createAuditLog('ORDER_STATUS_UPDATED', 'orders', order.id, {
@@ -80,5 +100,6 @@ export async function updateOrderStatusAction(
 
   revalidatePath('/admin')
   revalidatePath('/admin/pedidos')
+  revalidatePath(`/admin/pedidos/${order.id}`)
   return { success: true, message: 'Status atualizado.' }
 }

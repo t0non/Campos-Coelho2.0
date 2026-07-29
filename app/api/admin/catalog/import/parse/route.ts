@@ -1,36 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
 import * as xlsx from 'xlsx'
 import crypto from 'crypto'
 import { parseCatalogMoney } from '@/lib/catalog/catalog-money'
 import { standardizeCatalogProductName } from '@/lib/catalog/product-name'
+import { getAdminApiContext } from '@/lib/supabase/api-admin'
+import { safeOriginalFilename } from '@/lib/security/file-validation'
 
 type ExcelCell = string | number | boolean | null | undefined
 type ExcelRow = ExcelCell[]
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const auth = await getAdminApiContext()
+    if ('response' in auth) return auth.response
+    const { supabase, user } = auth
 
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    if (profile?.role !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const contentLength = Number(request.headers.get('content-length') || 0)
+    if (contentLength > 11 * 1024 * 1024) {
+      return NextResponse.json({ error: 'A requisição excede o limite permitido.' }, { status: 413 })
     }
 
     const formData = await request.formData()
-    const file = formData.get('file') as File | null
+    const file = formData.get('file')
 
-    if (!file) {
+    if (!(file instanceof File) || file.size === 0) {
       return NextResponse.json({ error: 'Nenhum arquivo enviado.' }, { status: 400 })
     }
 
@@ -44,9 +37,24 @@ export async function POST(request: NextRequest) {
 
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
+    const hasZipSignature =
+      buffer.length >= 4 &&
+      buffer[0] === 0x50 &&
+      buffer[1] === 0x4b &&
+      ((buffer[2] === 0x03 && buffer[3] === 0x04) ||
+        (buffer[2] === 0x05 && buffer[3] === 0x06) ||
+        (buffer[2] === 0x07 && buffer[3] === 0x08))
+    if (!hasZipSignature) {
+      return NextResponse.json({ error: 'O arquivo não é uma planilha XLSX válida.' }, { status: 400 })
+    }
     const fileHash = crypto.createHash('sha256').update(buffer).digest('hex')
 
-    const workbook = xlsx.read(buffer, { type: 'buffer' })
+    const workbook = xlsx.read(buffer, {
+      type: 'buffer',
+      dense: true,
+      sheetRows: 20002,
+      sheets: 0,
+    })
     if (workbook.SheetNames.length === 0) {
       return NextResponse.json({ error: 'A planilha está vazia.' }, { status: 400 })
     }
@@ -102,7 +110,7 @@ export async function POST(request: NextRequest) {
       .from('catalog_import_sessions')
       .insert({
         admin_id: user.id,
-        file_name: file.name,
+        file_name: safeOriginalFilename(file.name),
         file_hash: fileHash,
         status: 'preview',
       })
@@ -286,7 +294,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error: unknown) {
     console.error('Parse API Error:', error)
-    const message = error instanceof Error ? error.message : 'Erro interno no servidor'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: 'Não foi possível processar a planilha.' }, { status: 500 })
   }
 }

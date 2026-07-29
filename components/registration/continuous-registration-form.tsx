@@ -114,8 +114,17 @@ export function ContinuousRegistrationForm() {
 
   const handleFileUpload = (file: File, category: UploadedFile['category']) => {
     const maxSize = 2 * 1024 * 1024 // 2MB
+    const allowedTypes = new Set(['application/pdf', 'image/png', 'image/jpeg'])
     if (file.size > maxSize) {
       alert(`O arquivo "${file.name}" excede o limite de 2MB.`)
+      return
+    }
+    if (!allowedTypes.has(file.type)) {
+      alert('Use somente arquivos PDF, PNG ou JPG.')
+      return
+    }
+    if (uploadedFiles.length >= 4) {
+      alert('Você pode enviar no máximo quatro documentos.')
       return
     }
     const newFile: UploadedFile = {
@@ -317,7 +326,7 @@ export function ContinuousRegistrationForm() {
                   ref={contratoRef}
                   type="file"
                   className="hidden"
-                  accept=".png,.jpg,.jpeg,.pdf,.doc,.xls,.xlsx"
+                  accept=".png,.jpg,.jpeg,.pdf"
                   onChange={(e) => {
                     const file = e.target.files?.[0]
                     if (file) handleFileUpload(file, 'contrato_social')
@@ -326,7 +335,7 @@ export function ContinuousRegistrationForm() {
                 />
               </label>
               <div className="flex justify-between items-center mt-2 text-[11px] text-gray-400">
-                <span>Formatos suportados: PNG, JPG, PDF, DOC, XLS, XLSX</span>
+                <span>Formatos suportados: PNG, JPG e PDF</span>
                 <span>Tamanho máximo: 2MB</span>
               </div>
               {/* Lista de arquivos do contrato social */}
@@ -387,7 +396,7 @@ export function ContinuousRegistrationForm() {
                   ref={docIdRef}
                   type="file"
                   className="hidden"
-                  accept=".png,.jpg,.jpeg,.pdf,.doc,.xls,.xlsx"
+                  accept=".png,.jpg,.jpeg,.pdf"
                   onChange={(e) => {
                     const file = e.target.files?.[0]
                     if (file) handleFileUpload(file, 'doc_responsavel')
@@ -396,7 +405,7 @@ export function ContinuousRegistrationForm() {
                 />
               </label>
               <div className="flex justify-between items-center mt-2 text-[11px] text-gray-400">
-                <span>Formatos suportados: PNG, JPG, PDF, DOC, XLS, XLSX</span>
+                <span>Formatos suportados: PNG, JPG e PDF</span>
                 <span>Tamanho máximo: 2MB</span>
               </div>
               {/* Lista de arquivos do documento de identidade */}
