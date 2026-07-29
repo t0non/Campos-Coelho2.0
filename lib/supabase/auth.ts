@@ -6,7 +6,7 @@ import type { Database } from '@/types/database.types'
 type ProfileRow = Database['public']['Tables']['profiles']['Row']
 type CompanyRow = Pick<
   Database['public']['Tables']['companies']['Row'],
-  'id' | 'cnpj' | 'company_name' | 'trade_name' | 'status' | 'seller_id'
+  'id' | 'cnpj' | 'company_name' | 'trade_name' | 'status' | 'seller_id' | 'price_table_id'
 >
 
 /**
@@ -97,7 +97,7 @@ export async function getAuthContext(): Promise<AuthContext> {
 
   const { data: companyData, error: companyError } = await supabase
     .from('companies')
-    .select('id, cnpj, company_name, trade_name, status, seller_id')
+    .select('id, cnpj, company_name, trade_name, status, seller_id, price_table_id')
     .eq('id', profile.company_id)
     .single()
 
@@ -111,7 +111,7 @@ export async function getAuthContext(): Promise<AuthContext> {
   }
 
   const userCompany = companyData as UserCompany
-  const isApproved = userCompany.status === 'approved'
+  const isApproved = userCompany.status === 'approved' && Boolean(userCompany.price_table_id)
 
   return {
     user: userProfile,
