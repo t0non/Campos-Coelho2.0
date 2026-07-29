@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-dark: #2B231B;
+  --brand-primary: #905A24;
+  --brand-secondary: #8F5A42;
+  --brand-cream: #FBEDDF;
+  --brand-white: #FFFFFF;
+
+  --color-background: #FFFFFF;
+  --color-foreground: #2B231B;
+  --color-primary: #905A24;
+  --color-primary-hover: #8F5A42;
+  --color-secondary: #8F5A42;
+  --color-muted: #FBEDDF;
+  --color-border: rgba(43, 35, 27, 0.16);
+  --color-surface: #FFFFFF;
+  --color-dark-surface: #2B231B;
+  --color-heading: #2B231B;
+  --color-body-text: #2B231B;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-body-text);
+  font-family: var(--font-body), sans-serif;
+}
+
+/* Custom focus styles for accessibility */
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
