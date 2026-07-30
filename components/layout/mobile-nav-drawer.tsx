@@ -117,7 +117,7 @@ export function MobileNavDrawer({
                     key={link.href}
                     href={link.href}
                     onClick={onClose}
-                    className="rounded-lg border border-neutral-200 bg-white p-2 text-center text-xs font-bold text-neutral-700 transition-colors hover:bg-neutral-100"
+                    className="flex min-h-11 items-center justify-center rounded-lg border border-neutral-200 bg-white p-2 text-center text-sm font-bold text-neutral-700 transition-colors hover:bg-neutral-100"
                   >
                     {link.label}
                   </Link>
@@ -139,14 +139,14 @@ export function MobileNavDrawer({
                 <Link
                   href="/login"
                   onClick={onClose}
-                  className="flex-1 rounded-lg bg-black py-2.5 text-center text-xs font-bold text-white"
+                  className="flex min-h-12 flex-1 items-center justify-center rounded-lg bg-black px-3 text-sm font-bold text-white"
                 >
                   Entrar
                 </Link>
                 <Link
                   href="/cadastro"
                   onClick={onClose}
-                  className="flex-1 rounded-lg border border-neutral-300 bg-white py-2.5 text-center text-xs font-bold text-neutral-900"
+                  className="flex min-h-12 flex-1 items-center justify-center rounded-lg border border-neutral-300 bg-white px-3 text-sm font-bold text-neutral-900"
                 >
                   Cadastrar
                 </Link>
@@ -172,7 +172,7 @@ export function MobileNavDrawer({
               key={category.id}
               href={`/catalogo?cat=${category.slug}`}
               onClick={onClose}
-              className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-black"
+              className="flex min-h-11 items-center rounded-xl px-3 py-2.5 text-sm font-semibold text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-black"
             >
               {category.name}
             </Link>

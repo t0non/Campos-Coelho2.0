@@ -25,9 +25,6 @@ import type { CatalogProduct } from '@/types/product.types'
 const CartSlideOver = dynamic(() =>
   import('./cart-slide-over').then((module) => module.CartSlideOver),
 )
-const MobileNavDrawer = dynamic(() =>
-  import('./mobile-nav-drawer').then((module) => module.MobileNavDrawer),
-)
 const LoginDrawer = dynamic(() =>
   import('@/components/auth/login-drawer').then((module) => module.LoginDrawer),
 )
@@ -49,7 +46,6 @@ export function Header({
   showNavigation = true,
   categories = [],
 }: HeaderProps) {
-  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isLoginOpen, setIsLoginOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
@@ -189,7 +185,7 @@ export function Header({
   return (
     <>
       {/* Faixa institucional */}
-      <div className="flex h-[37px] items-center justify-center bg-black px-4 text-center text-[11px] font-semibold uppercase tracking-[0.12em] text-white/80">
+      <div className="flex min-h-[40px] items-center justify-center bg-black px-4 py-2 text-center text-[10px] font-semibold uppercase leading-4 tracking-[0.1em] text-white/90 sm:text-[11px]">
         Venda para CNPJ com Inscrição Estadual · Pedido mínimo do site R$ 1.000,00
       </div>
 
@@ -215,25 +211,15 @@ export function Header({
           </Link>
 
           {/* Row 1: logo, search and actions */}
-          <div className="flex h-[90px] items-center gap-4 px-4 lg:ml-[207px] lg:gap-0 lg:px-0">
-            {/* Mobile Menu Toggle */}
-            <button
-              type="button"
-              onClick={() => setIsMobileNavOpen(true)}
-              aria-label="Abrir menu"
-              className="flex h-10 w-10 items-center justify-center text-[#171717] lg:hidden"
-            >
-              <Menu className="h-7 w-7" />
-            </button>
-
+          <div className="flex h-[78px] items-center gap-2 px-3 sm:gap-4 sm:px-4 lg:ml-[207px] lg:h-[90px] lg:gap-0 lg:px-0">
             {/* Mobile logo */}
-            <Link href="/" className="flex shrink-0 items-center lg:hidden">
+            <Link href="/" className="flex min-w-0 flex-1 items-center justify-start lg:hidden">
               <Image
                 src="/logo_campos_coelho.png"
                 alt="Campos & Coelho"
                 width={225}
                 height={56}
-                className="h-auto w-[180px] object-contain sm:w-[210px]"
+                className="h-auto w-full max-w-[205px] object-contain sm:max-w-[225px]"
               />
             </Link>
 
@@ -289,7 +275,7 @@ export function Header({
                     type="button"
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                     aria-label={`Abrir menu da conta de ${user.full_name}`}
-                    className="flex cursor-pointer items-center gap-2.5 transition-colors hover:text-[#050505]"
+                    className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2.5 rounded-lg transition-colors hover:bg-neutral-100 hover:text-[#050505] sm:justify-start"
                   >
                     <User className="h-8 w-8 text-[#171717]" />
                     <div className="hidden flex-col text-left leading-tight sm:flex">
@@ -305,7 +291,7 @@ export function Header({
                     type="button"
                     onClick={() => setIsLoginOpen(true)}
                     aria-label="Entrar ou cadastrar empresa"
-                    className="flex items-center gap-2.5 transition-colors hover:text-[#050505]"
+                    className="flex min-h-11 min-w-11 items-center justify-center gap-2.5 rounded-lg transition-colors hover:bg-neutral-100 hover:text-[#050505] sm:justify-start"
                   >
                     <User className="h-8 w-8 text-[#171717]" />
                     <div className="hidden flex-col text-left leading-tight sm:flex">
@@ -365,7 +351,7 @@ export function Header({
                 type="button"
                 onClick={() => setIsCartOpen(true)}
                 aria-label={`Abrir carrinho, ${cartCount} ${cartCount === 1 ? 'item' : 'itens'}`}
-                className="flex cursor-pointer items-center gap-2.5 transition-colors hover:text-[#050505]"
+                className="flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-2.5 rounded-lg transition-colors hover:bg-neutral-100 hover:text-[#050505] sm:justify-start"
               >
                 <div className="relative">
                   <ShoppingCart className="h-8 w-8 text-[#171717]" />
@@ -386,7 +372,7 @@ export function Header({
           </div>
 
           {/* Mobile Search Input */}
-          <div className="px-4 pb-2 md:hidden">
+          <div className="px-3 pb-3 sm:px-4 md:hidden">
             <form onSubmit={handleSearch} className="flex">
               <input
                 type="text"
@@ -394,12 +380,12 @@ export function Header({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="O que você procura?"
-                className="flex-1 rounded-none border-0 bg-[#f2f2f2] px-3 py-2 text-xs text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-0"
+                className="h-12 min-w-0 flex-1 rounded-l-lg border border-r-0 border-neutral-200 bg-[#f2f2f2] px-4 text-base text-gray-800 placeholder-gray-500 focus:border-black focus:outline-none focus:ring-0"
               />
               <button
                 type="submit"
                 aria-label="Buscar"
-                className="rounded-none border-0 bg-black px-4 py-2 text-xs font-bold text-white focus:outline-none focus:ring-0"
+                className="flex h-12 w-14 items-center justify-center rounded-r-lg border-0 bg-black text-white transition-colors hover:bg-neutral-800"
               >
                 <Search className="h-4 w-4" />
               </button>
@@ -454,16 +440,6 @@ export function Header({
           )}
         </div>
       </header>
-
-      {/* Mobile Navigation Drawer */}
-      {isMobileNavOpen && (
-        <MobileNavDrawer
-          isOpen
-          onClose={() => setIsMobileNavOpen(false)}
-          authContext={authContext}
-          categories={categories}
-        />
-      )}
 
       {/* Cart Slide-Over */}
       {isCartOpen && (

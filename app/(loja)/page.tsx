@@ -8,6 +8,7 @@ import { HeroCarousel } from '@/components/home/hero-carousel'
 import { FeaturedCategories } from '@/components/home/featured-categories'
 import { ProductShowcase } from '@/components/home/product-showcase'
 import { PromotionalBanner } from '@/components/home/promotional-banner'
+import { InstitutionalBanners } from '@/components/home/institutional-banners'
 import { CampaignGrid } from '@/components/home/campaign-grid'
 import { BrandCarousel } from '@/components/home/brand-carousel'
 import { BusinessRegistrationCTA } from '@/components/home/business-registration-cta'
@@ -90,43 +91,57 @@ export default async function HomePage() {
         {/* 3. Categorias em destaque */}
         <FeaturedCategories categories={homeData.featuredCategories} />
 
-        {/* 4. Vitrine de lançamentos */}
+        {/* 4. Uma vitrine para cada categoria ativa */}
+        {homeData.categoryShowcases.map((category) => (
+          <ProductShowcase
+            key={category.id}
+            title={category.name}
+            href={`/catalogo?cat=${category.slug}`}
+            products={category.products}
+            canViewPrices={homeData.canViewPrices}
+          />
+        ))}
+
+        {/* 5. Vitrine de lançamentos */}
         <ProductShowcase
           title="Lançamentos"
           products={homeData.newArrivals}
           canViewPrices={homeData.canViewPrices}
         />
 
-        {/* 5. Banner promocional intermediário */}
+        {/* 6. Banner promocional intermediário */}
         <PromotionalBanner banner={homeData.secondaryBanner} />
 
-        {/* 6. Vitrine de mais vendidos */}
+        {/* 7. Vitrine de mais vendidos */}
         <ProductShowcase
           title="Mais Vendidos"
           products={homeData.bestSellers}
           canViewPrices={homeData.canViewPrices}
         />
 
-        {/* 7. Marcas parceiras */}
+        {/* 8. Marcas parceiras */}
         <BrandCarousel brands={homeData.brands} />
 
-        {/* 8. Vitrine de oportunidades */}
+        {/* 9. Vitrine de oportunidades */}
         <ProductShowcase
           title="Oportunidades da Semana"
           products={homeData.weeklyOpportunities}
           canViewPrices={homeData.canViewPrices}
         />
 
-        {/* 9. Chamada para cadastro empresarial */}
+        {/* 10. Banners institucionais de atendimento e localização */}
+        <InstitutionalBanners banners={homeData.institutionalBanners} />
+
+        {/* 11. Chamada para cadastro empresarial */}
         <BusinessRegistrationCTA />
 
-        {/* 10. Confiança e números */}
+        {/* 12. Confiança e números */}
         <TrustNumbers metrics={homeData.metrics} />
 
-        {/* 11. Depoimentos */}
+        {/* 13. Depoimentos */}
         <Testimonials testimonials={homeData.testimonials} />
 
-        {/* 12. Conteúdo institucional */}
+        {/* 14. Conteúdo institucional */}
         <InstitutionalSection />
       </div>
     </>

@@ -3,18 +3,21 @@
 import { useRef } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { ProductCard } from '@/components/product/product-card'
+import Link from 'next/link'
 import type { CatalogProduct } from '@/types/product.types'
 
 interface ProductShowcaseProps {
   title: string
   products: CatalogProduct[]
   canViewPrices: boolean
+  href?: string
 }
 
 export function ProductShowcase({
   title,
   products,
   canViewPrices,
+  href,
 }: ProductShowcaseProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -34,11 +37,26 @@ export function ProductShowcase({
       <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
         {/* Section Header - Importec exact style */}
         <div className="site-section-header flex items-center justify-between">
-          <h2 className="site-section-title text-neutral-950">
-            {title}
-          </h2>
+          {href ? (
+            <Link
+              href={href}
+              className="site-section-title text-neutral-950 underline-offset-4 hover:underline"
+            >
+              {title}
+            </Link>
+          ) : (
+            <h2 className="site-section-title text-neutral-950">{title}</h2>
+          )}
 
           <div className="flex items-center gap-2">
+            {href && (
+              <Link
+                href={href}
+                className="mr-1 hidden text-xs font-bold uppercase tracking-wide text-neutral-600 hover:text-black sm:inline"
+              >
+                Ver todos
+              </Link>
+            )}
             <button
               type="button"
               onClick={() => scroll('left')}
@@ -61,10 +79,10 @@ export function ProductShowcase({
         {/* Product Carousel */}
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto scroll-smooth pb-4 no-scrollbar"
+          className="grid snap-x snap-mandatory grid-flow-col auto-cols-[calc((100%-0.75rem)/2)] gap-3 overflow-x-auto scroll-smooth pb-4 sm:auto-cols-[240px] sm:gap-4 no-scrollbar"
         >
           {products.map((product) => (
-            <div key={product.id} className="w-[240px] shrink-0">
+            <div key={product.id} className="min-w-0 snap-start">
               <ProductCard
                 product={product}
                 canViewPrices={canViewPrices}

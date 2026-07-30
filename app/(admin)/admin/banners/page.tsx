@@ -70,8 +70,8 @@ export default function AdminBannersPage() {
             Banners
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-neutral-500">
-            Gerencie o carrossel principal e os destaques intermediários da loja para
-            computador e celular.
+            Gerencie o carrossel principal, os destaques intermediários e os banners
+            institucionais de atendimento e localização para computador e celular.
           </p>
         </div>
         {!showForm && (

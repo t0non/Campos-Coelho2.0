@@ -42,8 +42,8 @@ export function CampaignGrid({
       className="site-section-compact border-b border-neutral-100 bg-white"
     >
       <Container>
-        <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-7 sm:overflow-visible sm:px-0 lg:grid-cols-4 lg:gap-10">
-          {collections.slice(0, 4).map((item, index) => {
+        <div className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-7 sm:overflow-visible sm:px-0 lg:grid-cols-4 lg:gap-10">
+          {collections.map((item, index) => {
             const isSelected = selectedCampaign.id === item.id
 
             return (
@@ -116,7 +116,7 @@ export function CampaignGrid({
 
             <div
               ref={productsTrackRef}
-              className="grid snap-x snap-mandatory grid-flow-col auto-cols-[78%] gap-4 overflow-x-auto pb-3 sm:auto-cols-[46%] md:auto-cols-[31%] lg:auto-cols-[216px] xl:auto-cols-[220px]"
+              className="grid snap-x snap-mandatory grid-flow-col auto-cols-[calc((100%-0.75rem)/2)] gap-3 overflow-x-auto pb-3 sm:auto-cols-[46%] sm:gap-4 md:auto-cols-[31%] lg:auto-cols-[216px] xl:auto-cols-[220px]"
             >
               {selectedProducts.map((product) => (
                 <div key={product.id} className="snap-start">
