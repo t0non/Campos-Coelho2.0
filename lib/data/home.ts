@@ -27,6 +27,14 @@ export interface SecondaryBannerItem {
   href: string
 }
 
+export interface InstitutionalBannerItem {
+  id: string
+  title: string
+  imageUrl: string
+  mobileImageUrl: string
+  href: string
+}
+
 export interface BenefitItem {
   id: string
   title: string
@@ -41,6 +49,13 @@ export interface CategoryCardData {
   itemCount: number
   imageUrl: string
   badgeText?: string
+}
+
+export interface CategoryShowcaseData {
+  id: string
+  name: string
+  slug: string
+  products: CatalogProduct[]
 }
 
 export interface BrandItem {
@@ -81,8 +96,10 @@ export interface CollectionCampaign {
 export interface HomePageData {
   heroBanners: HeroBannerItem[]
   secondaryBanner: SecondaryBannerItem | null
+  institutionalBanners: InstitutionalBannerItem[]
   benefits: BenefitItem[]
   featuredCategories: CategoryCardData[]
+  categoryShowcases: CategoryShowcaseData[]
   newArrivals: CatalogProduct[]
   bestSellers: CatalogProduct[]
   weeklyOpportunities: CatalogProduct[]
@@ -215,7 +232,6 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
     )
     .eq('is_active', true)
     .order('updated_at', { ascending: false })
-    .limit(4)
     .then((result) => result)
 
   // 1. Categorias Ativas no Supabase
@@ -307,6 +323,7 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
     conditionColumn?: string,
     conditionValue?: boolean,
     selectedIds?: string[],
+    categoryId?: string,
   ): Promise<CatalogProduct[]> {
     let query = supabase
       .from('products')
@@ -337,6 +354,10 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
 
     if (selectedIds?.length) {
       query = query.in('id', selectedIds)
+    }
+
+    if (categoryId) {
+      query = query.eq('category_id', categoryId)
     }
 
     const { data } = await query
@@ -413,14 +434,35 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
     fetchProductsGroup(),
   ])
 
+  const categoryShowcases: CategoryShowcaseData[] = (
+    await Promise.all(
+      dbCategories.map(async (category) => ({
+        id: category.id,
+        name: category.name,
+        slug: category.slug,
+        products: await fetchProductsGroup(
+          undefined,
+          undefined,
+          undefined,
+          category.id,
+        ),
+      })),
+    )
+  ).filter((category) => category.products.length > 0)
+
   const { data: dbBannersData } = await bannersPromise
 
   const dbBanners = dbBannersData ?? []
   const secondaryBannerRow = dbBanners.find(
     (banner) => banner.subtitle === '__secondary__',
   )
+  const institutionalBannerRows = dbBanners.filter(
+    (banner) => banner.subtitle === '__institutional__',
+  )
   const heroBannerRows = dbBanners.filter(
-    (banner) => banner.subtitle !== '__secondary__',
+    (banner) =>
+      banner.subtitle !== '__secondary__' &&
+      banner.subtitle !== '__institutional__',
   )
 
   const heroBanners: HeroBannerItem[] = [
@@ -459,6 +501,15 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
         href: getStoreBannerHref(secondaryBannerRow.link_url),
       }
     : null
+
+  const institutionalBanners: InstitutionalBannerItem[] =
+    institutionalBannerRows.map((banner) => ({
+      id: banner.id,
+      title: getStoreBannerTitle(banner.title, 0),
+      imageUrl: banner.image_url,
+      mobileImageUrl: banner.mobile_image_url || banner.image_url,
+      href: getStoreBannerHref(banner.link_url),
+    }))
 
   const { data: dbCollectionsData } = await collectionsPromise
 
@@ -525,8 +576,10 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
   return {
     heroBanners,
     secondaryBanner,
+    institutionalBanners,
     benefits,
     featuredCategories,
+    categoryShowcases,
     newArrivals,
     bestSellers,
     weeklyOpportunities,

@@ -16,9 +16,9 @@ function getBannerLabel(banner: Banner, index: number) {
   const title = banner.title.trim()
   if (title && !/^https?:\/\//i.test(title)) return title
 
-  return banner.subtitle === '__secondary__'
-    ? `Banner intermediário ${index + 1}`
-    : `Banner principal ${index + 1}`
+  if (banner.subtitle === '__secondary__') return `Banner intermediário ${index + 1}`
+  if (banner.subtitle === '__institutional__') return `Banner institucional ${index + 1}`
+  return `Banner principal ${index + 1}`
 }
 
 export function BannerList({ banners, onEdit }: BannerListProps) {
@@ -141,7 +141,11 @@ export function BannerList({ banners, onEdit }: BannerListProps) {
                 {banner.is_active ? 'ATIVO' : 'INATIVO'}
               </span>
               <span className="bg-neutral-100 px-2 py-1 text-[9px] font-extrabold uppercase tracking-[0.1em] text-neutral-600">
-                {banner.subtitle === '__secondary__' ? 'INTERMEDIÁRIO' : 'PRINCIPAL'}
+                {banner.subtitle === '__secondary__'
+                  ? 'INTERMEDIÁRIO'
+                  : banner.subtitle === '__institutional__'
+                    ? 'INSTITUCIONAL'
+                    : 'PRINCIPAL'}
               </span>
             </div>
           </div>

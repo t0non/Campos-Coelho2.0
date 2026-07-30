@@ -115,9 +115,23 @@ export function EvergreenPromotionalCarousel() {
                 href="/catalogo"
                 aria-hidden={index !== currentIndex}
                 tabIndex={index === currentIndex ? 0 : -1}
-                className="relative isolate flex min-h-[290px] w-full shrink-0 items-center bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800 px-8 pb-16 pt-8 sm:px-14 lg:min-h-[300px]"
+                className="relative isolate flex min-h-[420px] w-full shrink-0 flex-col bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-800 lg:min-h-[300px] lg:flex-row lg:items-center lg:px-14"
               >
-                <div className="relative z-10 max-w-[520px] lg:max-w-[500px]">
+                <div
+                  aria-hidden="true"
+                  className="relative h-[170px] w-full shrink-0 lg:absolute lg:inset-y-0 lg:right-0 lg:h-auto lg:w-[62%]"
+                >
+                  <Image
+                    src={slide.image}
+                    alt=""
+                    fill
+                    sizes="(min-width: 1024px) 62vw, 100vw"
+                    className="object-cover object-center lg:object-right"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-transparent lg:bg-gradient-to-r lg:from-neutral-900 lg:via-neutral-900/55 lg:to-transparent" />
+                </div>
+
+                <div className="relative z-10 max-w-[520px] px-6 pb-16 pt-4 sm:px-10 lg:max-w-[500px] lg:px-0 lg:py-8">
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-neutral-300">
                     {slide.eyebrow}
                   </p>
@@ -132,19 +146,6 @@ export function EvergreenPromotionalCarousel() {
                   </span>
                 </div>
 
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-y-0 right-0 hidden w-[62%] lg:block"
-                >
-                  <Image
-                    src={slide.image}
-                    alt=""
-                    fill
-                    sizes="(min-width: 1200px) 744px, 62vw"
-                    className="object-cover object-right"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-r from-neutral-900 via-neutral-900/55 to-transparent" />
-                </div>
               </Link>
             ))}
           </div>

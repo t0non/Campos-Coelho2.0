@@ -126,8 +126,8 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
-      <div className="min-h-screen bg-slate-50 py-10 sm:py-12">
-        <Container className="space-y-10">
+      <div className="min-h-screen overflow-x-hidden bg-slate-50 py-6 sm:py-10 lg:py-12">
+        <Container className="space-y-7 sm:space-y-10">
           {/* 1. Breadcrumb */}
           <CatalogBreadcrumb
             items={[
@@ -137,14 +137,14 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
           />
 
           {/* Grid Principal do Produto: Galeria (Esquerda) vs Resumo Commercial & Preço (Direita) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-8">
             {/* Galeria de Imagens (5 colunas) */}
-            <div className="lg:col-span-5 sticky top-24">
+            <div className="lg:sticky lg:top-24 lg:col-span-5">
               <ProductGallery images={product.images} productName={product.name} />
             </div>
 
             {/* Resumo & Bloco de Compra (7 colunas) */}
-            <div className="lg:col-span-7 space-y-6">
+            <div className="min-w-0 space-y-6 lg:col-span-7">
               {/* Resumo Comercial */}
               <ProductSummary product={product} />
 
@@ -163,7 +163,7 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
           </div>
 
           {/* Abas / Seções de Detalhes: Descrição, Especificações, Embalagem Master */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-10 shadow-xs">
+          <div className="space-y-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs sm:space-y-10 sm:rounded-3xl sm:p-8">
             <ProductDescription product={product} />
             <ProductSpecifications product={product} />
             <ProductPackaging product={product} />
