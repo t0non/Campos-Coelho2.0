@@ -28,7 +28,7 @@ export function InstitutionalBanners({ banners }: InstitutionalBannersProps) {
             <Link
               key={banner.id}
               href={banner.href}
-              className="group relative isolate aspect-[8/5] overflow-hidden rounded-2xl bg-[#082653] shadow-[0_14px_35px_rgba(8,38,83,0.18)] sm:aspect-[3/1] lg:aspect-[8/3]"
+              className="group relative isolate aspect-[8/5] overflow-hidden rounded-2xl bg-neutral-950 shadow-[0_14px_35px_rgba(0,0,0,0.18)] sm:aspect-[3/1] lg:aspect-[8/3]"
             >
               <Image
                 src={banner.imageUrl}
@@ -44,7 +44,7 @@ export function InstitutionalBanners({ banners }: InstitutionalBannersProps) {
                 sizes="100vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-[1.02] sm:hidden"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#061d40]/95 via-[#082653]/76 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-neutral-950/72 to-transparent" />
 
               <div className="relative z-10 flex h-full max-w-[58%] flex-col justify-center p-5 text-white sm:p-6">
                 <span className="mb-2 flex h-9 w-9 items-center justify-center rounded-full bg-white/12 ring-1 ring-white/25">
@@ -56,7 +56,7 @@ export function InstitutionalBanners({ banners }: InstitutionalBannersProps) {
                 <h2 className="mt-1 text-lg font-black leading-tight text-white sm:text-xl">
                   {banner.title}
                 </h2>
-                <span className="mt-3 inline-flex w-fit rounded-md bg-white px-3 py-2 text-[10px] font-black uppercase tracking-wide text-[#082653]">
+                <span className="mt-3 inline-flex w-fit rounded-md bg-white px-3 py-2 text-[10px] font-black uppercase tracking-wide text-neutral-950">
                   {location ? 'Como chegar' : 'Entrar em contato'}
                 </span>
               </div>

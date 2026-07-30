@@ -91,11 +91,12 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // A sessão temporária de recuperação precisa permanecer nesta página
-  // para que o usuário consiga definir a nova senha.
+  // Sessões temporárias de recuperação e convite precisam permanecer
+  // nas páginas de definição de senha.
   if (
-    pathname === '/recuperar-senha' &&
-    request.nextUrl.searchParams.get('type') === 'recovery'
+    (pathname === '/recuperar-senha' &&
+      request.nextUrl.searchParams.get('type') === 'recovery') ||
+    pathname === '/aceitar-convite'
   ) {
     return response
   }

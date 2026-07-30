@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ErrorMessage } from '@/components/ui/error-message'
 import type { Database } from '@/types/database.types'
+import { loginWithCnpj } from '@/app/actions/auth'
+import { maskCNPJ, validateCNPJ } from '@/lib/utils/masks'
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row']
 type CompanyRow = Database['public']['Tables']['companies']['Row']
@@ -64,6 +66,7 @@ interface LoginFormProps {
 
 function LoginFormInner({ variant = 'page' }: LoginFormProps) {
   const isDrawer = variant === 'drawer'
+  const [loginMethod, setLoginMethod] = useState<'email' | 'cnpj'>('email')
   const [serverError, setServerError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
@@ -73,6 +76,8 @@ function LoginFormInner({ variant = 'page' }: LoginFormProps) {
   const {
     register,
     handleSubmit,
+    resetField,
+    setError,
     formState: { errors, isSubmitting },
   } = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -81,8 +86,31 @@ function LoginFormInner({ variant = 'page' }: LoginFormProps) {
   const onSubmit = async (data: LoginInput) => {
     setServerError(null)
 
+    if (loginMethod === 'cnpj') {
+      if (!validateCNPJ(data.identifier)) {
+        setError('identifier', { message: 'CNPJ inválido' })
+        return
+      }
+
+      const result = await loginWithCnpj(data.identifier, data.password)
+      if (!result.success) {
+        setServerError(result.error)
+        return
+      }
+
+      router.push(result.destination)
+      router.refresh()
+      return
+    }
+
+    const email = data.identifier.trim()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError('identifier', { message: 'E-mail inválido' })
+      return
+    }
+
     const { data: authData, error } = await supabase.auth.signInWithPassword({
-      email: data.email,
+      email,
       password: data.password,
     })
 
@@ -170,14 +198,57 @@ function LoginFormInner({ variant = 'page' }: LoginFormProps) {
     >
       {serverError && <ErrorMessage message={serverError} />}
 
+      <div
+        className="grid grid-cols-2 gap-1 rounded-xl bg-gray-100 p-1"
+        role="tablist"
+        aria-label="Forma de acesso"
+      >
+        {([
+          ['email', 'E-mail'],
+          ['cnpj', 'CNPJ'],
+        ] as const).map(([method, label]) => (
+          <button
+            key={method}
+            type="button"
+            role="tab"
+            aria-selected={loginMethod === method}
+            onClick={() => {
+              setLoginMethod(method)
+              setServerError(null)
+              resetField('identifier')
+            }}
+            className={`min-h-10 rounded-lg px-3 text-sm font-bold transition ${
+              loginMethod === method
+                ? 'bg-white text-gray-950 shadow-sm'
+                : 'text-gray-500 hover:text-gray-800'
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <Input
-        label="E-mail"
-        placeholder={isDrawer ? '*E-mail' : undefined}
-        type="email"
-        autoComplete="email"
+        label={loginMethod === 'email' ? 'E-mail' : 'CNPJ'}
+        placeholder={
+          loginMethod === 'email'
+            ? isDrawer
+              ? '*E-mail'
+              : 'seuemail@gmail.com'
+            : '00.000.000/0000-00'
+        }
+        type={loginMethod === 'email' ? 'email' : 'text'}
+        inputMode={loginMethod === 'email' ? 'email' : 'numeric'}
+        autoComplete={loginMethod === 'email' ? 'email' : 'organization'}
         required
-        {...register('email')}
-        error={errors.email?.message}
+        {...register('identifier', {
+          onChange: (event) => {
+            if (loginMethod === 'cnpj') {
+              event.target.value = maskCNPJ(event.target.value)
+            }
+          },
+        })}
+        error={errors.identifier?.message}
       />
 
       <div>

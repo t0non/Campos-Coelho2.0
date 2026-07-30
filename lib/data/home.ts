@@ -39,7 +39,14 @@ export interface BenefitItem {
   id: string
   title: string
   description: string
-  iconName: 'Truck' | 'Building2' | 'Boxes' | 'Headset'
+  iconName: 'Truck' | 'Building2' | 'Boxes' | 'Headset' | 'Store'
+}
+
+export interface HomeMetric {
+  label: string
+  value: string
+  hint: string
+  iconName: 'Package' | 'LayoutGrid' | 'BadgeCheck' | 'Store'
 }
 
 export interface CategoryCardData {
@@ -106,7 +113,7 @@ export interface HomePageData {
   collections: CollectionCampaign[]
   brands: BrandItem[]
   testimonials: TestimonialItem[]
-  metrics: { label: string; value: string; hint: string }[]
+  metrics: HomeMetric[]
   canViewPrices: boolean
   userStatus: 'visitor' | 'pending' | 'approved' | 'rejected' | 'suspended'
 }
@@ -211,6 +218,13 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
     .order('name')
     .then((result) => result)
 
+  const productsCountPromise = supabase
+    .from('products')
+    .select('id', { count: 'exact', head: true })
+    .eq('is_active', true)
+    .eq('is_published', true)
+    .then((result) => result)
+
   const bannersPromise = supabase
     .from('banners')
     .select('*')
@@ -251,6 +265,8 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
   const { data: dbBrandsData } = await brandsPromise
 
   const dbBrands = (dbBrandsData ?? []) as Array<{ id: string; name: string; slug: string }>
+  const { count: activeProductsCount } = await productsCountPromise
+  const formatCount = (count: number) => new Intl.NumberFormat('pt-BR').format(count)
 
   const BRAND_CATEGORIES: Record<string, string> = {
     'PLASUTIL': 'Utilidades Plásticas',
@@ -569,7 +585,7 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
 
   const benefits: BenefitItem[] = [
     { id: 'b-1', title: 'Faturamento B2B', description: 'Boleto bancário e crédito para empresas cadastradas', iconName: 'Boxes' },
-    { id: 'b-2', title: 'Entrega para Todo o Brasil', description: 'Logística integrada e transportadoras parceiras', iconName: 'Truck' },
+    { id: 'b-2', title: 'Retirada em Belo Horizonte', description: 'Retire seu pedido em nossa loja no bairro Planalto', iconName: 'Store' },
     { id: 'b-3', title: 'Atendimento Especializado', description: 'Vendedores dedicados para o seu segmento', iconName: 'Headset' },
   ]
 
@@ -587,10 +603,30 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
     brands,
     testimonials: [],
     metrics: [
-      { label: 'Produtos no Catálogo', value: '+5.000', hint: 'Variedade para o seu estoque' },
-      { label: 'Categorias Comerciais', value: '+100', hint: 'Segmentos variados' },
-      { label: 'Entrega Nacional', value: '100%', hint: 'Logística para todo o Brasil' },
-      { label: 'Atendimento B2B', value: 'Dedicado', hint: 'Suporte na montagem do pedido' },
+      {
+        label: 'Produtos disponíveis',
+        value: formatCount(activeProductsCount ?? 0),
+        hint: 'Itens ativos no catálogo',
+        iconName: 'Package',
+      },
+      {
+        label: 'Categorias comerciais',
+        value: formatCount(dbCategories.length),
+        hint: 'Organização por segmento',
+        iconName: 'LayoutGrid',
+      },
+      {
+        label: 'Marcas cadastradas',
+        value: formatCount(dbBrands.length),
+        hint: 'Portfólio para o seu negócio',
+        iconName: 'BadgeCheck',
+      },
+      {
+        label: 'Retirada presencial',
+        value: 'BH',
+        hint: 'Loja no bairro Planalto',
+        iconName: 'Store',
+      },
     ],
     canViewPrices,
     userStatus,

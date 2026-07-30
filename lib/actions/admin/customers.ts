@@ -5,6 +5,7 @@ import { Database } from '@/types/database.types'
 import { revalidatePath } from 'next/cache'
 import { requireAdmin } from '@/lib/supabase/auth'
 import { z } from 'zod'
+import { notifyCompanyDecision } from '@/lib/email/events'
 
 const companyIdSchema = z.string().uuid()
 const companyStatusSchema = z.enum(['pending', 'approved', 'rejected', 'suspended'])
@@ -211,6 +212,11 @@ export async function updateCustomerStatus(
     payload: { message: parsed.data.decisionMessage },
   })
 
+  await notifyCompanyDecision({
+    companyId: parsed.data.companyId,
+    status,
+    message: parsed.data.decisionMessage,
+  })
   revalidatePath('/admin/clientes')
   return { success: true }
 }

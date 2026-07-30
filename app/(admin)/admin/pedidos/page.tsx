@@ -19,8 +19,8 @@ const statusOptions: { value: string; label: string }[] = [
   { value: 'pending', label: 'Pendente' },
   { value: 'confirmed', label: 'Confirmado' },
   { value: 'processing', label: 'Em separação' },
-  { value: 'shipped', label: 'Enviado' },
-  { value: 'delivered', label: 'Entregue' },
+  { value: 'shipped', label: 'Pronto para retirada' },
+  { value: 'delivered', label: 'Retirado' },
   { value: 'cancelled', label: 'Cancelado' },
 ]
 

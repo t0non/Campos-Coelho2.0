@@ -16,6 +16,7 @@ import {
   Package,
   Settings,
   Tags,
+  UserCog,
   Users,
   Warehouse,
   X,
@@ -53,7 +54,10 @@ const navSections = [
   },
   {
     label: 'Sistema',
-    items: [{ href: '/admin/configuracoes', label: 'Configurações', icon: Settings }],
+    items: [
+      { href: '/admin/administradores', label: 'Administradores', icon: UserCog },
+      { href: '/admin/configuracoes', label: 'Configurações', icon: Settings },
+    ],
   },
 ]
 

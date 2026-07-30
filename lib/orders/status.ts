@@ -7,8 +7,8 @@ export const ORDER_STATUS_LABELS: Record<OrderStatus, string> = {
   pending: 'Pendente',
   confirmed: 'Confirmado',
   processing: 'Em separação',
-  shipped: 'Enviado',
-  delivered: 'Entregue',
+  shipped: 'Pronto para retirada',
+  delivered: 'Retirado',
   cancelled: 'Cancelado',
 }
 

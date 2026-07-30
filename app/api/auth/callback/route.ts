@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import { safeRedirectPath } from '@/lib/security/navigation'
-import { getSiteUrl } from '@/lib/utils/site-url'
 
 /**
  * Callback do Supabase Auth para OAuth, magic links e recuperação de senha.
@@ -16,7 +15,7 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   const type = searchParams.get('type')
   const next = safeRedirectPath(searchParams.get('next'))
-  const baseUrl = process.env.NODE_ENV === 'development' ? origin : getSiteUrl()
+  const baseUrl = origin
 
   if (code) {
     const supabase = await createClient()
