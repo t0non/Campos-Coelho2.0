@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import './globals.css'
 import { montserrat } from './fonts'
 import { getSiteUrl } from '@/lib/utils/site-url'
+import { AuthUrlErrorRedirect } from '@/components/auth/auth-url-error-redirect'
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -30,6 +31,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={`${montserrat.variable} h-full antialiased`}>
       <body className="min-h-full bg-neutral-50 font-sans text-neutral-900">
+        <AuthUrlErrorRedirect />
         {children}
       </body>
     </html>

@@ -11,7 +11,8 @@ import { ResetPasswordForm } from '@/components/auth/reset-password-form'
 export function RecuperarSenhaContent() {
   const searchParams = useSearchParams()
   const type = searchParams.get('type')
-  const isRecovery = type === 'recovery'
+  const errorCode = searchParams.get('error_code')
+  const isRecovery = type === 'recovery' || Boolean(errorCode)
 
   if (isRecovery) {
     return (
@@ -22,7 +23,7 @@ export function RecuperarSenhaContent() {
             Crie uma nova senha segura para sua conta.
           </p>
         </div>
-        <ResetPasswordForm />
+        <ResetPasswordForm initiallyInvalid={Boolean(errorCode)} />
       </>
     )
   }

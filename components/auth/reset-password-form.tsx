@@ -20,8 +20,10 @@ type RecoveryState = 'loading' | 'ready' | 'invalid' | 'success'
  * Detecta a sessão de recovery via onAuthStateChange com evento PASSWORD_RECOVERY.
  * Chama supabase.auth.updateUser({ password }) para efetuar a troca.
  */
-export function ResetPasswordForm() {
-  const [recoveryState, setRecoveryState] = useState<RecoveryState>('loading')
+export function ResetPasswordForm({ initiallyInvalid = false }: { initiallyInvalid?: boolean }) {
+  const [recoveryState, setRecoveryState] = useState<RecoveryState>(
+    initiallyInvalid ? 'invalid' : 'loading',
+  )
   const [serverError, setServerError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -37,6 +39,8 @@ export function ResetPasswordForm() {
   })
 
   useEffect(() => {
+    if (initiallyInvalid) return
+
     // Escuta o evento PASSWORD_RECOVERY para confirmar sessão válida
     const {
       data: { subscription },
@@ -67,7 +71,7 @@ export function ResetPasswordForm() {
     })
 
     return () => subscription.unsubscribe()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [initiallyInvalid]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const onSubmit = async (data: ResetPasswordInput) => {
     setServerError(null)

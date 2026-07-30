@@ -91,6 +91,15 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
+  // A sessão temporária de recuperação precisa permanecer nesta página
+  // para que o usuário consiga definir a nova senha.
+  if (
+    pathname === '/recuperar-senha' &&
+    request.nextUrl.searchParams.get('type') === 'recovery'
+  ) {
+    return response
+  }
+
   // ──────────────────────────────────────────────────────
   // Rotas de status — exigem autenticação, mas não role específica
   // ──────────────────────────────────────────────────────

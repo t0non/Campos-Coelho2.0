@@ -1,4 +1,4 @@
-import { MessageCircle } from 'lucide-react'
+import Image from 'next/image'
 import { WHATSAPP_MESSAGE, WHATSAPP_NUMBER } from '@/lib/config/contact'
 
 export function WhatsAppButton() {
@@ -20,9 +20,16 @@ export function WhatsAppButton() {
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Atendimento via WhatsApp B2B"
-        className="flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-[0_8px_24px_rgba(37,211,102,0.38)] transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-500/30"
+        className="flex h-14 w-14 items-center justify-center rounded-full shadow-[0_8px_24px_rgba(37,211,102,0.38)] transition-transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-green-500/30 sm:h-16 sm:w-16"
       >
-        <MessageCircle className="h-7 w-7" aria-hidden="true" />
+        <Image
+          src="/widget_whatsapp.png"
+          alt=""
+          width={300}
+          height={300}
+          sizes="(min-width: 640px) 64px, 56px"
+          className="h-full w-full object-contain"
+        />
       </a>
     </div>
   )

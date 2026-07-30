@@ -16,6 +16,10 @@ import { TrustNumbers } from '@/components/home/trust-numbers'
 import { Testimonials } from '@/components/home/testimonials'
 import { InstitutionalSection } from '@/components/home/institutional-section'
 import { getSiteUrl } from '@/lib/utils/site-url'
+import {
+  COMPANY_GOOGLE_PROFILE_URL,
+  COMPANY_PHONE_DISPLAY,
+} from '@/lib/config/contact'
 
 const siteUrl = getSiteUrl()
 
@@ -55,6 +59,16 @@ export default async function HomePage() {
         url: siteUrl,
         logo: `${siteUrl}/logo_campos_coelho.png`,
         description: 'Distribuidora de produtos no atacado para lojistas e empresas.',
+        telephone: COMPANY_PHONE_DISPLAY,
+        sameAs: [COMPANY_GOOGLE_PROFILE_URL],
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: 'Av. Dr. Cristiano Guimarães, 975',
+          addressLocality: 'Belo Horizonte',
+          addressRegion: 'MG',
+          postalCode: '31720-300',
+          addressCountry: 'BR',
+        },
       },
       {
         '@type': 'WebSite',
