@@ -4,7 +4,6 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/supabase/auth'
-import { createAuditLog } from '@/lib/utils/audit'
 import type { Database } from '@/types/database.types'
 import { canTransitionOrderStatus } from '@/lib/orders/status'
 
@@ -60,43 +59,25 @@ export async function updateOrderStatusAction(
     }
   }
 
-  const { error: updateError } = await supabase
-    .from('orders')
-    .update({ status: nextStatus, updated_at: new Date().toISOString() })
-    .eq('id', order.id)
+  const { data: transition, error: transitionError } = await (supabase.rpc as any)(
+    'admin_transition_order_status',
+    {
+      p_order_id: order.id,
+      p_next_status: nextStatus,
+      p_actor_id: ctx.user!.id,
+    },
+  )
 
-  if (updateError) {
-    return { success: false, message: 'Não foi possível atualizar o pedido.' }
-  }
-
-  const { error: historyError } = await supabase.from('order_status_history').insert({
-    order_id: order.id,
-    status: nextStatus,
-    created_by: ctx.user!.id,
-    notes: `Status alterado de ${order.status} para ${nextStatus} pelo painel administrativo.`,
-  })
-
-  if (historyError) {
-    console.error('Falha ao registrar histórico do pedido:', historyError.message)
-    const { error: rollbackError } = await supabase
-      .from('orders')
-      .update({ status: order.status, updated_at: new Date().toISOString() })
-      .eq('id', order.id)
-      .eq('status', nextStatus)
-    if (rollbackError) {
-      console.error('Falha crítica ao reverter status sem histórico:', rollbackError.message)
-    }
+  if (transitionError || !transition?.success) {
+    console.error('Falha na transição atômica do pedido:', transitionError?.message ?? transition?.code)
     return {
       success: false,
-      message: 'A atualização foi cancelada porque o histórico não pôde ser registrado.',
+      message:
+        transition?.code === 'INVALID_TRANSITION'
+          ? 'Essa mudança de status não é permitida para a etapa atual.'
+          : 'Não foi possível atualizar o pedido e o estoque com segurança.',
     }
   }
-
-  await createAuditLog('ORDER_STATUS_UPDATED', 'orders', order.id, {
-    order_number: order.order_number,
-    previous_status: order.status,
-    next_status: nextStatus,
-  })
 
   revalidatePath('/admin')
   revalidatePath('/admin/pedidos')

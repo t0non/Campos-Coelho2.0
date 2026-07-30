@@ -32,7 +32,7 @@ const env = loadEnvLocal()
 const SUPABASE_URL = env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON_KEY = env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 const SERVER_URL = 'http://localhost:3000'
-const DEFAULT_PASSWORD = 'DevelopmentPassword123!'
+const DEFAULT_PASSWORD = process.env.TEST_USER_PASSWORD
 
 if (!SUPABASE_URL || !ANON_KEY) {
   console.error('❌ Variáveis de ambiente Supabase não encontradas.')

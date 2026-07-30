@@ -4,6 +4,7 @@ import type { CatalogProduct, PriceInfo } from '@/types/product.types'
 import type { CatalogParams } from '@/lib/utils/catalog-params'
 import { getProductImageUrl } from '@/lib/utils/storage-url'
 import { getCatalogPricingForCurrentCustomer } from '@/lib/data/pricing'
+import { getCustomerSessionPricing, isPromotionValid } from '@/lib/data/pricing'
 import { withCategoryProductFallback } from '@/lib/catalog/product-image-fallback'
 
 export interface CatalogResult {
@@ -117,7 +118,11 @@ export async function getCatalogProducts(
 
   // 4. Busca por termo (name, sku principal ou sku de variante)
   if (params.query) {
-    const q = params.query.trim()
+    const q = params.query
+      .trim()
+      .slice(0, 80)
+      .replace(/[,().'"\\%]/g, ' ')
+      .replace(/\s+/g, ' ')
     if (q) {
       const { data: varMatches } = await supabase
         .from('product_variants')
@@ -142,12 +147,63 @@ export async function getCatalogProducts(
   if (params.isBestSeller) {
     query = query.eq('is_featured', true)
   }
+  if (params.isPromotion) {
+    const pricing = await getCustomerSessionPricing()
+    if (!pricing.priceTableId) {
+      return {
+        products: [],
+        total: 0,
+        page: params.page ?? 1,
+        perPage: params.perPage ?? 12,
+        totalPages: 1,
+        canViewPrices,
+        userStatus,
+      }
+    }
+
+    const { data: promotionRows } = await supabase
+      .from('price_table_products')
+      .select('product_id, unit_price, promotional_price, promotion_starts_at, promotion_ends_at')
+      .eq('price_table_id', pricing.priceTableId)
+      .eq('is_active', true)
+      .not('promotional_price', 'is', null)
+
+    const promotionProductIds = Array.from(
+      new Set(
+        (promotionRows ?? [])
+          .filter((row) =>
+            isPromotionValid(
+              row.promotional_price,
+              row.unit_price,
+              row.promotion_starts_at,
+              row.promotion_ends_at,
+            ),
+          )
+          .map((row) => row.product_id),
+      ),
+    )
+
+    if (promotionProductIds.length === 0) {
+      return {
+        products: [],
+        total: 0,
+        page: params.page ?? 1,
+        perPage: params.perPage ?? 12,
+        totalPages: 1,
+        canViewPrices,
+        userStatus,
+      }
+    }
+    query = query.in('id', promotionProductIds)
+  }
 
   // 6. Ordenação
   const sortMap: Record<string, { column: string; ascending: boolean }> = {
     'nome-asc': { column: 'name', ascending: true },
     'nome-desc': { column: 'name', ascending: false },
     'mais-recentes': { column: 'created_at', ascending: false },
+    'mais-vendidos': { column: 'is_featured', ascending: false },
+    lancamentos: { column: 'is_new_arrival', ascending: false },
     relevancia: { column: 'created_at', ascending: false },
   }
 
