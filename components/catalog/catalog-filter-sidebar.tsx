@@ -150,21 +150,23 @@ export function CatalogFilterSidebar({
               <span>Somente Lançamentos</span>
             </Link>
 
-            <Link
-              href={`${baseUrl}${buildCatalogQueryString(params, {
-                isPromotion: !params.isPromotion,
-                page: 1,
-              })}`}
-              className="flex items-center gap-2 text-slate-700 hover:text-slate-900"
-            >
-              <input
-                type="checkbox"
-                checked={Boolean(params.isPromotion)}
-                readOnly
-                className="h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500"
-              />
-              <span>Somente Oportunidades</span>
-            </Link>
+            {canViewPrices && (
+              <Link
+                href={`${baseUrl}${buildCatalogQueryString(params, {
+                  isPromotion: !params.isPromotion,
+                  page: 1,
+                })}`}
+                className="flex items-center gap-2 text-slate-700 hover:text-slate-900"
+              >
+                <input
+                  type="checkbox"
+                  checked={Boolean(params.isPromotion)}
+                  readOnly
+                  className="h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500"
+                />
+                <span>Somente Oportunidades</span>
+              </Link>
+            )}
 
             <Link
               href={`${baseUrl}${buildCatalogQueryString(params, {

@@ -44,7 +44,7 @@ const adminClient = createClient(SUPABASE_URL, SECRET_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
-const PASSWORD = 'DevelopmentPassword123!'
+const PASSWORD = process.env.TEST_USER_PASSWORD
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────
 let passed = 0
@@ -861,4 +861,3 @@ run().catch((err) => {
   console.error('💥 Erro inesperado:', err.message)
   process.exit(1)
 })
-

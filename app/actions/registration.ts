@@ -3,6 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { fullRegistrationSchema } from '@/lib/validations/registration'
 import { safeOriginalFilename, validateUploadedFile } from '@/lib/security/file-validation'
+import { consumePublicRateLimit } from '@/lib/security/public-rate-limit'
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024
 const ALLOWED_DOCUMENT_CATEGORIES = new Set(['contrato_social', 'doc_responsavel'])
@@ -30,6 +31,19 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
   }
 
   const data = parsed.data
+  const allowed = await consumePublicRateLimit({
+    action: 'public_registration',
+    maxAttempts: 5,
+    windowSeconds: 3600,
+    subject: data.responsible.email,
+  })
+  if (!allowed) {
+    return {
+      success: false,
+      error: 'Muitas tentativas de cadastro. Aguarde um pouco antes de tentar novamente.',
+    }
+  }
+
   const files = formData.getAll('documents').filter((entry): entry is File => entry instanceof File && entry.size > 0)
   if (files.length < 2) {
     return { success: false, error: 'Envie o contrato social e o documento de identidade do responsável.' }

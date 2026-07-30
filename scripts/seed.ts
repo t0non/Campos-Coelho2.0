@@ -44,7 +44,11 @@ const supabaseAdmin = createClient(supabaseUrl, secretKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 })
 
-const DEFAULT_PASSWORD = 'DevelopmentPassword123!'
+const DEFAULT_PASSWORD = process.env.TEST_USER_PASSWORD
+if (!DEFAULT_PASSWORD) {
+  console.error('Defina TEST_USER_PASSWORD no .env.local antes de criar usuários de desenvolvimento.')
+  process.exit(1)
+}
 
 interface UserSeedData {
   email: string

@@ -1,5 +1,5 @@
 import 'server-only'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/supabase/auth'
 
 export type AdminLogAction =
@@ -48,7 +48,7 @@ export async function createAuditLog(
 ) {
   const { user } = await requireAdmin()
   if (!user) throw new Error('Não autenticado')
-  const supabase = (await createClient()) as any
+  const supabase = createAdminClient() as any
 
   // Limpar payload de dados sensíveis e manter um tamanho razoável
   const safePayload = JSON.parse(JSON.stringify(payload))

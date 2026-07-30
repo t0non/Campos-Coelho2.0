@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { serializeJsonLd } from '@/lib/utils/json-ld'
 
 export const dynamic = 'force-dynamic'
 import { getAuthContext } from '@/lib/supabase/auth'
@@ -73,7 +74,7 @@ export default async function HomePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
       <div className="flex flex-col min-h-screen">

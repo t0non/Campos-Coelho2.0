@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getAuthContext } from '@/lib/supabase/auth'
 import { z } from 'zod'
 import { safeOriginalFilename, validateUploadedFile } from '@/lib/security/file-validation'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const MAX_SIZE_BYTES = 10 * 1024 * 1024 // 10 MB
 const BUCKET = 'company-documents'
@@ -93,7 +94,8 @@ export async function POST(request: NextRequest) {
   }
 
   // Registrar audit log
-  await supabase.from('audit_logs').insert({
+  const trustedWriter = createAdminClient()
+  await trustedWriter.from('audit_logs').insert({
     actor_id: ctx.user.id,
     action: 'document_uploaded',
     target_table: 'company_documents',

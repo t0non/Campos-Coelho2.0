@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { serializeJsonLd } from '@/lib/utils/json-ld'
 import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -122,7 +123,7 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
       <div className="min-h-screen bg-slate-50 py-10 sm:py-12">

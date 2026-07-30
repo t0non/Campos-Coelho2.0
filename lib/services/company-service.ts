@@ -134,8 +134,9 @@ export async function saveClientCompanyData(input: SaveCompanyDataInput): Promis
       is_primary: true,
     })
 
-    // Atualizar perfil do usuário com company_id (profiles tem UPDATE para authenticated)
-    await supabase
+    // O vínculo empresarial é uma operação privilegiada: nunca aceite company_id
+    // enviado diretamente pelo navegador.
+    await adminClient
       .from('profiles')
       .update({ company_id: companyId })
       .eq('id', ctx.user.id)
@@ -203,7 +204,9 @@ export async function saveClientCompanyData(input: SaveCompanyDataInput): Promis
   }
 
   // Criar notificação e audit log de submissão
-  await supabase.from('notifications').insert({
+  const trustedWriter = createAdminClient() as AnyClient
+
+  await trustedWriter.from('notifications').insert({
     profile_id: ctx.user.id,
     title: 'Cadastro Enviado',
     message: 'Seus dados empresariais foram salvos e enviados para análise comercial.',
@@ -211,7 +214,7 @@ export async function saveClientCompanyData(input: SaveCompanyDataInput): Promis
     link_url: '/minha-conta/empresa',
   })
 
-  await supabase.from('audit_logs').insert({
+  await trustedWriter.from('audit_logs').insert({
     actor_id: ctx.user.id,
     action: 'company_data_saved',
     target_table: 'companies',
@@ -256,7 +259,7 @@ export async function resubmitCompanyForReview() {
     throw new Error(`Falha ao reenviar cadastro: ${error.message}`)
   }
 
-  await supabase.from('notifications').insert({
+  await adminClient.from('notifications').insert({
     profile_id: ctx.user.id,
     title: 'Cadastro Reenviado',
     message: 'Seu cadastro empresarial foi reenviado e está sob nova análise.',
@@ -264,7 +267,7 @@ export async function resubmitCompanyForReview() {
     link_url: '/conta-pendente',
   })
 
-  await supabase.from('audit_logs').insert({
+  await adminClient.from('audit_logs').insert({
     actor_id: ctx.user.id,
     action: 'company_resubmitted',
     target_table: 'companies',

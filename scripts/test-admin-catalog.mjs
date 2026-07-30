@@ -25,7 +25,7 @@ if (!SUPABASE_URL || !SERVICE_KEY || !ANON_KEY) {
 
 const adminClient = createClient(SUPABASE_URL, SERVICE_KEY)
 
-async function loginAs(email, password = 'DevelopmentPassword123!') {
+async function loginAs(email, password = process.env.TEST_USER_PASSWORD) {
   const client = createClient(SUPABASE_URL, ANON_KEY)
   const { data, error } = await client.auth.signInWithPassword({ email, password })
   if (error || !data.session) throw new Error(`Falha auth ${email}: ${error?.message}`)

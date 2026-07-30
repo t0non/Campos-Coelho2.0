@@ -21,7 +21,7 @@ if (fs.existsSync('.env.local')) {
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-const PASSWORD = 'DevelopmentPassword123!'
+const PASSWORD = process.env.TEST_USER_PASSWORD
 
 if (!SUPABASE_URL || !ANON_KEY) {
   console.error('💥 Variáveis de ambiente ausentes.')

@@ -2,6 +2,7 @@
 
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { consumePublicRateLimit } from '@/lib/security/public-rate-limit'
 
 const newsletterSchema = z.object({
   name: z.string().trim().max(120).optional(),
@@ -28,6 +29,16 @@ export async function subscribeNewsletterAction(input: {
 
   if (parsed.data.website) {
     return { success: true, message: 'Inscrição recebida.' }
+  }
+
+  const allowed = await consumePublicRateLimit({
+    action: 'newsletter_subscription',
+    maxAttempts: 10,
+    windowSeconds: 3600,
+    subject: parsed.data.email,
+  })
+  if (!allowed) {
+    return { success: false, message: 'Muitas tentativas. Aguarde um pouco e tente novamente.' }
   }
 
   const supabase = createAdminClient()

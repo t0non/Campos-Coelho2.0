@@ -95,8 +95,7 @@ export async function getProductBySlug(
       categories!category_id (id, name, slug, is_active),
       brands!brand_id (id, name, slug, is_active),
       product_images (url, alt_text, is_primary, position),
-      product_variants (id, sku, name, attributes, is_active),
-      inventories (variant_id, quantity_available, quantity_reserved)
+      product_variants (id, sku, name, attributes, is_active)
       `,
     )
     .eq('slug', sanitizedSlug)
@@ -122,7 +121,27 @@ export async function getProductBySlug(
     brands: { id: string; name: string; slug: string; is_active: boolean } | null
     product_images: Array<{ url: string; alt_text: string | null; is_primary: boolean; position: number }> | null
     product_variants: Array<{ id: string; sku: string; name: string; attributes: Record<string, string>; is_active: boolean }> | null
-    inventories: Array<{ variant_id: string | null; quantity_available: number; quantity_reserved: number }> | null
+  }
+
+  let inventoryRows: Array<{
+    variant_id: string | null
+    quantity_available: number
+    quantity_reserved: number
+  }> = []
+
+  // Estoque é informação comercial protegida. Separar esta consulta evita
+  // que a RLS de inventories transforme a página pública do produto em 404.
+  if (canViewPrices) {
+    const { data: inventories, error: inventoryError } = await supabase
+      .from('inventories')
+      .select('variant_id, quantity_available, quantity_reserved')
+      .eq('product_id', raw.id)
+
+    if (inventoryError) {
+      console.error('Erro ao consultar estoque do produto:', inventoryError.message)
+    } else {
+      inventoryRows = inventories ?? []
+    }
   }
 
   // Filtrar variantes ativas. Produtos SEM nenhuma variante ativa são
@@ -134,7 +153,7 @@ export async function getProductBySlug(
   // A chave `null` representa o estoque a nível de PRODUTO (variant_id NULL),
   // relevante apenas quando o produto não tem variantes.
   const stockByVariant = new Map<string | null, number>()
-  for (const inv of raw.inventories ?? []) {
+  for (const inv of inventoryRows) {
     const key = inv.variant_id ?? null
     const usable = Math.max(0, (inv.quantity_available ?? 0) - (inv.quantity_reserved ?? 0))
     stockByVariant.set(key, (stockByVariant.get(key) ?? 0) + usable)

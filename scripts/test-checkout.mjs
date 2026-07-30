@@ -24,7 +24,7 @@ for (const line of fs.readFileSync(envPath, 'utf8').split('\n')) {
 const SUPA_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 const SECRET = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY
-const PASSWORD = 'DevelopmentPassword123!'
+const PASSWORD = process.env.TEST_USER_PASSWORD
 
 if (!SUPA_URL || !ANON || !SECRET) { console.error('💥 Configuração do Supabase inválida.'); process.exit(1) }
 
