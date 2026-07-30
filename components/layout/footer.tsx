@@ -1,7 +1,14 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ChevronRight, Mail } from 'lucide-react'
+import { ChevronRight, Mail, MapPin, Phone } from 'lucide-react'
 import { FooterNewsletterForm } from '@/components/layout/footer-newsletter-form'
+import {
+  COMPANY_ADDRESS,
+  COMPANY_GOOGLE_PROFILE_URL,
+  COMPANY_PHONE_DISPLAY,
+  WHATSAPP_MESSAGE,
+  WHATSAPP_NUMBER,
+} from '@/lib/config/contact'
 
 const footerLinks = {
   institucional: [
@@ -53,6 +60,8 @@ function LinkColumn({
 }
 
 export function Footer() {
+  const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`
+
   return (
     <footer className="select-none bg-neutral-950 text-neutral-300">
       <div className="border-b border-white/10 bg-neutral-900">
@@ -90,6 +99,26 @@ export function Footer() {
             </p>
             <div className="inline-flex rounded-full border border-white/10 bg-white/5 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.08em] text-neutral-300">
               Venda exclusiva para empresas
+            </div>
+            <div className="space-y-3 text-xs text-neutral-400">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 transition-colors hover:text-white"
+              >
+                <Phone className="h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>{COMPANY_PHONE_DISPLAY}</span>
+              </a>
+              <a
+                href={COMPANY_GOOGLE_PROFILE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-3 leading-relaxed transition-colors hover:text-white"
+              >
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>{COMPANY_ADDRESS}</span>
+              </a>
             </div>
           </div>
 
