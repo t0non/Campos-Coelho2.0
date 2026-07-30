@@ -2,6 +2,8 @@
 
 import type { ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
+import Image from 'next/image'
+import Link from 'next/link'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
 
@@ -32,11 +34,20 @@ export function AuthShell({ children, categories }: AuthShellProps) {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
-          <a href="/" className="inline-block">
-            <span className="text-2xl font-bold text-gray-900">
-              Atacado<span className="text-blue-600">B2B</span>
-            </span>
-          </a>
+          <Link
+            href="/"
+            aria-label="Voltar para a página inicial"
+            className="inline-flex min-h-14 items-center justify-center rounded-lg px-3"
+          >
+            <Image
+              src="/logo_campos_coelho.png"
+              alt="Campos & Coelho Distribuidora e Atacado"
+              width={225}
+              height={56}
+              className="h-auto w-[220px] object-contain sm:w-[240px]"
+              priority
+            />
+          </Link>
         </div>
 
         <div className="rounded-2xl border border-gray-200 bg-white px-8 py-10 shadow-sm">
