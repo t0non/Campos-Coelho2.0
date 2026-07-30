@@ -12,8 +12,8 @@ interface CatalogBreadcrumbProps {
 
 export function CatalogBreadcrumb({ items }: CatalogBreadcrumbProps) {
   return (
-    <nav aria-label="Navegação em migalhas de pão" className="flex items-center text-xs text-slate-500 py-2">
-      <ol className="flex flex-wrap items-center gap-1.5">
+    <nav aria-label="Navegação em migalhas de pão" className="min-w-0 overflow-hidden py-2 text-xs text-slate-500">
+      <ol className="flex min-w-0 items-center gap-1.5 overflow-hidden">
         <li>
           <Link href="/" className="inline-flex items-center gap-1 hover:text-slate-900 transition-colors">
             <Home className="h-3.5 w-3.5" aria-hidden="true" />
@@ -25,10 +25,10 @@ export function CatalogBreadcrumb({ items }: CatalogBreadcrumbProps) {
           const isLast = idx === items.length - 1
 
           return (
-            <li key={item.label} className="flex items-center gap-1.5">
+            <li key={item.label} className="flex min-w-0 items-center gap-1.5">
               <ChevronRight className="h-3.5 w-3.5 text-slate-400 shrink-0" aria-hidden="true" />
               {isLast || !item.href ? (
-                <span className="font-bold text-slate-900 truncate" aria-current="page">
+                <span className="block min-w-0 truncate font-bold text-slate-900" aria-current="page">
                   {item.label}
                 </span>
               ) : (

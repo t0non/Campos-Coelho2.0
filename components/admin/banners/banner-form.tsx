@@ -13,8 +13,12 @@ interface BannerFormProps {
 }
 
 export function BannerForm({ initialData, onClose }: BannerFormProps) {
-  const [placement, setPlacement] = useState<'hero' | 'secondary'>(
-    initialData?.subtitle === '__secondary__' ? 'secondary' : 'hero',
+  const [placement, setPlacement] = useState<'hero' | 'secondary' | 'institutional'>(
+    initialData?.subtitle === '__secondary__'
+      ? 'secondary'
+      : initialData?.subtitle === '__institutional__'
+        ? 'institutional'
+        : 'hero',
   )
   const [formData, setFormData] = useState<Partial<Banner>>(
     initialData || {
@@ -78,7 +82,12 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
       const res = await saveBanner({
         id: formData.id,
         title: formData.title || '',
-        subtitle: placement === 'secondary' ? '__secondary__' : null,
+        subtitle:
+          placement === 'secondary'
+            ? '__secondary__'
+            : placement === 'institutional'
+              ? '__institutional__'
+              : null,
         image_url: finalImageUrl || '',
         mobile_image_url: finalMobileUrl || null,
         link_url: formData.link_url || null,
@@ -125,7 +134,13 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
           {/* Upload Desktop */}
           <div>
             <label className="block text-sm font-semibold mb-2">Imagem Desktop (Computador) *</label>
-            <p className="text-xs text-gray-500 mb-2">Recomendado: 1920x600 px (Paisagem)</p>
+            <p className="mb-2 text-xs text-gray-500">
+              {placement === 'institutional'
+                ? 'Recomendado: 1536 × 512 px (proporção 3:1)'
+                : placement === 'secondary'
+                  ? 'Recomendado: 1600 × 560 px (proporção aproximada 20:7)'
+                  : 'Recomendado: 1920 × 600 px (proporção 16:5)'}
+            </p>
             
             <div className="relative border-2 border-dashed border-gray-300 rounded-lg h-32 flex items-center justify-center bg-gray-50 overflow-hidden hover:bg-gray-100 transition-colors">
               <input 
@@ -154,7 +169,13 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
           {/* Upload Mobile */}
           <div>
             <label className="block text-sm font-semibold mb-2">Imagem Mobile (Celular)</label>
-            <p className="text-xs text-gray-500 mb-2">Recomendado: 1080x1350 px (Vertical)</p>
+            <p className="mb-2 text-xs text-gray-500">
+              {placement === 'institutional'
+                ? 'Recomendado: 1280 × 800 px (proporção 8:5)'
+                : placement === 'secondary'
+                  ? 'Recomendado: 1080 × 675 px (proporção 8:5)'
+                  : 'Recomendado: 1080 × 1350 px (proporção 4:5)'}
+            </p>
             
             <div className="relative border-2 border-dashed border-gray-300 rounded-lg h-32 flex items-center justify-center bg-gray-50 overflow-hidden hover:bg-gray-100 transition-colors">
               <input 
@@ -197,11 +218,14 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
             <label className="block text-sm font-semibold mb-1">Local de Exibição</label>
             <select
               value={placement}
-              onChange={e => setPlacement(e.target.value as 'hero' | 'secondary')}
+              onChange={e =>
+                setPlacement(e.target.value as 'hero' | 'secondary' | 'institutional')
+              }
               className="w-full p-2 border rounded bg-white"
             >
               <option value="hero">Carrossel principal</option>
               <option value="secondary">Banner intermediário</option>
+              <option value="institutional">Atendimento e localização</option>
             </select>
           </div>
           <div>

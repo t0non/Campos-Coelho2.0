@@ -73,13 +73,13 @@ export function ProductCard({
       {/* Imagem do Produto */}
       <Link
         href={`/produto/${product.slug}`}
-        className="relative block aspect-square overflow-hidden bg-white p-4"
+        className="relative block aspect-square overflow-hidden bg-white p-2 sm:p-4"
         onPointerEnter={() => setAlternateImageRequested(true)}
         onFocus={() => setAlternateImageRequested(true)}
       >
         {/* Categoria no canto superior esquerdo */}
         {(product.category?.name || product.brand?.name) && (
-          <span className="absolute left-2 top-2 z-10 rounded-md bg-neutral-900 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-white">
+          <span className="absolute left-1.5 top-1.5 z-10 max-w-[calc(100%-0.75rem)] truncate rounded-md bg-neutral-900 px-1.5 py-1 text-[8px] font-bold uppercase tracking-[0.05em] text-white sm:left-2 sm:top-2 sm:px-2 sm:text-[9px]">
             {product.category?.name ?? product.brand?.name}
           </span>
         )}
@@ -88,7 +88,7 @@ export function ProductCard({
           alt={product.name}
           fill
           className={cn(
-            'object-contain p-4 transition-all duration-300 group-hover:scale-105',
+            'object-contain p-2 transition-all duration-300 group-hover:scale-105 sm:p-4',
             secondImageSrc && 'group-hover:opacity-0 group-focus-within:opacity-0',
           )}
           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 280px"
@@ -105,17 +105,17 @@ export function ProductCard({
       </Link>
 
       {/* Conteúdo */}
-      <div className="flex flex-1 flex-col p-4 pt-0">
+      <div className="flex flex-1 flex-col p-2.5 pt-0 sm:p-4 sm:pt-0">
         {/* SKU no canto direito */}
         <div className="flex justify-end mb-1">
-          <span className="text-[11px] font-medium tracking-wide text-neutral-500">
+          <span className="text-[9px] font-medium tracking-wide text-neutral-500 sm:text-[11px]">
             {product.sku}
           </span>
         </div>
 
         {/* Nome */}
         <Link href={`/produto/${product.slug}`}>
-          <h3 className="mb-4 line-clamp-2 text-[13px] font-semibold uppercase leading-relaxed text-neutral-700 transition-colors group-hover:text-black">
+          <h3 className="mb-3 line-clamp-3 text-[10px] font-semibold uppercase leading-snug text-neutral-700 transition-colors group-hover:text-black sm:mb-4 sm:line-clamp-2 sm:text-[13px] sm:leading-relaxed">
             {product.name}
           </h3>
         </Link>
@@ -170,19 +170,19 @@ export function ProductCard({
             </>
           ) : (
             <div className="flex flex-col gap-3">
-              <p className="text-[11px] text-gray-500 leading-tight">
+              <p className="text-[9px] leading-snug text-gray-500 sm:text-[11px]">
                 Para ver mais detalhes do produto faça login ou cadastre-se:
               </p>
               <div className="flex items-center gap-2">
                 <Link
                   href="/login"
-                  className="flex-1 rounded-md border border-black bg-black py-2 text-center text-[11px] font-bold text-white transition-colors hover:bg-neutral-800"
+                  className="flex min-h-10 flex-1 items-center justify-center rounded-md border border-black bg-black px-1 py-2 text-center text-[9px] font-bold text-white transition-colors hover:bg-neutral-800 sm:text-[11px]"
                 >
                   LOGIN
                 </Link>
                 <Link
                   href="/cadastro"
-                  className="flex-1 rounded-md border border-neutral-300 py-2 text-center text-[11px] font-bold text-neutral-800 transition-colors hover:border-black hover:bg-neutral-100"
+                  className="flex min-h-10 flex-1 items-center justify-center rounded-md border border-neutral-300 px-1 py-2 text-center text-[9px] font-bold text-neutral-800 transition-colors hover:border-black hover:bg-neutral-100 sm:text-[11px]"
                 >
                   CADASTRO
                 </Link>

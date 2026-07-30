@@ -18,14 +18,14 @@ export function CatalogResultsHeader({
   onOpenMobileFilters,
 }: CatalogResultsHeaderProps) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200 pb-4">
+    <div className="flex flex-col gap-3 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
       {/* Total de Resultados */}
-      <div className="flex items-center gap-3">
+      <div className="flex w-full items-center justify-between gap-3 sm:w-auto sm:justify-start">
         {onOpenMobileFilters && (
           <button
             type="button"
             onClick={onOpenMobileFilters}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 lg:hidden hover:bg-slate-50"
+            className="flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-bold text-slate-800 shadow-xs hover:bg-slate-50 lg:hidden"
           >
             <SlidersHorizontal className="h-4 w-4 text-orange-500" />
             <span>Filtros</span>

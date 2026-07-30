@@ -20,15 +20,15 @@ export function CatalogSortSelect({ currentSort, canViewPrices, params }: Catalo
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <label htmlFor="catalog-sort-select" className="text-xs font-semibold text-slate-600 shrink-0">
+    <div className="flex w-full items-center gap-2 sm:w-auto">
+      <label htmlFor="catalog-sort-select" className="shrink-0 text-sm font-semibold text-slate-700">
         Ordenar por:
       </label>
       <select
         id="catalog-sort-select"
         value={currentSort}
         onChange={handleChange}
-        className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-800 shadow-xs focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 cursor-pointer"
+        className="h-11 min-w-0 flex-1 cursor-pointer rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-800 shadow-xs focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500 sm:flex-none"
       >
         <option value="relevancia">Relevância</option>
         <option value="mais-vendidos">Mais Vendidos</option>

@@ -276,7 +276,8 @@ export function SeasonalCampaignManager({
                 Imagem da campanha *
               </label>
               <p className="mb-3 text-xs text-gray-500">
-                Recomendado: imagem quadrada de 512 × 512 px.
+                Proporção recomendada: 1:1 (quadrada), preferencialmente 800 × 800 px,
+                em WEBP ou PNG, com o produto centralizado e fundo limpo.
               </p>
               <label className="relative flex aspect-square cursor-pointer items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-300 bg-gray-50 hover:bg-gray-100">
                 <input

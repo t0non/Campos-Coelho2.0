@@ -110,6 +110,7 @@
 
 html {
   font-family: var(--font-sans);
+  scroll-behavior: smooth;
 }
 
 body {
@@ -124,6 +125,7 @@ body {
   text-rendering: optimizeLegibility;
   letter-spacing: -0.006em;
   line-height: 1.58;
+  overflow-x: clip;
 }
 
 h1,
@@ -162,6 +164,16 @@ select,
 textarea {
   font-family: var(--font-sans);
   letter-spacing: -0.005em;
+}
+
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 3px solid #171717;
+  outline-offset: 3px;
+}
+
+button:disabled,
+[aria-disabled='true'] {
+  cursor: not-allowed;
 }
 
 code,
@@ -328,4 +340,48 @@ body.overflow-hidden {
   height: var(--control-height);
   border-radius: var(--radius-md);
   padding-inline: 16px;
+}
+
+@media (max-width: 767px) {
+  :root {
+    --section-space: 3rem;
+    --section-space-compact: 2rem;
+    --control-height: 3rem;
+  }
+
+  body {
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 1rem;
+  }
+
+  .site-section-title {
+    font-size: clamp(1.5rem, 7vw, 1.875rem);
+    line-height: 1.2;
+  }
+
+  .site-section-copy {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
