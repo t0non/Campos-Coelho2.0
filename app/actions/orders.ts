@@ -6,6 +6,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/supabase/auth'
 import type { Database } from '@/types/database.types'
 import { canTransitionOrderStatus } from '@/lib/orders/status'
+import { notifyOrderStatusChanged } from '@/lib/email/events'
 
 type OrderStatus = Database['public']['Enums']['order_status']
 
@@ -79,6 +80,7 @@ export async function updateOrderStatusAction(
     }
   }
 
+  await notifyOrderStatusChanged(order.id)
   revalidatePath('/admin')
   revalidatePath('/admin/pedidos')
   revalidatePath(`/admin/pedidos/${order.id}`)

@@ -16,8 +16,12 @@ export function AuthUrlErrorRedirect() {
     const recoveryType = query.get('type') || hash.get('type')
 
     if (errorCode) {
-      const target = new URL('/recuperar-senha', window.location.origin)
-      target.searchParams.set('type', 'recovery')
+      const isInvite = recoveryType === 'invite'
+      const target = new URL(
+        isInvite ? '/aceitar-convite' : '/recuperar-senha',
+        window.location.origin,
+      )
+      if (!isInvite) target.searchParams.set('type', 'recovery')
       target.searchParams.set('error_code', errorCode)
       window.location.replace(target.toString())
       return
@@ -27,6 +31,11 @@ export function AuthUrlErrorRedirect() {
       window.location.replace(
         `/recuperar-senha?type=recovery${window.location.hash}`,
       )
+      return
+    }
+
+    if (recoveryType === 'invite') {
+      window.location.replace(`/aceitar-convite${window.location.hash}`)
     }
   }, [])
 

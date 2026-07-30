@@ -4,6 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { fullRegistrationSchema } from '@/lib/validations/registration'
 import { safeOriginalFilename, validateUploadedFile } from '@/lib/security/file-validation'
 import { consumePublicRateLimit } from '@/lib/security/public-rate-limit'
+import { notifyRegistrationSubmitted } from '@/lib/email/events'
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024
 const ALLOWED_DOCUMENT_CATEGORIES = new Set(['contrato_social', 'doc_responsavel'])
@@ -203,6 +204,14 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
     })
 
     const protocol = `B2B-${company.id.slice(0, 8).toUpperCase()}`
+    await notifyRegistrationSubmitted({
+      companyId: company.id,
+      companyName: data.company.companyName.trim(),
+      cnpj: cleanCnpj,
+      contactName: data.responsible.fullName.trim(),
+      contactEmail: data.responsible.email.trim(),
+      protocol,
+    })
     return { success: true, protocol }
   } catch (error) {
     console.error('Falha ao concluir cadastro público:', error)

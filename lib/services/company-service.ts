@@ -4,6 +4,7 @@ import { getAuthContext, requireAdmin } from '@/lib/supabase/auth'
 import { validateCNPJ } from '@/lib/utils/masks'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { notifyCompanyDecision } from '@/lib/email/events'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyClient = any
@@ -397,6 +398,11 @@ export async function approveCompanyAdmin(companyId: string, internalNotes?: str
     payload: { approved_at: new Date().toISOString(), internal_notes: parsed.data.internalNotes },
   })
 
+  await notifyCompanyDecision({
+    companyId: parsed.data.companyId,
+    status: 'approved',
+    message: 'Cadastro aprovado. O acesso aos preços e aos pedidos já está liberado.',
+  })
   return { success: true }
 }
 
@@ -470,6 +476,11 @@ export async function rejectCompanyAdmin(companyId: string, rejectionReason: str
     },
   })
 
+  await notifyCompanyDecision({
+    companyId: parsed.data.companyId,
+    status: 'rejected',
+    message: parsed.data.rejectionReason,
+  })
   return { success: true }
 }
 
@@ -564,6 +575,11 @@ export async function suspendCompanyAdmin(companyId: string, reason: string) {
     target_id: parsed.data.companyId,
     payload: { reason: parsed.data.reason },
   })
+  await notifyCompanyDecision({
+    companyId: parsed.data.companyId,
+    status: 'suspended',
+    message: parsed.data.reason,
+  })
   return { success: true }
 }
 
@@ -618,6 +634,11 @@ export async function reactivateCompanyAdmin(companyId: string, internalNotes?: 
     target_table: 'companies',
     target_id: parsed.data.companyId,
     payload: { internal_notes: parsed.data.internalNotes },
+  })
+  await notifyCompanyDecision({
+    companyId: parsed.data.companyId,
+    status: 'reactivated',
+    message: 'Acesso reativado. A empresa já pode consultar preços e realizar pedidos.',
   })
   return { success: true }
 }

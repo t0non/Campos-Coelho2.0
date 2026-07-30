@@ -243,20 +243,24 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+[auth.email.template.invite]
+subject = "Ative seu acesso administrativo | Campos & Coelho"
+content_path = "./templates/invite.html"
 
 [auth.email.template.recovery]
-subject = "Redefina sua senha | Campos & Coelho"
+subject = "Crie uma nova senha | Campos & Coelho"
 content_path = "./templates/recovery.html"
 
 # Uncomment to customize notification email template
-# [auth.email.notification.password_changed]
-# enabled = true
-# subject = "Your password has been changed"
-# content_path = "./templates/password_changed_notification.html"
+[auth.email.notification.password_changed]
+enabled = true
+subject = "Sua senha foi alterada | Campos & Coelho"
+content_path = "./templates/password_changed_notification.html"
+
+[auth.email.notification.email_changed]
+enabled = true
+subject = "Seu e-mail foi alterado | Campos & Coelho"
+content_path = "./templates/email_changed_notification.html"
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.

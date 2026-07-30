@@ -60,6 +60,23 @@ export const getAuthContext = cache(async (): Promise<AuthContext> => {
 
   const profile = profileData as ProfileRow
 
+  // Um perfil desativado ou suspenso não pode manter acesso ao sistema,
+  // inclusive quando o usuário ainda possui um token de autenticação válido.
+  if (profile.status !== 'active') {
+    try {
+      await supabase.auth.signOut()
+    } catch {
+      // O bloqueio de autorização abaixo continua valendo mesmo se o cookie
+      // não puder ser removido nesta resposta.
+    }
+    return {
+      user: null,
+      company: null,
+      canViewPrices: false,
+      canOrder: false,
+    }
+  }
+
   const userProfile: UserProfile = {
     id: profile.id,
     role: profile.role,

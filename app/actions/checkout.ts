@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { CheckoutSchema } from '@/lib/validations/checkout'
+import { notifyOrderCreated } from '@/lib/email/events'
 
 // Mapeia códigos de erro da RPC para mensagens humanas sem SQL
 const ERROR_MESSAGES: Record<string, string> = {
@@ -58,6 +59,7 @@ export async function checkoutAction(data: unknown) {
 
   // Carrinho foi convertido pela RPC — invalidar as leituras que dependem dele.
   revalidatePath('/carrinho')
+  await notifyOrderCreated(r.order_id)
 
   return { success: true, order_id: r.order_id, order_number: r.order_number }
 }
