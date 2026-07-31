@@ -45,6 +45,7 @@ export function ContinuousRegistrationForm() {
     register,
     handleSubmit,
     setValue,
+    setError,
     watch,
     control,
     formState: { errors },
@@ -81,6 +82,9 @@ export function ContinuousRegistrationForm() {
       if (result.success) {
         router.push(`/cadastro/sucesso?protocol=${encodeURIComponent(result.protocol)}`)
       } else {
+        if (result.field) {
+          setError(result.field, { type: 'server', message: result.error })
+        }
         setSubmitError(result.error || 'Erro ao processar o cadastro. Tente novamente.')
         setIsSubmitting(false)
         requestAnimationFrame(() => {
@@ -209,8 +213,8 @@ export function ContinuousRegistrationForm() {
               error={errors.company?.companyName?.message}
             />
             <Input
-              label="E-mail *"
-              placeholder="*E-mail"
+              label="E-mail comercial da empresa *"
+              placeholder="E-mail usado para contato comercial"
               type="email"
               {...register('company.email')}
               error={errors.company?.email?.message}
@@ -652,11 +656,12 @@ export function ContinuousRegistrationForm() {
             />
 
             <Input
-              label="E-mail *"
-              placeholder="*E-mail"
+              label="E-mail de acesso do responsável *"
+              placeholder="E-mail que será usado para entrar na conta"
               type="email"
               {...register('responsible.email')}
               error={errors.responsible?.email?.message}
+              hint="Este e-mail cria a conta de acesso e precisa ser exclusivo."
             />
             <Input
               label="Telefone *"

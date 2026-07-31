@@ -3,6 +3,7 @@ import 'server-only'
 import { createHmac } from 'node:crypto'
 import { headers } from 'next/headers'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getRateLimitSecret } from '@/lib/security/rate-limit-secret'
 
 interface RateLimitOptions {
   action: string
@@ -12,8 +13,7 @@ interface RateLimitOptions {
 }
 
 function hashRateLimitKey(value: string): string {
-  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!secret) throw new Error('Rate limit secret is not configured.')
+  const secret = getRateLimitSecret()
   return createHmac('sha256', secret).update(value).digest('hex')
 }
 

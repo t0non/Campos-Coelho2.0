@@ -11,7 +11,11 @@ const ALLOWED_DOCUMENT_CATEGORIES = new Set(['contrato_social', 'doc_responsavel
 
 export type PublicRegistrationResult =
   | { success: true; protocol: string }
-  | { success: false; error: string }
+  | {
+      success: false
+      error: string
+      field?: 'company.cnpj' | 'responsible.email'
+    }
 
 export async function submitPublicRegistration(formData: FormData): Promise<PublicRegistrationResult> {
   const payloadValue = formData.get('payload')
@@ -34,7 +38,7 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
   const data = parsed.data
   const allowed = await consumePublicRateLimit({
     action: 'public_registration',
-    maxAttempts: 5,
+    maxAttempts: 10,
     windowSeconds: 3600,
     subject: data.responsible.email,
   })
@@ -77,16 +81,28 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
   const supabase = createAdminClient()
   const cleanCnpj = data.company.cnpj.replace(/\D/g, '')
   const cleanCpf = data.responsible.cpf.replace(/\D/g, '')
+  const responsibleEmail = data.responsible.email.trim().toLowerCase()
   let createdUserId: string | null = null
   let createdCompanyId: string | null = null
   const uploadedPaths: string[] = []
 
   try {
-    const { data: existingCompany } = await supabase.from('companies').select('id').eq('cnpj', cleanCnpj).maybeSingle()
-    if (existingCompany) return { success: false, error: 'Este CNPJ já possui cadastro.' }
+    const { data: existingCompany, error: existingCompanyError } = await supabase
+      .from('companies')
+      .select('id')
+      .eq('cnpj', cleanCnpj)
+      .maybeSingle()
+    if (existingCompanyError) throw existingCompanyError
+    if (existingCompany) {
+      return {
+        success: false,
+        error: 'Este CNPJ já possui cadastro.',
+        field: 'company.cnpj',
+      }
+    }
 
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-      email: data.responsible.email.trim(),
+      email: responsibleEmail,
       password: data.responsible.password,
       email_confirm: true,
       user_metadata: {
@@ -96,23 +112,29 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
       },
     })
     if (authError || !authData.user) {
-      const duplicate = authError?.message.toLowerCase().includes('already')
+      const authMessage = authError?.message.toLowerCase() ?? ''
+      const duplicate =
+        authMessage.includes('already') ||
+        authMessage.includes('registered') ||
+        authMessage.includes('exists')
       return {
         success: false,
         error: duplicate
-          ? 'Este e-mail já possui uma conta. Entre com a conta existente ou use outro e-mail.'
+          ? `O e-mail de acesso do responsável (${responsibleEmail}) já possui uma conta. Altere o campo "E-mail de acesso do responsável" ou entre com a conta existente.`
           : 'Não foi possível criar a conta. Revise os dados e tente novamente.',
+        ...(duplicate ? { field: 'responsible.email' as const } : {}),
       }
     }
     createdUserId = authData.user.id
 
-    await supabase.from('profiles').upsert({
+    const { error: profileError } = await supabase.from('profiles').upsert({
       id: createdUserId,
       full_name: data.responsible.fullName.trim(),
-      email: data.responsible.email.trim(),
+      email: responsibleEmail,
       phone: data.responsible.phone.replace(/\D/g, ''),
       role: 'customer',
     })
+    if (profileError) throw profileError
 
     const { data: company, error: companyError } = await supabase
       .from('companies')
@@ -134,16 +156,22 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
     if (companyError || !company) throw new Error(companyError?.message ?? 'Não foi possível criar a empresa.')
     createdCompanyId = company.id
 
-    await supabase.from('profiles').update({ company_id: company.id }).eq('id', createdUserId)
-    await supabase.from('company_members').insert({
+    const { error: profileCompanyError } = await supabase
+      .from('profiles')
+      .update({ company_id: company.id })
+      .eq('id', createdUserId)
+    if (profileCompanyError) throw profileCompanyError
+
+    const { error: memberError } = await supabase.from('company_members').insert({
       company_id: company.id,
       profile_id: createdUserId,
       role: data.responsible.role,
       is_primary: true,
     })
+    if (memberError) throw memberError
 
     const fiscal = data.addresses.fiscal
-    await supabase.from('addresses').insert({
+    const { error: addressError } = await supabase.from('addresses').insert({
       company_id: company.id,
       profile_id: createdUserId,
       label: 'Principal',
@@ -156,6 +184,7 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
       state: fiscal.state.trim().toUpperCase(),
       is_default: true,
     })
+    if (addressError) throw addressError
 
     for (const [index, { file, validation }] of validatedFiles.entries()) {
       const category = categories[index] || 'outros'
@@ -177,7 +206,7 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
       if (documentError) throw new Error(`Falha ao registrar "${file.name}": ${documentError.message}`)
     }
 
-    await supabase.from('audit_logs').insert({
+    const { error: auditError } = await supabase.from('audit_logs').insert({
       actor_id: createdUserId,
       action: 'public_registration_submitted',
       target_table: 'companies',
@@ -202,6 +231,7 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
         consents: data.consents,
       },
     })
+    if (auditError) throw auditError
 
     const protocol = `B2B-${company.id.slice(0, 8).toUpperCase()}`
     await notifyRegistrationSubmitted({
@@ -209,7 +239,7 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
       companyName: data.company.companyName.trim(),
       cnpj: cleanCnpj,
       contactName: data.responsible.fullName.trim(),
-      contactEmail: data.responsible.email.trim(),
+      contactEmail: responsibleEmail,
       protocol,
     })
     return { success: true, protocol }

@@ -5,6 +5,7 @@ import { parseCatalogParams } from '../lib/utils/catalog-params.ts'
 import { canTransitionOrderStatus } from '../lib/orders/status.ts'
 import { MINIMUM_ORDER_VALUE } from '../lib/utils/constants.ts'
 import { createAdminUserSchema } from '../lib/validations/admin-users.ts'
+import { getRateLimitSecret } from '../lib/security/rate-limit-secret.ts'
 import {
   companyDecisionEmail,
   escapeEmailHtml,
@@ -70,6 +71,21 @@ test('transições finais de pedido são irreversíveis', () => {
 
 test('pedido mínimo oficial é de mil reais', () => {
   assert.equal(MINIMUM_ORDER_VALUE, 1000)
+})
+
+test('rate limit aceita a chave secreta usada pelo cliente administrativo', () => {
+  assert.equal(
+    getRateLimitSecret({ SUPABASE_SECRET_KEY: 'supabase-secret' }),
+    'supabase-secret',
+  )
+  assert.equal(
+    getRateLimitSecret({
+      RATE_LIMIT_SECRET: 'rate-limit-secret',
+      SUPABASE_SECRET_KEY: 'supabase-secret',
+    }),
+    'rate-limit-secret',
+  )
+  assert.throws(() => getRateLimitSecret({}), /not configured/)
 })
 
 test('cadastro de administrador exige senha forte e confirmação igual', () => {
