@@ -151,7 +151,7 @@ export function getPasswordStrength(password: string): {
 
   if (score <= 2) return { score: 1, label: 'Fraca', color: 'bg-red-500' }
   if (score === 3) return { score: 2, label: 'Média', color: 'bg-amber-500' }
-  if (score === 3) return { score: 2, label: 'Forte', color: 'bg-blue-500' }
+  if (score === 4) return { score: 3, label: 'Forte', color: 'bg-blue-500' }
   return { score: 4, label: 'Excelente', color: 'bg-green-600' }
 }
 

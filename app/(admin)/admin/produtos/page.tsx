@@ -73,25 +73,32 @@ export default async function AdminProductsPage({
         title="Produtos"
         description="Gerencie os produtos do seu catálogo B2B."
         action={
-          <div className="flex items-center gap-2">
-            <form action={synchronizeLatestImportedCatalogAction}>
-              <Button type="submit" variant="outline" className="h-10">
-                Aplicar preços e nomes da planilha
-              </Button>
-            </form>
-            <form action={correlateProductCategoriesAction}>
-              <Button type="submit" variant="outline" className="h-10">
-                <Tags className="h-4 w-4" />
-                Correlacionar categorias
-              </Button>
-            </form>
-            <Link href="/admin/produtos/importar?mode=import_update" className="inline-flex items-center justify-center gap-2 font-medium bg-slate-800 text-white hover:bg-slate-700 h-10 px-4 text-sm rounded-lg">
+          <div className="grid w-full grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:justify-end">
+            <Link href="/admin/produtos/importar?mode=import_update" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-neutral-300 bg-white px-4 text-sm font-bold text-neutral-800 hover:border-neutral-950">
               Importar planilha
             </Link>
-            <Link href="/admin/produtos/novo" className="inline-flex items-center justify-center gap-2 font-medium bg-navy-900 text-white hover:bg-navy-800 active:bg-slate-950 h-10 px-4 text-sm rounded-lg">
+            <Link href="/admin/produtos/novo" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-neutral-950 px-4 text-sm font-bold text-white hover:bg-neutral-800">
               <Plus className="h-4 w-4" />
-              Novo Produto
+              Novo produto
             </Link>
+            <details className="group relative col-span-2 sm:order-first">
+              <summary className="flex min-h-11 cursor-pointer list-none items-center justify-center rounded-xl border border-neutral-300 bg-white px-4 text-sm font-bold text-neutral-700 hover:border-neutral-950">
+                Mais ações
+              </summary>
+              <div className="mt-2 grid gap-2 rounded-xl border border-neutral-200 bg-white p-2 shadow-lg sm:absolute sm:right-0 sm:z-30 sm:w-72">
+                <form action={synchronizeLatestImportedCatalogAction}>
+                  <Button type="submit" variant="outline" className="min-h-10 w-full justify-start">
+                    Aplicar preços e nomes da planilha
+                  </Button>
+                </form>
+                <form action={correlateProductCategoriesAction}>
+                  <Button type="submit" variant="outline" className="min-h-10 w-full justify-start">
+                    <Tags className="h-4 w-4" />
+                    Correlacionar categorias
+                  </Button>
+                </form>
+              </div>
+            </details>
           </div>
         }
       />
@@ -123,9 +130,9 @@ export default async function AdminProductsPage({
       )}
 
       {/* FILTROS (Mínimos por GET Form para manter sem state client) */}
-      <div className="bg-white p-4 rounded-md border flex flex-col sm:flex-row gap-4 items-end">
-        <form className="flex-1 flex flex-col sm:flex-row gap-4 w-full" method="GET" action="/admin/produtos">
-          <div className="flex-1">
+      <div className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+        <form className="grid w-full gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(15rem,1fr)_repeat(4,minmax(8rem,11rem))_auto] xl:items-end" method="GET" action="/admin/produtos">
+          <div className="sm:col-span-2 xl:col-span-1">
             <label className="text-xs text-muted-foreground mb-1 block">Buscar</label>
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -139,7 +146,7 @@ export default async function AdminProductsPage({
             </div>
           </div>
           
-          <div className="w-full sm:w-48">
+          <div>
             <label className="text-xs text-muted-foreground mb-1 block">Categoria</label>
             <select name="category" defaultValue={params.category} className="w-full h-9 flex rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
               <option value="">Todas</option>
@@ -147,7 +154,7 @@ export default async function AdminProductsPage({
             </select>
           </div>
 
-          <div className="w-full sm:w-48">
+          <div>
             <label className="text-xs text-muted-foreground mb-1 block">Marca</label>
             <select name="brand" defaultValue={params.brand} className="w-full h-9 flex rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
               <option value="">Todas</option>
@@ -155,7 +162,7 @@ export default async function AdminProductsPage({
             </select>
           </div>
 
-          <div className="w-full sm:w-32">
+          <div>
             <label className="text-xs text-muted-foreground mb-1 block">Publicação</label>
             <select name="publication" defaultValue={params.publication} className="w-full h-9 flex rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
               <option value="">Todas</option>
@@ -164,7 +171,7 @@ export default async function AdminProductsPage({
             </select>
           </div>
 
-          <div className="w-full sm:w-32">
+          <div>
             <label className="text-xs text-muted-foreground mb-1 block">Status</label>
             <select name="status" defaultValue={params.status} className="w-full h-9 flex rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm">
               <option value="">Todos</option>
@@ -173,20 +180,59 @@ export default async function AdminProductsPage({
             </select>
           </div>
 
-          <Button type="submit" variant="secondary" className="h-9">
-            <Filter className="h-4 w-4 mr-2" />
-            Filtrar
-          </Button>
-          
-          {(params.q || params.category || params.brand || params.status || params.publication) && (
-            <Link href="/admin/produtos" className="inline-flex items-center justify-center gap-2 font-medium text-slate-700 bg-transparent hover:bg-slate-100 h-9 px-4 rounded-md">
-              Limpar
-            </Link>
-          )}
+          <div className="flex gap-2 sm:col-span-2 xl:col-span-1">
+            <Button type="submit" variant="secondary" className="h-10 flex-1 xl:flex-none">
+              <Filter className="mr-2 h-4 w-4" />
+              Filtrar
+            </Button>
+            {(params.q || params.category || params.brand || params.status || params.publication) && (
+              <Link href="/admin/produtos" className="inline-flex h-10 flex-1 items-center justify-center rounded-md px-4 text-sm font-medium text-slate-700 hover:bg-slate-100 xl:flex-none">
+                Limpar
+              </Link>
+            )}
+          </div>
         </form>
       </div>
 
-      <div className="bg-white border rounded-md overflow-x-auto">
+      <div className="grid gap-3 lg:hidden">
+        {products.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-10 text-center text-sm text-neutral-500">
+            Nenhum produto encontrado.
+          </div>
+        ) : products.map((product) => {
+          const primaryImage = product.images?.[0]?.url
+          const displayImage = primaryImage
+            ? getImageUrl(primaryImage)!
+            : getCategoryProductFallbackImage(product.category?.slug)
+
+          return (
+            <article key={product.id} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+              <div className="flex gap-3">
+                <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
+                  <Image src={displayImage} alt={product.name} fill className="object-contain p-1.5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h2 className="line-clamp-2 text-sm font-extrabold text-neutral-950">{product.name}</h2>
+                  <p className="mt-1 truncate font-mono text-xs text-neutral-500">{product.sku || product.slug}</p>
+                  <p className="mt-1 truncate text-xs text-neutral-500">
+                    {product.category?.name || 'Sem categoria'} · {product.brand?.name || 'Sem marca'}
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-neutral-100 pt-3">
+                <StatusBadge isActive={product.is_published} activeLabel="Publicado" inactiveLabel="Rascunho" />
+                <StatusBadge isActive={product.is_active} activeLabel="Ativo" inactiveLabel="Inativo" />
+                <span className="text-xs text-neutral-500">{product.variants[0]?.count || 0} variantes</span>
+                <Link href={`/admin/produtos/${product.id}`} className="ml-auto inline-flex min-h-10 items-center justify-center rounded-lg border border-neutral-300 px-4 text-xs font-bold text-neutral-800">
+                  Editar
+                </Link>
+              </div>
+            </article>
+          )
+        })}
+      </div>
+
+      <div className="hidden lg:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -260,7 +306,7 @@ export default async function AdminProductsPage({
       
       {/* Paginação */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-3 border-t border-neutral-200 pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-muted-foreground">
             Mostrando página {page} de {totalPages} ({count} produtos no total)
           </p>

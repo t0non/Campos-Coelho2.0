@@ -48,8 +48,36 @@ export function CustomerList({ customers, onSelectCustomer }: CustomerListProps)
   }
 
   return (
-    <div className="overflow-hidden border border-neutral-200 bg-white">
-      <div className="overflow-x-auto">
+    <>
+      <div className="grid gap-3 md:hidden">
+        {customers.map((customer) => (
+          <article key={customer.id} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="truncate text-sm font-extrabold text-neutral-950">{customer.company_name}</h2>
+                <p className="mt-1 text-xs font-semibold text-neutral-600">{formatCNPJ(customer.cnpj)}</p>
+              </div>
+              <span className={`inline-flex shrink-0 rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.08em] ${statusColors[customer.status]}`}>
+                {statusLabels[customer.status]}
+              </span>
+            </div>
+            <div className="mt-4 flex items-center justify-between gap-3 border-t border-neutral-100 pt-3">
+              <p className="text-xs text-neutral-500">Cadastro em {customerDateFormatter.format(new Date(customer.created_at))}</p>
+              <button
+                type="button"
+                onClick={() => onSelectCustomer(customer.id)}
+                className="min-h-10 shrink-0 rounded-lg border border-neutral-300 px-4 text-xs font-bold text-neutral-800 hover:border-neutral-950"
+                aria-label={`Analisar cadastro de ${customer.company_name}`}
+              >
+                Analisar
+              </button>
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div className="hidden overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm md:block">
+        <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="border-b border-neutral-200 bg-neutral-50">
@@ -91,7 +119,8 @@ export function CustomerList({ customers, onSelectCustomer }: CustomerListProps)
             ))}
           </tbody>
         </table>
+        </div>
       </div>
-    </div>
+    </>
   )
 }

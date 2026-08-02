@@ -14,7 +14,13 @@ export const getCategories = cache(async () => {
     .eq('is_active', true)
     .order('position')
 
-  if (error) throw error
+  if (error) {
+    console.error('[getCategories] Falha ao carregar categorias.', {
+      code: error.code,
+      message: error.message,
+    })
+    return []
+  }
   return (data ?? []) as Pick<
     CategoryRow,
     'id' | 'name' | 'slug' | 'image_url' | 'parent_id' | 'position'
@@ -44,7 +50,13 @@ export const getBrands = cache(async () => {
     .eq('is_active', true)
     .order('name')
 
-  if (error) throw error
+  if (error) {
+    console.error('[getBrands] Falha ao carregar marcas.', {
+      code: error.code,
+      message: error.message,
+    })
+    return []
+  }
   return (data ?? []) as Pick<BrandRow, 'id' | 'name' | 'slug' | 'logo_url'>[]
 })
 

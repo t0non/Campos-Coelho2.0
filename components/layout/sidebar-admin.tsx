@@ -66,10 +66,10 @@ export function SidebarAdmin() {
   const [isOpen, setIsOpen] = useState(false)
 
   const navigation = (
-    <nav className="space-y-6" aria-label="Menu administrativo">
+    <nav className="space-y-5" aria-label="Menu administrativo">
       {navSections.map((section) => (
         <div key={section.label}>
-          <p className="mb-2 px-3 text-[10px] font-extrabold uppercase tracking-[0.16em] text-neutral-400">
+          <p className="mb-1.5 px-3 text-[10px] font-extrabold uppercase tracking-[0.14em] text-neutral-400">
             {section.label}
           </p>
           <ul className="space-y-1">
@@ -84,9 +84,9 @@ export function SidebarAdmin() {
                     href={item.href}
                     onClick={() => setIsOpen(false)}
                     className={cn(
-                      'group flex min-h-10 items-center gap-3 rounded-lg px-3 py-2 text-[13px] font-bold transition-colors',
+                      'group flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-[13px] font-bold transition-all',
                       isActive
-                        ? 'bg-neutral-950 text-white'
+                        ? 'bg-neutral-950 text-white shadow-sm'
                         : 'text-neutral-600 hover:bg-neutral-100 hover:text-neutral-950',
                     )}
                     aria-current={isActive ? 'page' : undefined}
@@ -118,7 +118,7 @@ export function SidebarAdmin() {
           alt="Campos & Coelho"
           width={500}
           height={91}
-          className="h-auto w-[174px]"
+          className="h-auto w-[160px]"
         />
       </Link>
       <p className="mt-3 text-[9px] font-extrabold uppercase tracking-[0.2em] text-neutral-400">
@@ -177,7 +177,7 @@ export function SidebarAdmin() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4">{navigation}</div>
+            <div className="flex-1 overflow-y-auto px-4 py-5">{navigation}</div>
             {storeLink}
           </aside>
         </div>

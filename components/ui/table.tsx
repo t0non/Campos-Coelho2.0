@@ -2,7 +2,7 @@ import React from 'react'
 
 export function Table({ children, className = '' }: { children: React.ReactNode, className?: string }) {
   return (
-    <div className="w-full overflow-x-auto rounded-xl border border-gray-200 bg-white">
+    <div className="w-full overflow-x-auto rounded-2xl border border-neutral-200 bg-white shadow-sm">
       <table className={`w-full text-sm text-left text-gray-700 ${className}`}>
         {children}
       </table>
@@ -12,7 +12,7 @@ export function Table({ children, className = '' }: { children: React.ReactNode,
 
 export function TableHeader({ children }: { children: React.ReactNode }) {
   return (
-    <thead className="text-xs text-gray-500 uppercase bg-gray-50 border-b border-gray-200">
+    <thead className="border-b border-neutral-200 bg-neutral-50 text-[10px] uppercase tracking-[0.1em] text-neutral-500">
       {children}
     </thead>
   )
@@ -20,7 +20,7 @@ export function TableHeader({ children }: { children: React.ReactNode }) {
 
 export function TableRow({ children, className = '' }: { children: React.ReactNode, className?: string }) {
   return (
-    <tr className={`border-b border-gray-100 hover:bg-gray-50 transition-colors last:border-0 ${className}`}>
+    <tr className={`border-b border-neutral-100 transition-colors last:border-0 hover:bg-neutral-50/80 ${className}`}>
       {children}
     </tr>
   )
@@ -28,7 +28,7 @@ export function TableRow({ children, className = '' }: { children: React.ReactNo
 
 export function TableHead({ children, className = '', ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <th scope="col" className={`px-6 py-3 font-medium ${className}`} {...props}>
+    <th scope="col" className={`whitespace-nowrap px-4 py-3.5 font-bold ${className}`} {...props}>
       {children}
     </th>
   )
@@ -40,7 +40,7 @@ export function TableBody({ children }: { children: React.ReactNode }) {
 
 export function TableCell({ children, className = '', ...props }: React.TdHTMLAttributes<HTMLTableCellElement>) {
   return (
-    <td className={`px-6 py-4 align-middle ${className}`} {...props}>
+    <td className={`px-4 py-4 align-middle ${className}`} {...props}>
       {children}
     </td>
   )
