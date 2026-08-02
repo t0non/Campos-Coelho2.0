@@ -28,11 +28,15 @@ export default function ContaRecusadaPage() {
         <p className="font-semibold text-gray-900">Deseja revisar seus dados ou esclarecer dúvidas?</p>
         <div className="flex items-center gap-2 text-gray-600">
           <Mail className="h-4 w-4 text-blue-600 shrink-0" />
-          <span>comercial@atacadob2b.com.br</span>
+          <a href="mailto:vendas@distribuidoracamposcoelho.com.br" className="break-all hover:text-blue-700 hover:underline">
+            vendas@distribuidoracamposcoelho.com.br
+          </a>
         </div>
         <div className="flex items-center gap-2 text-gray-600">
           <PhoneCall className="h-4 w-4 text-blue-600 shrink-0" />
-          <span>(11) 4004-0000 / (11) 99999-8888</span>
+          <a href="tel:+553134419534" className="hover:text-blue-700 hover:underline">
+            (31) 3441-9534
+          </a>
         </div>
       </div>
 
