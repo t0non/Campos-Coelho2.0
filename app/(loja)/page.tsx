@@ -12,7 +12,6 @@ import { InstitutionalBanners } from '@/components/home/institutional-banners'
 import { CampaignGrid } from '@/components/home/campaign-grid'
 import { BrandCarousel } from '@/components/home/brand-carousel'
 import { BusinessRegistrationCTA } from '@/components/home/business-registration-cta'
-import { TrustNumbers } from '@/components/home/trust-numbers'
 import { Testimonials } from '@/components/home/testimonials'
 import { InstitutionalSection } from '@/components/home/institutional-section'
 import { getSiteUrl } from '@/lib/utils/site-url'
@@ -149,13 +148,10 @@ export default async function HomePage() {
         {/* 11. Chamada para cadastro empresarial */}
         <BusinessRegistrationCTA />
 
-        {/* 12. Confiança e números */}
-        <TrustNumbers metrics={homeData.metrics} />
-
-        {/* 13. Depoimentos */}
+        {/* 12. Depoimentos */}
         <Testimonials testimonials={homeData.testimonials} />
 
-        {/* 14. Conteúdo institucional */}
+        {/* 13. Conteúdo institucional */}
         <InstitutionalSection />
       </div>
     </>

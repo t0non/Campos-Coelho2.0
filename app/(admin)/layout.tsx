@@ -26,22 +26,17 @@ export default async function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen min-w-0 bg-[#f4f4f2] md:grid md:grid-cols-[17rem_minmax(0,1fr)]">
+    <div className="min-h-screen min-w-0 bg-neutral-50 md:grid md:grid-cols-[15.5rem_minmax(0,1fr)]">
       <SidebarAdmin />
       <div className="flex min-h-screen min-w-0 flex-col">
-        <div className="hidden h-7 items-center justify-between bg-neutral-950 px-6 text-[10px] font-bold uppercase tracking-[0.18em] text-white/70 md:flex">
-          <span>Campos &amp; Coelho · Operação atacadista</span>
-          <span>Ambiente administrativo</span>
-        </div>
-
-        <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 pl-16 pr-4 backdrop-blur sm:pr-6 md:top-0 md:px-7">
-          <div className="mx-auto flex h-16 w-full max-w-[100rem] items-center justify-between gap-4">
+        <header className="sticky top-0 z-40 border-b border-neutral-200 bg-white/95 pl-16 pr-4 backdrop-blur sm:pr-6 md:px-7">
+          <div className="mx-auto flex h-16 w-full max-w-[96rem] items-center justify-between gap-4">
             <div className="min-w-0">
               <p className="truncate text-sm font-extrabold tracking-tight text-neutral-950">
-                Centro de operações
+                Painel administrativo
               </p>
               <p className="hidden text-xs text-neutral-500 sm:block">
-                Gestão comercial, catálogo e atendimento B2B
+                Operação, catálogo e atendimento em um só lugar
               </p>
             </div>
 
@@ -71,7 +66,7 @@ export default async function AdminLayout({
         </header>
 
         <main className="min-w-0 flex-1 p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto w-full max-w-[100rem]">{children}</div>
+          <div className="mx-auto w-full max-w-[96rem]">{children}</div>
         </main>
       </div>
     </div>
