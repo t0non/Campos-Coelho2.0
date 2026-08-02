@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/supabase/auth'
 import type { Database } from '@/types/database.types'
 import { canTransitionOrderStatus } from '@/lib/orders/status'
@@ -37,7 +37,10 @@ export async function updateOrderStatusAction(
     return { success: false, message: 'Pedido ou status inválido.' }
   }
 
-  const supabase = createAdminClient()
+  // A RPC valida `auth.uid()` para garantir que o administrador que iniciou
+  // a mudança seja o mesmo registrado no histórico e na auditoria. Por isso,
+  // ela deve usar a sessão autenticada, não a chave interna de serviço.
+  const supabase = await createClient()
   const { data: order, error: orderError } = await supabase
     .from('orders')
     .select('id, order_number, status')
