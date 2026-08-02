@@ -8,33 +8,35 @@ import { useEffect } from 'react'
  */
 export function AuthUrlErrorRedirect() {
   useEffect(() => {
-    if (window.location.pathname !== '/') return
-
     const query = new URLSearchParams(window.location.search)
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
     const errorCode = query.get('error_code') || hash.get('error_code')
     const recoveryType = query.get('type') || hash.get('type')
+    const isInvite = recoveryType === 'invite'
+    const targetPath = isInvite ? '/aceitar-convite' : '/recuperar-senha'
+
+    if (recoveryType !== 'invite' && recoveryType !== 'recovery' && !errorCode) {
+      return
+    }
 
     if (errorCode) {
-      const isInvite = recoveryType === 'invite'
-      const target = new URL(
-        isInvite ? '/aceitar-convite' : '/recuperar-senha',
-        window.location.origin,
-      )
+      if (window.location.pathname === targetPath) return
+
+      const target = new URL(targetPath, window.location.origin)
       if (!isInvite) target.searchParams.set('type', 'recovery')
       target.searchParams.set('error_code', errorCode)
       window.location.replace(target.toString())
       return
     }
 
-    if (recoveryType === 'recovery') {
+    if (recoveryType === 'recovery' && window.location.pathname !== targetPath) {
       window.location.replace(
         `/recuperar-senha?type=recovery${window.location.hash}`,
       )
       return
     }
 
-    if (recoveryType === 'invite') {
+    if (recoveryType === 'invite' && window.location.pathname !== targetPath) {
       window.location.replace(`/aceitar-convite${window.location.hash}`)
     }
   }, [])
