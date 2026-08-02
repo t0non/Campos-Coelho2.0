@@ -7,7 +7,7 @@ const contentSecurityPolicy = `
   style-src 'self' 'unsafe-inline';
   img-src 'self' data: blob: https://*.supabase.co https://images.unsplash.com;
   font-src 'self' data:;
-  connect-src 'self' https://*.supabase.co wss://*.supabase.co${isDevelopment ? ' http://localhost:* ws://localhost:*' : ''};
+  connect-src 'self' https://*.supabase.co wss://*.supabase.co https://viacep.com.br${isDevelopment ? ' http://localhost:* ws://localhost:*' : ''};
   media-src 'self' blob:;
   worker-src 'self' blob:;
   object-src 'none';

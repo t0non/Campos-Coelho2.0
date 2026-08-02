@@ -79,9 +79,9 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
     .limit(20)
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="max-w-5xl space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
           <Link
             href="/admin/empresas"
@@ -90,15 +90,15 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
             <ArrowLeft className="h-3.5 w-3.5" />
             Voltar à listagem
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            <Building2 className="h-7 w-7 text-blue-600" />
+          <h1 className="flex items-center gap-2 text-xl font-bold text-gray-900 sm:gap-3 sm:text-2xl">
+            <Building2 className="h-6 w-6 shrink-0 text-blue-600 sm:h-7 sm:w-7" />
             {company.company_name}
           </h1>
           {company.trade_name && (
             <p className="text-sm text-gray-500">({company.trade_name})</p>
           )}
         </div>
-        <Badge variant={statusVariant[company.status] ?? 'default'} className="px-3 py-1.5 text-sm font-semibold shrink-0">
+        <Badge variant={statusVariant[company.status] ?? 'default'} className="shrink-0 px-2.5 py-1 text-xs font-semibold sm:px-3 sm:py-1.5 sm:text-sm">
           {COMPANY_STATUS_LABELS[company.status] || company.status}
         </Badge>
       </div>
@@ -108,7 +108,7 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
         {/* Coluna principal (2/3) */}
         <div className="lg:col-span-2 space-y-6">
           {/* Dados Cadastrais */}
-          <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+          <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
             <h2 className="text-base font-bold text-gray-900 border-b pb-3">Dados Cadastrais</h2>
             <dl className="grid sm:grid-cols-2 gap-3 text-sm">
               <div>
@@ -180,7 +180,7 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
 
           {/* Endereço */}
           {address && (
-            <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+            <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
               <h2 className="text-base font-bold text-gray-900 border-b pb-3">Endereço Comercial</h2>
               <dl className="grid sm:grid-cols-2 gap-3 text-sm">
                 <div className="sm:col-span-2">
@@ -205,15 +205,15 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
 
           {/* Responsáveis / Membros */}
           {members && members.length > 0 && (
-            <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+            <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
               <h2 className="text-base font-bold text-gray-900 border-b pb-3">Responsáveis da Empresa</h2>
               <div className="divide-y divide-gray-100">
                 {members.map((m: any) => (
                   <div key={m.id} className="py-3 text-sm">
-                    <div className="flex items-center justify-between">
-                      <div>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
                         <p className="font-bold text-gray-900">{m.profiles?.full_name || 'Nome não disponível'}</p>
-                        <p className="text-xs text-gray-500">{m.profiles?.email}</p>
+                        <p className="truncate text-xs text-gray-500">{m.profiles?.email}</p>
                         {m.profiles?.phone && <p className="text-xs text-gray-500">{maskPhone(m.profiles.phone)}</p>}
                       </div>
                       <div className="flex items-center gap-2">
@@ -229,7 +229,7 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
           )}
 
           {/* Documentos */}
-          <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+          <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
             <h2 className="text-base font-bold text-gray-900 border-b pb-3 flex items-center gap-2">
               <FileCheck className="h-5 w-5 text-blue-600" />
               Documentos Comprobatórios ({documents?.length || 0})
@@ -243,7 +243,7 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
 
           {/* Histórico de Auditoria */}
           {auditLogs && auditLogs.length > 0 && (
-            <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+            <section className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
               <h2 className="text-base font-bold text-gray-900 border-b pb-3 flex items-center gap-2">
                 <Clock className="h-5 w-5 text-gray-500" />
                 Histórico de Auditoria

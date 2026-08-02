@@ -139,9 +139,9 @@ export function CompanyDecisionPanel({
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
-      <h2 className="text-base font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
-        <ShieldAlert className="h-5 w-5 text-blue-600" />
+    <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm sm:space-y-6 sm:p-6">
+      <h2 className="flex items-start gap-2 border-b border-gray-100 pb-3 text-sm font-bold text-gray-900 sm:items-center sm:text-base">
+        <ShieldAlert className="h-5 w-5 shrink-0 text-blue-600" />
         <span>Painel de Decisão Comercial (Administrador)</span>
       </h2>
 
@@ -160,11 +160,11 @@ export function CompanyDecisionPanel({
       {/* Atribuição de Vendedor */}
       <div className="space-y-2">
         <label className="block text-xs font-bold text-gray-700">Vendedor Responsável pela Carteira:</label>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
           <select
             value={selectedSeller}
             onChange={(e) => setSelectedSeller(e.target.value)}
-            className="flex-1 rounded-lg border border-gray-300 p-2 text-xs font-medium outline-none"
+            className="w-full min-w-0 rounded-lg border border-gray-300 p-2 text-xs font-medium outline-none sm:flex-1"
           >
             <option value="">Nenhum vendedor atribuído (Sem carteira)</option>
             {sellers.map((s) => (
@@ -179,7 +179,7 @@ export function CompanyDecisionPanel({
             size="sm"
             onClick={handleAssignSeller}
             loading={loading}
-            className="text-xs font-bold"
+            className="w-full text-xs font-bold sm:w-auto"
           >
             <UserCheck className="h-3.5 w-3.5 mr-1 text-blue-600" />
             <span>Atribuir</span>
@@ -200,7 +200,7 @@ export function CompanyDecisionPanel({
       </div>
 
       {/* Ações de Aprovação ou Recusa */}
-      <div className="pt-2 border-t border-gray-100 flex flex-wrap items-center gap-3">
+      <div className="grid gap-2 border-t border-gray-100 pt-2 sm:flex sm:flex-wrap sm:items-center sm:gap-3">
         {currentStatus === 'suspended' && (
           <Button type="button" onClick={handleReactivate} loading={loading}>
             <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -213,7 +213,7 @@ export function CompanyDecisionPanel({
             type="button"
             onClick={handleApprove}
             loading={loading}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold"
+            className="w-full bg-green-600 text-sm font-bold text-white hover:bg-green-700 sm:w-auto"
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
             <span>Aprovar Empresa</span>
@@ -225,7 +225,7 @@ export function CompanyDecisionPanel({
             type="button"
             variant="outline"
             onClick={() => setShowRejectForm(!showRejectForm)}
-            className="border-red-200 text-red-700 hover:bg-red-50 font-bold"
+            className="w-full border-red-200 text-sm font-bold text-red-700 hover:bg-red-50 sm:w-auto"
           >
             <XCircle className="h-4 w-4 mr-2 text-red-600" />
             <span>Recusar Cadastro...</span>
@@ -237,7 +237,7 @@ export function CompanyDecisionPanel({
             type="button"
             variant="outline"
             onClick={() => setShowSuspendForm(!showSuspendForm)}
-            className="border-amber-200 text-amber-800 hover:bg-amber-50 font-bold"
+            className="w-full border-amber-200 text-sm font-bold text-amber-800 hover:bg-amber-50 sm:w-auto"
           >
             <ShieldAlert className="h-4 w-4 mr-2" />
             <span>Suspender acesso...</span>

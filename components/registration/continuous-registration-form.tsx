@@ -35,6 +35,8 @@ export function ContinuousRegistrationForm() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [cepLookupStatus, setCepLookupStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
+  const cepLookupRequestRef = useRef(0)
 
   // Document upload state
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
@@ -114,6 +116,48 @@ export function ContinuousRegistrationForm() {
 
   const handleMaskChange = (field: any, val: string, maskFn: (v: string) => string) => {
     setValue(field, maskFn(val), { shouldValidate: true })
+  }
+
+  const handleCepChange = async (value: string) => {
+    const formattedCep = maskCEP(value)
+    const cep = formattedCep.replace(/\D/g, '')
+    setValue('addresses.fiscal.cep', formattedCep, { shouldValidate: true, shouldDirty: true })
+
+    if (cep.length !== 8) {
+      cepLookupRequestRef.current += 1
+      setCepLookupStatus('idle')
+      return
+    }
+
+    const requestId = ++cepLookupRequestRef.current
+    setCepLookupStatus('loading')
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
+      const address = await response.json() as {
+        erro?: boolean
+        logradouro?: string
+        bairro?: string
+        localidade?: string
+        uf?: string
+      }
+
+      if (requestId !== cepLookupRequestRef.current) return
+
+      if (!response.ok || address.erro) {
+        throw new Error('CEP não encontrado')
+      }
+
+      setValue('addresses.fiscal.street', address.logradouro ?? '', { shouldValidate: true, shouldDirty: true })
+      setValue('addresses.fiscal.neighborhood', address.bairro ?? '', { shouldValidate: true, shouldDirty: true })
+      setValue('addresses.fiscal.city', address.localidade ?? '', { shouldValidate: true, shouldDirty: true })
+      setValue('addresses.fiscal.state', address.uf ?? '', { shouldValidate: true, shouldDirty: true })
+      setCepLookupStatus('success')
+    } catch {
+      if (requestId !== cepLookupRequestRef.current) return
+
+      setCepLookupStatus('error')
+    }
   }
 
   const handleFileUpload = (file: File, category: UploadedFile['category']) => {
@@ -569,9 +613,7 @@ export function ContinuousRegistrationForm() {
               label="CEP *"
               placeholder="*CEP"
               {...register('addresses.fiscal.cep')}
-              onChange={(e) =>
-                handleMaskChange('addresses.fiscal.cep', e.target.value, maskCEP)
-              }
+              onChange={(e) => void handleCepChange(e.target.value)}
               error={errors.addresses?.fiscal?.cep?.message}
             />
             <div className="sm:col-span-2">
@@ -613,6 +655,20 @@ export function ContinuousRegistrationForm() {
               error={errors.addresses?.fiscal?.state?.message}
             />
           </div>
+
+          {cepLookupStatus === 'loading' && (
+            <p className="mt-2 text-xs text-gray-500">Buscando endereço pelo CEP…</p>
+          )}
+          {cepLookupStatus === 'success' && (
+            <p className="mt-2 text-xs text-green-700">
+              Endereço preenchido pelo CEP. Confira os dados e informe o número.
+            </p>
+          )}
+          {cepLookupStatus === 'error' && (
+            <p className="mt-2 text-xs text-amber-700">
+              Não foi possível localizar este CEP. Confira e preencha o endereço manualmente.
+            </p>
+          )}
 
           <div className="mt-4 text-xs text-gray-600">
             <p>
