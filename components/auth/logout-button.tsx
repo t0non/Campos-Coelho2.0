@@ -5,7 +5,14 @@ import { LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 
-export function LogoutButton() {
+interface LogoutButtonProps {
+  /** Para onde redirecionar após o logout. Padrão: '/'. */
+  redirectTo?: string
+  className?: string
+  fullWidth?: boolean
+}
+
+export function LogoutButton({ redirectTo = '/', className, fullWidth = true }: LogoutButtonProps) {
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
 
@@ -21,7 +28,7 @@ export function LogoutButton() {
       return
     }
 
-    window.location.replace('/')
+    window.location.replace(redirectTo)
   }
 
   return (
@@ -29,8 +36,8 @@ export function LogoutButton() {
       variant="ghost"
       onClick={handleLogout}
       loading={loading}
-      fullWidth
-      className="text-gray-600 hover:text-red-600"
+      fullWidth={fullWidth}
+      className={className ?? 'text-gray-600 hover:text-red-600'}
     >
       <LogOut className="h-4 w-4 mr-2" />
       Sair da Conta

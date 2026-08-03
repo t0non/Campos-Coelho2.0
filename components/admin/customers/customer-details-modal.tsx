@@ -96,7 +96,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
 
   if (isLoading) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50" role="dialog" aria-modal="true" aria-label="Carregando cadastro da empresa">
+      <div className="fixed inset-0 z-[80] flex items-center justify-end bg-black/50" role="dialog" aria-modal="true" aria-label="Carregando cadastro da empresa">
         <div className="w-full max-w-2xl bg-white h-full p-8 animate-pulse flex flex-col">
           <div className="h-8 bg-gray-200 rounded w-1/3 mb-8"></div>
           <div className="h-32 bg-gray-100 rounded mb-4"></div>
@@ -108,7 +108,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
 
   if (error || !details) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50" role="dialog" aria-modal="true" aria-labelledby="customer-error-title">
+      <div className="fixed inset-0 z-[80] flex items-center justify-end bg-black/50" role="dialog" aria-modal="true" aria-labelledby="customer-error-title">
         <div className="w-full max-w-2xl bg-white h-full p-8 flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h2 id="customer-error-title" className="text-xl font-bold text-red-600">Erro</h2>
@@ -125,7 +125,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
   const mainContact = members?.find((m: any) => m.is_primary)?.profile || members?.[0]?.profile
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/50" role="dialog" aria-modal="true" aria-labelledby="customer-details-title">
+    <div className="fixed inset-0 z-[80] flex items-center justify-end bg-black/50" role="dialog" aria-modal="true" aria-labelledby="customer-details-title">
       {/* Drawer */}
       <div className="flex h-full w-full max-w-xl flex-col overflow-hidden bg-white shadow-2xl animate-in slide-in-from-right">
         
@@ -336,7 +336,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
       </div>
 
       {showDeleteConfirmation ? (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/55 p-4" role="alertdialog" aria-modal="true" aria-labelledby="delete-customer-title">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/55 p-4" role="alertdialog" aria-modal="true" aria-labelledby="delete-customer-title">
           <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-2xl">
             <div className="flex items-start gap-3">
               <div className="rounded-full bg-red-100 p-2 text-red-700">

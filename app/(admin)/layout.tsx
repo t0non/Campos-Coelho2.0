@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { ExternalLink, ShieldCheck } from 'lucide-react'
 import { SidebarAdmin } from '@/components/layout/sidebar-admin'
+import { LogoutButton } from '@/components/auth/logout-button'
 import { getAuthContext } from '@/lib/supabase/auth'
 
 /**
@@ -61,6 +62,11 @@ export default async function AdminLayout({
                   </p>
                 </div>
               </div>
+              <LogoutButton
+                redirectTo="/login"
+                fullWidth={false}
+                className="h-8 shrink-0 px-2.5 text-xs font-bold text-neutral-600 hover:bg-neutral-100 hover:text-red-600 sm:px-3"
+              />
             </div>
           </div>
         </header>
