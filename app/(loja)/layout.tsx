@@ -4,12 +4,14 @@ import { Footer } from '@/components/layout/footer'
 import { WhatsAppButton } from '@/components/ui/whatsapp-button'
 import { getAuthContext } from '@/lib/supabase/auth'
 import { getActiveCartSummary } from '@/lib/data/cart'
+import { getCategories } from '@/lib/supabase/queries/categories'
 import type { CartSummary } from '@/lib/types/cart'
+import { EssentialCookieNotice } from '@/components/privacy/essential-cookie-notice'
 
 export const metadata: Metadata = {
-  title: 'Central Atacado — Variedade para o seu negócio crescer',
+  title: 'Campos & Coelho Atacado — Variedade para o seu negócio crescer',
   description:
-    'Plataforma de atacado B2B para lojistas e revendedores. Cadastre seu CNPJ para liberar os preços de atacado.',
+    'Distribuidora B2B para lojistas e revendedores. Cadastre seu CNPJ para consultar preços e condições comerciais.',
 }
 
 /**
@@ -22,7 +24,13 @@ export default async function LojaLayout({
 }: {
   children: React.ReactNode
 }) {
-  const authContext = await getAuthContext()
+  const [authContext, categories] = await Promise.all([
+    getAuthContext(),
+    getCategories(),
+  ])
+  const headerCategories = categories
+    .filter((category) => !category.parent_id)
+    .map(({ id, name, slug }) => ({ id, name, slug }))
 
   // Carrinho para o header/minicart. Só busca para usuários autenticados;
   // a própria RPC devolve vazio para anon/pendente/rejeitado/admin.
@@ -32,10 +40,15 @@ export default async function LojaLayout({
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
-      <Header authContext={authContext} cartSummary={cartSummary} />
+      <Header
+        authContext={authContext}
+        cartSummary={cartSummary}
+        categories={headerCategories}
+      />
       <main className="flex-1">{children}</main>
       <Footer />
       <WhatsAppButton />
+      <EssentialCookieNotice />
     </div>
   )
 }

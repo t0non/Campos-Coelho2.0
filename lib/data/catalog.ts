@@ -4,6 +4,8 @@ import type { CatalogProduct, PriceInfo } from '@/types/product.types'
 import type { CatalogParams } from '@/lib/utils/catalog-params'
 import { getProductImageUrl } from '@/lib/utils/storage-url'
 import { getCatalogPricingForCurrentCustomer } from '@/lib/data/pricing'
+import { getCustomerSessionPricing, isPromotionValid } from '@/lib/data/pricing'
+import { withCategoryProductFallback } from '@/lib/catalog/product-image-fallback'
 
 export interface CatalogResult {
   products: CatalogProduct[]
@@ -116,7 +118,11 @@ export async function getCatalogProducts(
 
   // 4. Busca por termo (name, sku principal ou sku de variante)
   if (params.query) {
-    const q = params.query.trim()
+    const q = params.query
+      .trim()
+      .slice(0, 80)
+      .replace(/[,().'"\\%]/g, ' ')
+      .replace(/\s+/g, ' ')
     if (q) {
       const { data: varMatches } = await supabase
         .from('product_variants')
@@ -141,12 +147,63 @@ export async function getCatalogProducts(
   if (params.isBestSeller) {
     query = query.eq('is_featured', true)
   }
+  if (params.isPromotion) {
+    const pricing = await getCustomerSessionPricing()
+    if (!pricing.priceTableId) {
+      return {
+        products: [],
+        total: 0,
+        page: params.page ?? 1,
+        perPage: params.perPage ?? 12,
+        totalPages: 1,
+        canViewPrices,
+        userStatus,
+      }
+    }
+
+    const { data: promotionRows } = await supabase
+      .from('price_table_products')
+      .select('product_id, unit_price, promotional_price, promotion_starts_at, promotion_ends_at')
+      .eq('price_table_id', pricing.priceTableId)
+      .eq('is_active', true)
+      .not('promotional_price', 'is', null)
+
+    const promotionProductIds = Array.from(
+      new Set(
+        (promotionRows ?? [])
+          .filter((row) =>
+            isPromotionValid(
+              row.promotional_price,
+              row.unit_price,
+              row.promotion_starts_at,
+              row.promotion_ends_at,
+            ),
+          )
+          .map((row) => row.product_id),
+      ),
+    )
+
+    if (promotionProductIds.length === 0) {
+      return {
+        products: [],
+        total: 0,
+        page: params.page ?? 1,
+        perPage: params.perPage ?? 12,
+        totalPages: 1,
+        canViewPrices,
+        userStatus,
+      }
+    }
+    query = query.in('id', promotionProductIds)
+  }
 
   // 6. Ordenação
   const sortMap: Record<string, { column: string; ascending: boolean }> = {
     'nome-asc': { column: 'name', ascending: true },
     'nome-desc': { column: 'name', ascending: false },
     'mais-recentes': { column: 'created_at', ascending: false },
+    'mais-vendidos': { column: 'is_featured', ascending: false },
+    lancamentos: { column: 'is_new_arrival', ascending: false },
     relevancia: { column: 'created_at', ascending: false },
   }
 
@@ -208,13 +265,10 @@ export async function getCatalogProducts(
   const batchPricing = canViewPrices ? await getCatalogPricingForCurrentCustomer(primaryVariantIds) : new Map<string, PriceInfo>()
 
   let products: CatalogProduct[] = rawProducts.map((p) => {
-    const images = (p.product_images ?? [])
+    const uploadedImages = (p.product_images ?? [])
       .sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0) || (a.position ?? 0) - (b.position ?? 0))
       .map((img) => getProductImageUrl(img.url))
-
-    if (images.length === 0) {
-      images.push('/placeholder-product.png')
-    }
+    const images = withCategoryProductFallback(uploadedImages, p.categories?.slug)
 
     const activeVariants = (p.product_variants ?? []).filter((v) => v.is_active)
     const primaryVariant = activeVariants[0]
@@ -232,6 +286,7 @@ export async function getCatalogProducts(
       sku: p.sku,
       name: p.name,
       slug: p.slug,
+      primary_variant_id: primaryVariant?.id ?? null,
       images,
       unit: p.unit,
       min_quantity: p.min_quantity,
@@ -274,15 +329,56 @@ export async function getCatalogFilterOptions(
   const supabase = await createClient()
 
   const [{ data: catsData }, { data: brandsListData }] = await Promise.all([
-    supabase.from('categories').select('name, slug').eq('is_active', true).order('name'),
-    supabase.from('brands').select('name, slug').eq('is_active', true).order('name'),
+    supabase.from('categories').select('id, name, slug').eq('is_active', true).order('name'),
+    supabase.from('brands').select('id, name, slug').eq('is_active', true).order('name'),
   ])
 
-  const cats = (catsData ?? []) as Array<{ name: string; slug: string }>
-  const brandsList = (brandsListData ?? []) as Array<{ name: string; slug: string }>
+  const cats = (catsData ?? []) as Array<{ id: string; name: string; slug: string }>
+  const brandsList = (brandsListData ?? []) as Array<{ id: string; name: string; slug: string }>
+  const categoryCounts = new Map<string, number>()
+  const brandCounts = new Map<string, number>()
+  const facetPageSize = 1000
 
-  const categories = (cats ?? []).map((c) => ({ name: c.name, slug: c.slug, count: 0 }))
-  const brands = (brandsList ?? []).map((b) => ({ name: b.name, slug: b.slug, count: 0 }))
+  for (let from = 0; ; from += facetPageSize) {
+    const { data: facetData, error: facetError } = await supabase
+      .from('products')
+      .select('category_id, brand_id')
+      .eq('is_active', true)
+      .eq('is_published', true)
+      .range(from, from + facetPageSize - 1)
+
+    if (facetError) {
+      console.error('Erro ao contar filtros do catálogo:', facetError.message)
+      break
+    }
+
+    const facetRows = (facetData ?? []) as Array<{
+      category_id: string | null
+      brand_id: string | null
+    }>
+
+    for (const row of facetRows) {
+      if (row.category_id) {
+        categoryCounts.set(row.category_id, (categoryCounts.get(row.category_id) ?? 0) + 1)
+      }
+      if (row.brand_id) {
+        brandCounts.set(row.brand_id, (brandCounts.get(row.brand_id) ?? 0) + 1)
+      }
+    }
+
+    if (facetRows.length < facetPageSize) break
+  }
+
+  const categories = cats.map((category) => ({
+    name: category.name,
+    slug: category.slug,
+    count: categoryCounts.get(category.id) ?? 0,
+  }))
+  const brands = brandsList.map((brand) => ({
+    name: brand.name,
+    slug: brand.slug,
+    count: brandCounts.get(brand.id) ?? 0,
+  }))
   const units = ['UN', 'CX', 'FD', 'KIT', 'PC']
 
   return {

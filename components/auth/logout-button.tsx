@@ -1,21 +1,27 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { LogOut } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 
 export function LogoutButton() {
   const [loading, setLoading] = useState(false)
-  const router = useRouter()
   const supabase = createClient()
 
   const handleLogout = async () => {
+    if (loading) return
+
     setLoading(true)
-    await supabase.auth.signOut()
-    router.refresh()
-    router.push('/login')
+    const { error } = await supabase.auth.signOut({ scope: 'local' })
+
+    if (error) {
+      console.error('Erro ao encerrar sessão:', error.message)
+      setLoading(false)
+      return
+    }
+
+    window.location.replace('/')
   }
 
   return (

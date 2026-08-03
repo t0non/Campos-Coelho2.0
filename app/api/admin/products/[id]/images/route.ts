@@ -1,36 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { requireAdmin } from '@/lib/supabase/auth'
+import { getAdminApiContext } from '@/lib/supabase/api-admin'
+import { validateUploadedFile } from '@/lib/security/file-validation'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5 MB para o arquivo individual
 const MAX_OPERATIONAL_BODY = 6 * 1024 * 1024 // 6 MB para o corpo total da requisição multipart
-
-function checkMagicBytes(buffer: Buffer): 'jpeg' | 'png' | 'webp' | null {
-  if (buffer.length < 12) return null
-  
-  // JPEG: FF D8 FF
-  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
-    return 'jpeg'
-  }
-  
-  // PNG: 89 50 4E 47 0D 0A 1A 0A
-  if (
-    buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47 &&
-    buffer[4] === 0x0d && buffer[5] === 0x0a && buffer[6] === 0x1a && buffer[7] === 0x0a
-  ) {
-    return 'png'
-  }
-  
-  // WEBP: RIFF....WEBP
-  if (
-    buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 && // RIFF
-    buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50 // WEBP
-  ) {
-    return 'webp'
-  }
-
-  return null
-}
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id: productId } = await params
@@ -48,7 +21,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     try {
       const originUrl = new URL(origin)
       const originHost = originUrl.host
-      if (host && originHost !== host && !originHost.includes('localhost') && !originHost.includes('127.0.0.1')) {
+      if (host && originHost !== host) {
         return NextResponse.json({ success: false, message: 'Origem não permitida (Cross-Origin Bloqueado).' }, { status: 403 })
       }
     } catch {
@@ -57,7 +30,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   }
 
   try {
-    const { user } = await requireAdmin()
+    const auth = await getAdminApiContext()
+    if ('response' in auth) return auth.response
+    const { supabase } = auth
     
     // 1. ANTES DE formData(): Validação do limite operacional do corpo da requisição
     const contentLength = req.headers.get('content-length')
@@ -76,7 +51,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     let fileCount = 0
     let file: File | null = null
 
-    for (const [key, value] of Array.from(formData.entries())) {
+    for (const [, value] of Array.from(formData.entries())) {
       if (value instanceof File) {
         fileCount++
         file = value
@@ -101,15 +76,13 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     // Validação de magic bytes
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    const detectedType = checkMagicBytes(buffer)
-
-    if (!detectedType) {
-      return NextResponse.json({ success: false, message: 'Formato de imagem inválido ou corrompido (Assinatura não reconhecida).' }, { status: 415 })
+    const validation = await validateUploadedFile(file, {
+      allowedKinds: ['jpeg', 'png', 'webp'],
+      maxBytes: MAX_FILE_SIZE,
+    })
+    if (!validation.success) {
+      return NextResponse.json({ success: false, message: validation.error }, { status: 415 })
     }
-
-    const supabase = (await createClient()) as any
 
     // Confirmar se produto existe
     const { data: product } = await supabase.from('products').select('id').eq('id', productId).maybeSingle()
@@ -118,12 +91,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     const uuid = crypto.randomUUID()
-    const ext = detectedType === 'jpeg' ? 'jpg' : detectedType // normalizar jpeg para jpg
-    const relativePath = `products/${productId}/${uuid}.${ext}`
+    const relativePath = `products/${productId}/${uuid}.${validation.extension}`
 
     // 1. Enviar ao Storage usando o token autenticado real (sem service_role)
-    const { error: storageError } = await supabase.storage.from('product-images').upload(relativePath, buffer, {
-      contentType: `image/${detectedType}`,
+    const { error: storageError } = await supabase.storage.from('product-images').upload(relativePath, validation.bytes, {
+      contentType: validation.mimeType,
       upsert: false
     })
 
@@ -162,12 +134,6 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     })
 
   } catch (err: any) {
-    if (err.digest?.startsWith('NEXT_REDIRECT') || err.message === 'NEXT_REDIRECT') {
-      throw err
-    }
-    if (err.message?.includes('Acesso negado')) {
-      return NextResponse.json({ success: false, message: 'Acesso negado.' }, { status: 403 })
-    }
     return NextResponse.json({ success: false, message: 'Erro interno no processamento do upload.' }, { status: 500 })
   }
 }

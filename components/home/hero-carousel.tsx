@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
+import { getImageProps } from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import type { HeroBannerItem } from '@/lib/mocks/mock-banners'
+import type { HeroBannerItem } from '@/lib/data/home'
 
 interface HeroCarouselProps {
   banners: HeroBannerItem[]
@@ -57,35 +57,44 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
         className="flex transition-transform duration-500 ease-out"
         style={{ transform: `translateX(-${currentIndex * 100}%)` }}
       >
-        {banners.map((banner, idx) => (
-          <div key={banner.id} className="w-full shrink-0 relative">
-            <Link href={banner.primaryCta?.href || '/catalogo'} className="block w-full h-full">
-              {/* Desktop Image (Hidden on small screens) */}
-              <div className="hidden md:block relative w-full aspect-[21/6] lg:aspect-[24/6]">
-                <Image
-                  src={banner.desktopImage}
-                  alt={banner.title}
-                  fill
-                  priority={idx === 0}
-                  className="object-cover"
-                  sizes="100vw"
-                />
-              </div>
+        {banners.map((banner, idx) => {
+          const common = { alt: banner.title, sizes: '100vw' }
+          const {
+            props: { srcSet: desktopSrcSet },
+          } = getImageProps({
+            ...common,
+            src: banner.desktopImage,
+            width: 1920,
+            height: 600,
+            quality: 75,
+          })
+          const {
+            props: { srcSet: mobileSrcSet, ...mobileImageProps },
+          } = getImageProps({
+            ...common,
+            src: banner.mobileImage,
+            width: 1080,
+            height: 1350,
+            quality: 75,
+          })
 
-              {/* Mobile Image (Visible only on small screens) */}
-              <div className="block md:hidden relative w-full aspect-[4/5] sm:aspect-[1/1]">
-                <Image
-                  src={banner.mobileImage}
-                  alt={banner.title}
-                  fill
-                  priority={idx === 0}
-                  className="object-cover"
-                  sizes="100vw"
-                />
-              </div>
-            </Link>
-          </div>
-        ))}
+          return (
+            <div key={banner.id} className="relative w-full shrink-0">
+              <Link href={banner.primaryCta?.href || '/catalogo'} className="block h-full w-full">
+                <picture className="relative block aspect-[4/5] w-full sm:aspect-square md:aspect-[21/6] lg:aspect-[19/6]">
+                  <source media="(min-width: 768px)" srcSet={desktopSrcSet} />
+                  <source media="(max-width: 767px)" srcSet={mobileSrcSet} />
+                  <img
+                    {...mobileImageProps}
+                    alt={banner.title}
+                    fetchPriority={idx === 0 ? 'high' : 'auto'}
+                    className="absolute inset-0 h-full w-full object-cover"
+                  />
+                </picture>
+              </Link>
+            </div>
+          )
+        })}
       </div>
 
       {/* Navigation Arrows */}
@@ -93,7 +102,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
         type="button"
         onClick={handlePrev}
         aria-label="Banner anterior"
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 text-[#111111] hover:bg-[#e5e5e5] shadow-lg flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-[#e5e5e5]"
+        className="absolute left-4 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/75 text-white shadow-xl backdrop-blur-sm transition-all hover:scale-105 hover:bg-black focus:outline-none focus:ring-2 focus:ring-white"
       >
         <ChevronLeft className="h-6 w-6 stroke-[3]" />
       </button>
@@ -102,7 +111,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
         type="button"
         onClick={handleNext}
         aria-label="Próximo banner"
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/90 text-[#111111] hover:bg-[#e5e5e5] shadow-lg flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-[#e5e5e5]"
+        className="absolute right-4 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/75 text-white shadow-xl backdrop-blur-sm transition-all hover:scale-105 hover:bg-black focus:outline-none focus:ring-2 focus:ring-white"
       >
         <ChevronRight className="h-6 w-6 stroke-[3]" />
       </button>
@@ -117,7 +126,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
             aria-label={`Ir para banner ${idx + 1}`}
             className={`rounded-full transition-all duration-300 shadow-sm ${
               idx === currentIndex
-                ? 'w-8 h-2.5 bg-[#e5e5e5]'
+                ? 'w-8 h-2.5 bg-white ring-1 ring-black/20'
                 : 'w-2.5 h-2.5 bg-white/60 hover:bg-white/90'
             }`}
           />

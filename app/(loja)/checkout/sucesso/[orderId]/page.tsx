@@ -36,7 +36,7 @@ export default async function CheckoutSuccessPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Container className="py-12 max-w-2xl">
+      <Container className="max-w-2xl py-10 sm:py-12">
         <div className="flex flex-col items-center text-center mb-8">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 mb-4">
             <CheckCircle2 className="h-9 w-9" />
@@ -113,12 +113,20 @@ export default async function CheckoutSuccessPage({ params }: PageProps) {
         </div>
 
         <div className="mt-6 text-center">
-          <Link
-            href="/catalogo"
-            className="inline-flex items-center gap-2 rounded-xl bg-orange-500 px-6 py-3 text-sm font-bold text-white hover:bg-orange-600 transition-colors shadow-md"
-          >
-            Continuar Comprando
-          </Link>
+          <div className="flex flex-col justify-center gap-3 sm:flex-row">
+            <Link
+              href={`/minha-conta/pedidos/${order.id}`}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-800"
+            >
+              Acompanhar pedido
+            </Link>
+            <Link
+              href="/catalogo"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-6 py-3 text-sm font-bold text-slate-800 transition-colors hover:bg-slate-50"
+            >
+              Continuar comprando
+            </Link>
+          </div>
         </div>
       </Container>
     </div>

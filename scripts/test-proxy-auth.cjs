@@ -17,7 +17,7 @@ if (fs.existsSync('.env.local')) {
 const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY)
 
 async function run() {
-  const { data } = await client.auth.signInWithPassword({ email: 'vendedor@atacado.com.br', password: 'DevelopmentPassword123!' })
+  const { data } = await client.auth.signInWithPassword({ email: 'vendedor@atacado.com.br', password: process.env.TEST_USER_PASSWORD })
   const token = data.session.access_token
   const res = await fetch('http://localhost:3000/vendedor', {
     headers: { Authorization: `Bearer ${token}` },
@@ -26,7 +26,7 @@ async function run() {
   console.log('Status for /vendedor:', res.status)
   console.log('Location:', res.headers.get('location'))
 
-  const { data: adminData } = await client.auth.signInWithPassword({ email: 'admin@atacado.com.br', password: 'DevelopmentPassword123!' })
+  const { data: adminData } = await client.auth.signInWithPassword({ email: 'admin@atacado.com.br', password: process.env.TEST_USER_PASSWORD })
   const resAdmin = await fetch('http://localhost:3000/admin/categorias', {
     headers: { Authorization: `Bearer ${adminData.session.access_token}` },
     redirect: 'manual'

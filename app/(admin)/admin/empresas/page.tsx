@@ -7,7 +7,7 @@ import { maskCNPJ } from '@/lib/utils/masks'
 import { COMPANY_STATUS_LABELS } from '@/lib/utils/constants'
 import { Badge } from '@/components/ui/badge'
 import type { BadgeVariant } from '@/components/ui/badge'
-import { Building2, Search, ExternalLink } from 'lucide-react'
+import { Building2, ExternalLink } from 'lucide-react'
 
 export const metadata: Metadata = { title: 'Gestão de Empresas | Admin' }
 

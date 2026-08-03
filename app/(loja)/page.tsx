@@ -1,34 +1,39 @@
 import type { Metadata } from 'next'
+import { serializeJsonLd } from '@/lib/utils/json-ld'
 
 export const dynamic = 'force-dynamic'
 import { getAuthContext } from '@/lib/supabase/auth'
 import { getHomePageData } from '@/lib/data/home'
 import { HeroCarousel } from '@/components/home/hero-carousel'
-import { BenefitsBar } from '@/components/home/benefits-bar'
 import { FeaturedCategories } from '@/components/home/featured-categories'
 import { ProductShowcase } from '@/components/home/product-showcase'
 import { PromotionalBanner } from '@/components/home/promotional-banner'
+import { InstitutionalBanners } from '@/components/home/institutional-banners'
 import { CampaignGrid } from '@/components/home/campaign-grid'
 import { BrandCarousel } from '@/components/home/brand-carousel'
-import { HowToBuy } from '@/components/home/how-to-buy'
 import { BusinessRegistrationCTA } from '@/components/home/business-registration-cta'
-import { TrustNumbers } from '@/components/home/trust-numbers'
-import { Testimonials } from '@/components/home/testimonials'
 import { InstitutionalSection } from '@/components/home/institutional-section'
-import { NewsletterSection } from '@/components/home/newsletter-section'
+import { getSiteUrl } from '@/lib/utils/site-url'
+import {
+  COMPANY_GOOGLE_PROFILE_URL,
+  COMPANY_PHONE_DISPLAY,
+} from '@/lib/config/contact'
+import { CONTROLLER_CNPJ, CONTROLLER_LEGAL_NAME } from '@/lib/privacy/config'
+
+const siteUrl = getSiteUrl()
 
 export const metadata: Metadata = {
   title: 'Campos & Coelho Atacado | Produtos para revenda B2B',
   description:
     'Encontre produtos para revenda, utilidades domésticas, brinquedos, cadastre seu CNPJ e consulte condições comerciais exclusivas.',
   alternates: {
-    canonical: 'http://localhost:3000',
+    canonical: siteUrl,
   },
   openGraph: {
     title: 'Campos & Coelho Atacado | Plataforma de Atacado B2B',
     description:
       'Variedade para o seu negócio crescer. Cadastre seu CNPJ e acesse os preços de atacado.',
-    url: 'http://localhost:3000',
+    url: siteUrl,
     siteName: 'Campos & Coelho Atacado',
     locale: 'pt_BR',
     type: 'website',
@@ -48,21 +53,33 @@ export default async function HomePage() {
     '@graph': [
       {
         '@type': 'Organization',
-        '@id': 'http://localhost:3000/#organization',
-        name: 'Central Atacado',
-        url: 'http://localhost:3000',
-        logo: 'http://localhost:3000/logo.png',
-        description: 'Plataforma de comércio eletrônico para atacado B2B.',
+        '@id': `${siteUrl}/#organization`,
+        name: 'Campos & Coelho Atacado',
+        legalName: CONTROLLER_LEGAL_NAME,
+        taxID: CONTROLLER_CNPJ.replace(/\D/g, ''),
+        url: siteUrl,
+        logo: `${siteUrl}/logo_campos_coelho.png`,
+        description: 'Distribuidora de produtos no atacado para lojistas e empresas.',
+        telephone: COMPANY_PHONE_DISPLAY,
+        sameAs: [COMPANY_GOOGLE_PROFILE_URL],
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: 'Avenida Doutor Cristiano Guimarães, 975',
+          addressLocality: 'Belo Horizonte',
+          addressRegion: 'MG',
+          postalCode: '31720-300',
+          addressCountry: 'BR',
+        },
       },
       {
         '@type': 'WebSite',
-        '@id': 'http://localhost:3000/#website',
-        url: 'http://localhost:3000',
-        name: 'Central Atacado',
-        publisher: { '@id': 'http://localhost:3000/#organization' },
+        '@id': `${siteUrl}/#website`,
+        url: siteUrl,
+        name: 'Campos & Coelho Atacado',
+        publisher: { '@id': `${siteUrl}/#organization` },
         potentialAction: {
           '@type': 'SearchAction',
-          target: 'http://localhost:3000/catalogo?q={search_term_string}',
+          target: `${siteUrl}/catalogo?q={search_term_string}`,
           'query-input': 'required name=search_term_string',
         },
       },
@@ -73,75 +90,68 @@ export default async function HomePage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
       <div className="flex flex-col min-h-screen">
         {/* 1. Hero principal em carrossel */}
         <HeroCarousel banners={homeData.heroBanners} />
 
-        {/* 2. Barra de benefícios */}
-        <BenefitsBar benefits={homeData.benefits} />
+        {/* 2. Campanhas sazonais */}
+        <CampaignGrid
+          collections={homeData.collections}
+          canViewPrices={homeData.canViewPrices}
+        />
 
         {/* 3. Categorias em destaque */}
         <FeaturedCategories categories={homeData.featuredCategories} />
 
-        {/* 4. Vitrine de lançamentos */}
+        {/* 4. Uma vitrine para cada categoria ativa */}
+        {homeData.categoryShowcases.map((category) => (
+          <ProductShowcase
+            key={category.id}
+            title={category.name}
+            href={`/catalogo?cat=${category.slug}`}
+            products={category.products}
+            canViewPrices={homeData.canViewPrices}
+          />
+        ))}
+
+        {/* 5. Vitrine de lançamentos */}
         <ProductShowcase
           title="Lançamentos"
-          subtitle="Novidades para renovar o estoque e surpreender seus clientes."
-          tagline="Novidades no Catálogo"
           products={homeData.newArrivals}
           canViewPrices={homeData.canViewPrices}
-          userStatus={homeData.userStatus}
         />
 
-        {/* 5. Banner promocional intermediário */}
-        <PromotionalBanner />
+        {/* 6. Banner promocional intermediário */}
+        <PromotionalBanner banner={homeData.secondaryBanner} />
 
-        {/* 6. Vitrine de mais vendidos */}
+        {/* 7. Vitrine de mais vendidos */}
         <ProductShowcase
           title="Mais Vendidos"
-          subtitle="Produtos que já fazem parte do estoque de muitos lojistas."
-          tagline="Alta Rotatividade"
           products={homeData.bestSellers}
           canViewPrices={homeData.canViewPrices}
-          userStatus={homeData.userStatus}
         />
-
-        {/* 7. Campanhas e coleções */}
-        <CampaignGrid collections={homeData.collections} />
 
         {/* 8. Marcas parceiras */}
         <BrandCarousel brands={homeData.brands} />
 
-        {/* 9. Como comprar */}
-        <HowToBuy />
-
-        {/* 10. Vitrine de oportunidades */}
+        {/* 9. Vitrine de oportunidades */}
         <ProductShowcase
           title="Oportunidades da Semana"
-          subtitle="Produtos selecionados para melhorar a margem da sua loja."
-          tagline="Preços Promocionais"
           products={homeData.weeklyOpportunities}
           canViewPrices={homeData.canViewPrices}
-          userStatus={homeData.userStatus}
         />
+
+        {/* 10. Banners institucionais de atendimento e localização */}
+        <InstitutionalBanners banners={homeData.institutionalBanners} />
 
         {/* 11. Chamada para cadastro empresarial */}
         <BusinessRegistrationCTA />
 
-        {/* 12. Confiança e números */}
-        <TrustNumbers metrics={homeData.metrics} />
-
-        {/* 13. Depoimentos */}
-        <Testimonials testimonials={homeData.testimonials} />
-
-        {/* 14. Conteúdo institucional */}
+        {/* 12. Conteúdo institucional */}
         <InstitutionalSection />
-
-        {/* 15. Newsletter */}
-        <NewsletterSection />
       </div>
     </>
   )

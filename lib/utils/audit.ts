@@ -1,5 +1,5 @@
 import 'server-only'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/supabase/auth'
 
 export type AdminLogAction =
@@ -16,6 +16,7 @@ export type AdminLogAction =
   | 'PRODUCT_PUBLICATION_TOGGLED'
   | 'PRODUCT_DEACTIVATED'
   | 'PRODUCT_REACTIVATED'
+  | 'PRODUCT_CATEGORIES_CORRELATED'
   | 'VARIANT_CREATED'
   | 'VARIANT_UPDATED'
   | 'VARIANT_DEACTIVATED'
@@ -33,6 +34,10 @@ export type AdminLogAction =
   | 'PRICE_ENTRY_UPDATED'
   | 'PRICE_ENTRY_DEACTIVATED'
   | 'PRICE_ENTRY_REACTIVATED'
+  | 'CATALOG_IMPORT_PRICES_NORMALIZED'
+  | 'CATALOG_IMPORT_CATALOG_SYNCHRONIZED'
+  | 'ORDER_STATUS_UPDATED'
+  | 'ADMIN_CREATED'
   /** @deprecated Use PRICE_ENTRY_CREATED ou PRICE_ENTRY_UPDATED no novo fluxo */
   | 'PRICE_TABLE_PRODUCT_UPSERTED'
 
@@ -44,7 +49,7 @@ export async function createAuditLog(
 ) {
   const { user } = await requireAdmin()
   if (!user) throw new Error('Não autenticado')
-  const supabase = (await createClient()) as any
+  const supabase = createAdminClient() as any
 
   // Limpar payload de dados sensíveis e manter um tamanho razoável
   const safePayload = JSON.parse(JSON.stringify(payload))

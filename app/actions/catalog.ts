@@ -2,13 +2,15 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { requireAdmin } from '@/lib/supabase/auth'
+import { redirect } from 'next/navigation'
 import { createAuditLog } from '@/lib/utils/audit'
 import { invalidateCategoryCache, invalidateBrandCache, invalidateProductCache } from '@/lib/utils/cache'
-import { CategoryInputSchema, BrandInputSchema, ProductInputSchema, ProductVariantInputSchema } from '@/lib/validations/admin-catalog'
+import { CategoryInputSchema, BrandInputSchema } from '@/lib/validations/admin-catalog'
+import { correlateAllProductCategories } from '@/lib/data/product-category-correlation'
 
 // CATEGORIAS
 export async function createCategoryAction(data: any) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const parsed = CategoryInputSchema.parse(data)
   const supabase = (await createClient()) as any
 
@@ -34,7 +36,7 @@ export async function createCategoryAction(data: any) {
 }
 
 export async function updateCategoryAction(id: string, data: any) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const parsed = CategoryInputSchema.partial().parse(data)
   const supabase = (await createClient()) as any
 
@@ -66,7 +68,7 @@ export async function updateCategoryAction(id: string, data: any) {
 }
 
 export async function toggleCategoryStatusAction(id: string, isActive: boolean) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const supabase = (await createClient()) as any
 
   const { error } = await supabase.from('categories').update({ is_active: isActive } as any).eq('id', id)
@@ -80,7 +82,7 @@ export async function toggleCategoryStatusAction(id: string, isActive: boolean) 
 
 // MARCAS
 export async function createBrandAction(data: any) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const parsed = BrandInputSchema.parse(data)
   const supabase = (await createClient()) as any
 
@@ -100,7 +102,7 @@ export async function createBrandAction(data: any) {
 }
 
 export async function updateBrandAction(id: string, data: any) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const parsed = BrandInputSchema.partial().parse(data)
   const supabase = (await createClient()) as any
 
@@ -131,7 +133,7 @@ export async function updateBrandAction(id: string, data: any) {
 }
 
 export async function toggleBrandStatusAction(id: string, isActive: boolean) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const supabase = (await createClient()) as any
 
   const { error } = await supabase.from('brands').update({ is_active: isActive } as any).eq('id', id)
@@ -144,7 +146,7 @@ export async function toggleBrandStatusAction(id: string, isActive: boolean) {
 
 // PRODUTOS
 export async function createProductAction(data: any) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const { ProductInputSchema } = await import('@/lib/validations/admin-products')
   const parsed = ProductInputSchema.parse(data)
   // Forçar rascunho
@@ -169,7 +171,7 @@ export async function createProductAction(data: any) {
 }
 
 export async function updateProductAction(id: string, data: any) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const { ProductInputSchema } = await import('@/lib/validations/admin-products')
   const parsed = ProductInputSchema.partial().parse(data)
   const supabase = (await createClient()) as any
@@ -205,7 +207,7 @@ export async function updateProductAction(id: string, data: any) {
 }
 
 export async function publishProductAction(id: string) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const supabase = (await createClient()) as any
 
   // Validar se o produto está ativo e possui nome válido (regra de negócio confirmada)
@@ -223,7 +225,7 @@ export async function publishProductAction(id: string) {
 }
 
 export async function unpublishProductAction(id: string) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const supabase = (await createClient()) as any
 
   const { error } = await supabase.from('products').update({ is_published: false } as any).eq('id', id)
@@ -235,7 +237,7 @@ export async function unpublishProductAction(id: string) {
 }
 
 export async function toggleProductStatusAction(id: string, isActive: boolean) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const supabase = (await createClient()) as any
 
   const { error } = await supabase.from('products').update({ is_active: isActive } as any).eq('id', id)
@@ -247,9 +249,25 @@ export async function toggleProductStatusAction(id: string, isActive: boolean) {
   return { success: true }
 }
 
+export async function correlateProductCategoriesAction() {
+  const { user } = await requireAdmin()
+  if (!user) throw new Error('Não autenticado')
+
+  const supabase = (await createClient()) as any
+  const result = await correlateAllProductCategories(supabase)
+
+  await createAuditLog('PRODUCT_CATEGORIES_CORRELATED', 'products', user.id, result)
+  invalidateProductCache()
+  invalidateCategoryCache()
+
+  redirect(
+    `/admin/produtos?categorias=correlacionadas&processados=${result.processed}&atualizados=${result.updated}`,
+  )
+}
+
 // VARIANTES
 export async function createVariantAction(data: any) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const { VariantInputSchema } = await import('@/lib/validations/admin-products')
   const parsed = VariantInputSchema.parse(data)
   const supabase = (await createClient()) as any
@@ -270,7 +288,7 @@ export async function createVariantAction(data: any) {
 }
 
 export async function updateVariantAction(id: string, data: any) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const { VariantInputSchema } = await import('@/lib/validations/admin-products')
   const parsed = VariantInputSchema.partial().parse(data)
   const supabase = (await createClient()) as any
@@ -301,7 +319,7 @@ export async function updateVariantAction(id: string, data: any) {
 }
 
 export async function toggleVariantStatusAction(id: string, isActive: boolean) {
-  const { user } = await requireAdmin()
+  await requireAdmin()
   const supabase = (await createClient()) as any
 
   const { error } = await supabase.from('product_variants').update({ is_active: isActive } as any).eq('id', id)

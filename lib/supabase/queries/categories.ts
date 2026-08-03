@@ -1,10 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
+import { cache } from 'react'
 import type { Database } from '@/types/database.types'
 
 type CategoryRow = Database['public']['Tables']['categories']['Row']
 type BrandRow = Database['public']['Tables']['brands']['Row']
 
-export async function getCategories() {
+export const getCategories = cache(async () => {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -13,12 +14,18 @@ export async function getCategories() {
     .eq('is_active', true)
     .order('position')
 
-  if (error) throw error
+  if (error) {
+    console.error('[getCategories] Falha ao carregar categorias.', {
+      code: error.code,
+      message: error.message,
+    })
+    return []
+  }
   return (data ?? []) as Pick<
     CategoryRow,
     'id' | 'name' | 'slug' | 'image_url' | 'parent_id' | 'position'
   >[]
-}
+})
 
 export async function getCategoryBySlug(slug: string): Promise<CategoryRow | null> {
   const supabase = await createClient()
@@ -34,7 +41,7 @@ export async function getCategoryBySlug(slug: string): Promise<CategoryRow | nul
   return data as CategoryRow
 }
 
-export async function getBrands() {
+export const getBrands = cache(async () => {
   const supabase = await createClient()
 
   const { data, error } = await supabase
@@ -43,9 +50,15 @@ export async function getBrands() {
     .eq('is_active', true)
     .order('name')
 
-  if (error) throw error
+  if (error) {
+    console.error('[getBrands] Falha ao carregar marcas.', {
+      code: error.code,
+      message: error.message,
+    })
+    return []
+  }
   return (data ?? []) as Pick<BrandRow, 'id' | 'name' | 'slug' | 'logo_url'>[]
-}
+})
 
 export async function getBrandBySlug(slug: string): Promise<BrandRow | null> {
   const supabase = await createClient()

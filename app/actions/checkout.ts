@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { CheckoutSchema } from '@/lib/validations/checkout'
+import { notifyOrderCreated } from '@/lib/email/events'
 
 // Mapeia códigos de erro da RPC para mensagens humanas sem SQL
 const ERROR_MESSAGES: Record<string, string> = {
@@ -22,6 +23,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   INVALID_MULTIPLE: 'A quantidade de um item não respeita mais o múltiplo de embalagem.',
   NO_PRICE_AVAILABLE: 'O preço de um item não está mais disponível.',
   INSUFFICIENT_STOCK: 'Estoque insuficiente para um dos itens do pedido.',
+  MINIMUM_ORDER_NOT_REACHED: 'O pedido mínimo para finalizar a compra é de R$ 1.000,00.',
 }
 
 function mapError(code: string): string {
@@ -44,7 +46,10 @@ export async function checkoutAction(data: unknown) {
 
   if (error) {
     console.error('[checkoutAction] RPC error:', error.code)
-    return { success: false, message: 'Erro ao finalizar o pedido.' }
+    const code = error.message?.includes('MINIMUM_ORDER_NOT_REACHED')
+      ? 'MINIMUM_ORDER_NOT_REACHED'
+      : ''
+    return { success: false, message: mapError(code) }
   }
 
   const r = result as any
@@ -54,6 +59,7 @@ export async function checkoutAction(data: unknown) {
 
   // Carrinho foi convertido pela RPC — invalidar as leituras que dependem dele.
   revalidatePath('/carrinho')
+  await notifyOrderCreated(r.order_id)
 
   return { success: true, order_id: r.order_id, order_number: r.order_number }
 }

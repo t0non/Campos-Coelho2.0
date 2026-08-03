@@ -5,7 +5,7 @@ import { PriceTableStatusToggle } from '@/components/admin/PriceTableStatusToggl
 import { PriceTableForm } from '@/components/admin/PriceTableForm'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Filter } from 'lucide-react'
+import { CircleAlert, Filter, PackageSearch } from 'lucide-react'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -34,17 +34,21 @@ export default async function PriceTableDetailPage({ params, searchParams }: Pag
     return notFound()
   }
 
-  const { data: categories } = await getAdminCategories(1, 100)
-  const { data: brands } = await getAdminBrands(1, 100)
+  const [categoriesResult, brandsResult, entriesResult] = await Promise.all([
+    getAdminCategories(1, 100).catch(() => ({ data: [] })),
+    getAdminBrands(1, 100).catch(() => ({ data: [] })),
+    getAdminPriceEntries(tableId, page, limit, sParams.q, sParams.category, sParams.brand)
+      .catch((error) => {
+        console.error('[price-table] Falha ao carregar entradas:', error)
+        return { data: [], count: 0, error }
+      }),
+  ])
 
-  const { data: variants, count } = await getAdminPriceEntries(
-    tableId,
-    page,
-    limit,
-    sParams.q,
-    sParams.category,
-    sParams.brand
-  )
+  const categories = categoriesResult.data
+  const brands = brandsResult.data
+  const variants = entriesResult.data
+  const count = entriesResult.count
+  const entriesError = 'error' in entriesResult ? entriesResult.error : null
 
   const totalPages = Math.ceil(count / limit)
 
@@ -126,7 +130,25 @@ export default async function PriceTableDetailPage({ params, searchParams }: Pag
             </form>
           </div>
 
-          <PriceEntriesTable priceTableId={tableId} variants={variants} />
+          {entriesError ? (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-950">
+              <div className="flex gap-3">
+                <CircleAlert className="mt-0.5 h-5 w-5 shrink-0" />
+                <div>
+                  <p className="font-bold">Não foi possível carregar os produtos desta tabela agora.</p>
+                  <p className="mt-1 text-amber-800">A configuração da tabela continua disponível. Atualize a página; se o aviso persistir, verifique a conexão do banco.</p>
+                </div>
+              </div>
+            </div>
+          ) : variants.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-6 py-10 text-center">
+              <PackageSearch className="mx-auto h-8 w-8 text-slate-400" />
+              <p className="mt-3 text-sm font-bold text-slate-800">Nenhum produto encontrado</p>
+              <p className="mt-1 text-sm text-slate-500">Ajuste os filtros ou cadastre produtos e variantes no catálogo.</p>
+            </div>
+          ) : (
+            <PriceEntriesTable priceTableId={tableId} variants={variants} />
+          )}
 
           {/* Paginação */}
           {totalPages > 1 && (

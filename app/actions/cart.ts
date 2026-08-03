@@ -53,6 +53,26 @@ export async function addToCartAction(data: unknown) {
   const { product_id, variant_id, quantity, target_company_id } = parsed.data
   const supabase = await createClient()
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (profile?.role === 'admin') {
+      return {
+        success: false,
+        code: 'ADMIN_PREVIEW_REQUIRED',
+        message: 'O administrador usa o carrinho em modo de prévia.',
+      }
+    }
+  }
+
   const { data: result, error } = await (supabase.rpc as any)('add_to_cart_atomic', {
     p_product_id: product_id,
     p_variant_id: variant_id ?? null,
@@ -67,7 +87,7 @@ export async function addToCartAction(data: unknown) {
 
   const r = result as any
   if (!r?.success) {
-    return { success: false, message: mapError(r?.code ?? '', r) }
+    return { success: false, code: r?.code ?? '', message: mapError(r?.code ?? '', r) }
   }
 
   revalidatePath('/carrinho')

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { serializeJsonLd } from '@/lib/utils/json-ld'
 import { notFound } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -13,17 +14,15 @@ import {
 import { CatalogBreadcrumb } from '@/components/catalog/catalog-breadcrumb'
 import { ProductGallery } from '@/components/product/product-gallery'
 import { ProductSummary } from '@/components/product/product-summary'
-import { ProductPricing } from '@/components/product/product-pricing'
 import { ProductPurchasePanelWrapper } from '@/components/product/product-purchase-panel-wrapper'
-import { ProductShippingEstimate } from '@/components/product/product-shipping-estimate'
 import { ProductBenefits } from '@/components/product/product-benefits'
 import { ProductDescription } from '@/components/product/product-description'
 import { ProductSpecifications } from '@/components/product/product-specifications'
 import { ProductPackaging } from '@/components/product/product-packaging'
 import { FrequentlyBoughtTogether } from '@/components/product/frequently-bought-together'
 import { ProductShowcase } from '@/components/home/product-showcase'
-import { RecentlyViewedProducts } from '@/components/product/recently-viewed-products'
 import { BusinessRegistrationCTA } from '@/components/home/business-registration-cta'
+import { getSiteUrl } from '@/lib/utils/site-url'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -32,6 +31,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params
+  const siteUrl = getSiteUrl()
   const authContext = await getAuthContext()
   const product = await getProductBySlug(slug, authContext)
 
@@ -40,19 +40,19 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 
   return {
-    title: `${product.name} no Atacado | Central Atacado B2B`,
+    title: `${product.name} no atacado`,
     description: `Compre ${product.name} no atacado. REF: ${product.sku}. Embalagem mínima: ${product.min_quantity} ${product.unit}. Cadastre seu CNPJ.`,
     alternates: {
-      canonical: `http://localhost:3000/produto/${slug}`,
+      canonical: `${siteUrl}/produto/${slug}`,
     },
     openGraph: {
-      title: `${product.name} no Atacado B2B`,
+      title: `${product.name} no atacado | Campos & Coelho`,
       description: `Compre ${product.name} no atacado direto da distribuidora.`,
-      url: `http://localhost:3000/produto/${slug}`,
-      siteName: 'Central Atacado',
+      url: `${siteUrl}/produto/${slug}`,
+      siteName: 'Campos & Coelho Atacado',
       images: [
         {
-          url: product.images[0] ?? 'http://localhost:3000/placeholder-product.png',
+          url: product.images[0] ?? `${siteUrl}/placeholder-product.png`,
           alt: product.name,
         },
       ],
@@ -68,6 +68,7 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
   const variantParam = typeof rawVariantParam === 'string' ? rawVariantParam : undefined
 
   const authContext = await getAuthContext()
+  const siteUrl = getSiteUrl()
 
   const product = await getProductBySlug(slug, authContext, variantParam)
 
@@ -80,8 +81,32 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
   // cai de volta no default e não conta como seleção explícita).
   const variantExplicitlySelected = Boolean(variantParam) && product.currentVariantId === variantParam
 
-  const relatedProducts = await getRelatedProducts(product, authContext)
-  const frequentlyBoughtTogether = await getFrequentlyBoughtTogether(product, authContext)
+  // Blocos secundários (produtos relacionados / comprados juntos) nunca podem
+  // impedir a renderização do conteúdo essencial do produto: se a consulta
+  // falhar, registramos o erro e caímos para uma lista vazia (a seção
+  // correspondente simplesmente não aparece, em vez de quebrar a página).
+  const [relatedProductsResult, frequentlyBoughtTogetherResult] = await Promise.allSettled([
+    getRelatedProducts(product, authContext),
+    getFrequentlyBoughtTogether(product, authContext),
+  ])
+
+  if (relatedProductsResult.status === 'rejected') {
+    console.error(
+      `[produto/${slug}] Falha ao carregar produtos relacionados:`,
+      relatedProductsResult.reason,
+    )
+  }
+  if (frequentlyBoughtTogetherResult.status === 'rejected') {
+    console.error(
+      `[produto/${slug}] Falha ao carregar "comprados juntos":`,
+      frequentlyBoughtTogetherResult.reason,
+    )
+  }
+
+  const relatedProducts =
+    relatedProductsResult.status === 'fulfilled' ? relatedProductsResult.value : []
+  const frequentlyBoughtTogether =
+    frequentlyBoughtTogetherResult.status === 'fulfilled' ? frequentlyBoughtTogetherResult.value : []
 
   // Structured Data (JSON-LD) público (sem preços privados)
   const jsonLd = {
@@ -90,14 +115,19 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
       {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Início', item: 'http://localhost:3000' },
+          { '@type': 'ListItem', position: 1, name: 'Início', item: siteUrl },
           {
             '@type': 'ListItem',
             position: 2,
             name: product.category?.name ?? 'Catálogo',
-            item: `http://localhost:3000/categoria/${product.category?.slug ?? 'catalogo'}`,
+            item: `${siteUrl}/categoria/${product.category?.slug ?? 'catalogo'}`,
           },
-          { '@type': 'ListItem', position: 3, name: product.name, item: `http://localhost:3000/produto/${slug}` },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: product.name,
+            item: `${siteUrl}/produto/${slug}`,
+          },
         ],
       },
       {
@@ -107,7 +137,7 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
         description: product.detail.longDescription,
         sku: product.sku,
         gtin13: product.detail.ean,
-        brand: { '@type': 'Brand', name: product.brand?.name ?? 'Central Atacado' },
+        brand: { '@type': 'Brand', name: product.brand?.name ?? 'Campos & Coelho' },
       },
     ],
   }
@@ -116,11 +146,11 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(jsonLd) }}
       />
 
-      <div className="py-6 bg-slate-50 min-h-screen">
-        <Container className="space-y-10">
+      <div className="min-h-screen overflow-x-hidden bg-slate-50 py-6 sm:py-10 lg:py-12">
+        <Container className="space-y-7 sm:space-y-10">
           {/* 1. Breadcrumb */}
           <CatalogBreadcrumb
             items={[
@@ -130,14 +160,14 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
           />
 
           {/* Grid Principal do Produto: Galeria (Esquerda) vs Resumo Commercial & Preço (Direita) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12 lg:gap-8">
             {/* Galeria de Imagens (5 colunas) */}
-            <div className="lg:col-span-5 sticky top-24">
+            <div className="lg:sticky lg:top-24 lg:col-span-5">
               <ProductGallery images={product.images} productName={product.name} />
             </div>
 
             {/* Resumo & Bloco de Compra (7 colunas) */}
-            <div className="lg:col-span-7 space-y-6">
+            <div className="min-w-0 space-y-6 lg:col-span-7">
               {/* Resumo Comercial */}
               <ProductSummary product={product} />
 
@@ -147,16 +177,13 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
                 variantExplicitlySelected={variantExplicitlySelected}
               />
 
-              {/* Simulador de Frete */}
-              <ProductShippingEstimate />
-
-              {/* Selos de Benefícios B2B */}
+              {/* Informações operacionais */}
               <ProductBenefits />
             </div>
           </div>
 
           {/* Abas / Seções de Detalhes: Descrição, Especificações, Embalagem Master */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 space-y-10 shadow-xs">
+          <div className="space-y-8 rounded-2xl border border-slate-200 bg-white p-4 shadow-xs sm:space-y-10 sm:rounded-3xl sm:p-8">
             <ProductDescription product={product} />
             <ProductSpecifications product={product} />
             <ProductPackaging product={product} />
@@ -174,19 +201,10 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
           {relatedProducts.length > 0 && (
             <ProductShowcase
               title="Produtos Relacionados"
-              subtitle="Itens do mesmo departamento recomendados para a sua loja."
               products={relatedProducts}
               canViewPrices={product.canViewPrices}
-              userStatus={product.userStatus}
             />
           )}
-
-          {/* Produtos Vistos Recentemente */}
-          <RecentlyViewedProducts
-            currentProductSlug={slug}
-            canViewPrices={product.canViewPrices}
-            userStatus={product.userStatus}
-          />
 
           {/* Chamada para Cadastro Empresarial se não aprovado */}
           {!product.canViewPrices && <BusinessRegistrationCTA />}

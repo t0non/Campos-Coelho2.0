@@ -73,7 +73,7 @@ export function InventoryAdjustmentModal({ inventory, open, onOpenChange }: Inve
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="block text-xs font-semibold text-muted-foreground mb-1">Estoque Físico Atual</label>
             <div className="p-2 border rounded bg-slate-50 text-sm font-mono">{currentAvailable}</div>
@@ -84,7 +84,7 @@ export function InventoryAdjustmentModal({ inventory, open, onOpenChange }: Inve
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="block text-xs font-semibold text-muted-foreground mb-1">Tipo de Ajuste</label>
             <select

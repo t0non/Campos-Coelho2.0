@@ -39,7 +39,7 @@ if (!supabaseUrl || !publishableKey || hostname.includes('placeholder')) {
   process.exit(1)
 }
 
-const DEFAULT_PASSWORD = 'DevelopmentPassword123!'
+const DEFAULT_PASSWORD = process.env.TEST_USER_PASSWORD
 
 async function runRealRlsSuite() {
   const publicClient = createClient(supabaseUrl, publishableKey)

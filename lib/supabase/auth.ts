@@ -1,13 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { cache } from 'react'
 import type { AuthContext, UserCompany, UserProfile } from '@/types/auth.types'
 import type { Database } from '@/types/database.types'
 
 type ProfileRow = Database['public']['Tables']['profiles']['Row']
-type CompanyRow = Pick<
-  Database['public']['Tables']['companies']['Row'],
-  'id' | 'cnpj' | 'company_name' | 'trade_name' | 'status' | 'seller_id'
->
 
 /**
  * Resolve o contexto de autenticação completo no servidor.
@@ -19,7 +16,7 @@ type CompanyRow = Pick<
  * Se o usuário existe mas o perfil não, encerra a sessão para evitar
  * estados inconsistentes.
  */
-export async function getAuthContext(): Promise<AuthContext> {
+export const getAuthContext = cache(async (): Promise<AuthContext> => {
   const supabase = await createClient()
 
   // getUser() valida o JWT no servidor — mais seguro que getSession()
@@ -63,6 +60,23 @@ export async function getAuthContext(): Promise<AuthContext> {
 
   const profile = profileData as ProfileRow
 
+  // Um perfil desativado ou suspenso não pode manter acesso ao sistema,
+  // inclusive quando o usuário ainda possui um token de autenticação válido.
+  if (profile.status !== 'active') {
+    try {
+      await supabase.auth.signOut()
+    } catch {
+      // O bloqueio de autorização abaixo continua valendo mesmo se o cookie
+      // não puder ser removido nesta resposta.
+    }
+    return {
+      user: null,
+      company: null,
+      canViewPrices: false,
+      canOrder: false,
+    }
+  }
+
   const userProfile: UserProfile = {
     id: profile.id,
     role: profile.role,
@@ -97,7 +111,7 @@ export async function getAuthContext(): Promise<AuthContext> {
 
   const { data: companyData, error: companyError } = await supabase
     .from('companies')
-    .select('id, cnpj, company_name, trade_name, status, seller_id')
+    .select('id, cnpj, company_name, trade_name, status, seller_id, price_table_id')
     .eq('id', profile.company_id)
     .single()
 
@@ -111,7 +125,7 @@ export async function getAuthContext(): Promise<AuthContext> {
   }
 
   const userCompany = companyData as UserCompany
-  const isApproved = userCompany.status === 'approved'
+  const isApproved = userCompany.status === 'approved' && Boolean(userCompany.price_table_id)
 
   return {
     user: userProfile,
@@ -119,7 +133,7 @@ export async function getAuthContext(): Promise<AuthContext> {
     canViewPrices: isApproved,
     canOrder: isApproved,
   }
-}
+})
 
 /**
  * Retorna o destino correto do usuário após o login, baseado em role e status.

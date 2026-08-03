@@ -17,7 +17,7 @@ const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 
 async function test() {
   const c = createClient(SUPABASE_URL, ANON_KEY)
-  const { data: cd, error: ce } = await c.auth.signInWithPassword({email: 'aprovado@cliente.com.br', password: 'DevelopmentPassword123!'})
+  const { data: cd, error: ce } = await c.auth.signInWithPassword({email: 'aprovado@cliente.com.br', password: process.env.TEST_USER_PASSWORD})
   const customerClient = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: `Bearer ${cd.session.access_token}` } } })
   
   const p = await customerClient.from('profiles').select('*')
@@ -26,7 +26,7 @@ async function test() {
   const co = await customerClient.from('companies').select('*')
   console.log("Customer querying companies:", co.error ? co.error.message : co.data.length)
 
-  const { data: sd, error: se } = await c.auth.signInWithPassword({email: 'vendedor@atacado.com.br', password: 'DevelopmentPassword123!'})
+  const { data: sd, error: se } = await c.auth.signInWithPassword({email: 'vendedor@atacado.com.br', password: process.env.TEST_USER_PASSWORD})
   const sellerClient = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: `Bearer ${sd.session.access_token}` } } })
 
   const sp = await sellerClient.from('profiles').select('*')

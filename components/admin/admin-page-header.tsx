@@ -8,12 +8,12 @@ interface AdminPageHeaderProps {
 
 export function AdminPageHeader({ title, description, action }: AdminPageHeaderProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
-        {description && <p className="mt-1 text-sm text-gray-500">{description}</p>}
+    <div className="mb-6 flex flex-col gap-4 border-b border-neutral-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-extrabold tracking-tight text-neutral-950 sm:text-3xl">{title}</h1>
+        {description && <p className="mt-1.5 max-w-2xl text-sm leading-6 text-neutral-500">{description}</p>}
       </div>
-      {action && <div>{action}</div>}
+      {action && <div className="w-full shrink-0 lg:w-auto">{action}</div>}
     </div>
   )
 }

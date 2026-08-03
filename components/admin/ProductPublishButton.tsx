@@ -8,10 +8,9 @@ import { useToast } from '@/hooks/use-toast'
 interface ProductPublishButtonProps {
   productId: string
   isPublished: boolean
-  isActive: boolean
 }
 
-export function ProductPublishButton({ productId, isPublished, isActive }: ProductPublishButtonProps) {
+export function ProductPublishButton({ productId, isPublished }: ProductPublishButtonProps) {
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
 

@@ -1,16 +1,14 @@
 import 'server-only'
 
 import { createClient } from '@/lib/supabase/server'
-import type { Database } from '@/types/database.types'
 
 type ProductRow = any
-type VariantRow = any
 type ImageRow = any
 type CategoryRow = any
 type BrandRow = any
 
 export type AdminProductListRow = ProductRow & {
-  category: Pick<CategoryRow, 'id' | 'name'> | null
+  category: Pick<CategoryRow, 'id' | 'name' | 'slug'> | null
   brand: Pick<BrandRow, 'id' | 'name'> | null
   variants: [{ count: number }]
   images: Pick<ImageRow, 'url' | 'alt_text'>[]
@@ -30,7 +28,7 @@ export async function getAdminProducts(params: {
 
   let query = supabase.from('products').select(`
     *,
-    category:categories(id, name),
+    category:categories(id, name, slug),
     brand:brands(id, name),
     variants:product_variants(count),
     images:product_images(url, alt_text)

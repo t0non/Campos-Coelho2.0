@@ -14,6 +14,7 @@ import { CatalogFilterSidebar } from '@/components/catalog/catalog-filter-sideba
 import { ProductCard } from '@/components/product/product-card'
 import { Pagination } from '@/components/ui/pagination'
 import { EmptyState } from '@/components/ui/empty-state'
+import { getSiteUrl } from '@/lib/utils/site-url'
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -25,14 +26,14 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const brand = await getBrandBySlug(slug)
 
   if (!brand) {
-    return { title: 'Marca Não Encontrada | Central Atacado' }
+    return { title: 'Marca não encontrada' }
   }
 
   return {
     title: brand.metaTitle,
     description: brand.metaDescription,
     alternates: {
-      canonical: `http://localhost:3000/marca/${slug}`,
+      canonical: `${getSiteUrl()}/marca/${slug}`,
     },
   }
 }
@@ -54,7 +55,7 @@ export default async function BrandPage({ params: paramsPromise, searchParams }:
   const filterOptions = await getCatalogFilterOptions(params, authContext)
 
   return (
-    <div className="py-6 bg-slate-50 min-h-screen">
+    <div className="min-h-screen bg-slate-50 py-10 sm:py-12">
       <Container className="space-y-6">
         {/* Breadcrumb */}
         <CatalogBreadcrumb
@@ -111,13 +112,12 @@ export default async function BrandPage({ params: paramsPromise, searchParams }:
                 actionHref="/catalogo"
               />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 md:gap-6">
                 {catalogData.products.map((product) => (
                   <ProductCard
                     key={product.id}
                     product={product}
                     canViewPrices={catalogData.canViewPrices}
-                    userStatus={catalogData.userStatus}
                   />
                 ))}
               </div>

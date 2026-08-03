@@ -1,27 +1,23 @@
 'use client'
 
 import { useRef } from 'react'
-import Link from 'next/link'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { ProductCard } from '@/components/product/product-card'
+import Link from 'next/link'
 import type { CatalogProduct } from '@/types/product.types'
 
 interface ProductShowcaseProps {
   title: string
-  subtitle?: string
-  tagline?: string
   products: CatalogProduct[]
   canViewPrices: boolean
-  userStatus: 'visitor' | 'pending' | 'approved' | 'rejected' | 'suspended'
-  seeAllHref?: string
+  href?: string
 }
 
 export function ProductShowcase({
   title,
   products,
   canViewPrices,
-  userStatus,
-  seeAllHref = '/catalogo',
+  href,
 }: ProductShowcaseProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -37,20 +33,35 @@ export function ProductShowcase({
   if (!products || products.length === 0) return null
 
   return (
-    <section className="py-8 bg-white select-none">
-      <div className="max-w-[1400px] mx-auto px-4">
+    <section className="site-section-compact select-none border-b border-neutral-100 bg-white">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
         {/* Section Header - Importec exact style */}
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-extrabold text-[#333333] tracking-tight">
-            {title}
-          </h2>
+        <div className="site-section-header flex items-center justify-between">
+          {href ? (
+            <Link
+              href={href}
+              className="site-section-title text-neutral-950 underline-offset-4 hover:underline"
+            >
+              {title}
+            </Link>
+          ) : (
+            <h2 className="site-section-title text-neutral-950">{title}</h2>
+          )}
 
           <div className="flex items-center gap-2">
+            {href && (
+              <Link
+                href={href}
+                className="mr-1 hidden text-xs font-bold uppercase tracking-wide text-neutral-600 hover:text-black sm:inline"
+              >
+                Ver todos
+              </Link>
+            )}
             <button
               type="button"
               onClick={() => scroll('left')}
               aria-label="Anterior"
-              className="w-8 h-8 rounded-full bg-[#333333] text-white hover:bg-[#111111] transition-colors flex items-center justify-center"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-700 transition-all hover:border-black hover:bg-neutral-100 hover:text-black"
             >
               <ChevronLeft className="h-5 w-5" />
             </button>
@@ -58,7 +69,7 @@ export function ProductShowcase({
               type="button"
               onClick={() => scroll('right')}
               aria-label="Próximo"
-              className="w-8 h-8 rounded-full bg-[#333333] text-white hover:bg-[#111111] transition-colors flex items-center justify-center"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-white shadow-md transition-all hover:scale-105 hover:bg-neutral-800"
             >
               <ChevronRight className="h-5 w-5" />
             </button>
@@ -68,14 +79,13 @@ export function ProductShowcase({
         {/* Product Carousel */}
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto scroll-smooth pb-4 no-scrollbar"
+          className="grid snap-x snap-mandatory grid-flow-col auto-cols-[calc((100%-0.75rem)/2)] gap-3 overflow-x-auto scroll-smooth pb-4 sm:auto-cols-[240px] sm:gap-4 no-scrollbar"
         >
           {products.map((product) => (
-            <div key={product.id} className="w-[240px] shrink-0">
+            <div key={product.id} className="min-w-0 snap-start">
               <ProductCard
                 product={product}
                 canViewPrices={canViewPrices}
-                userStatus={userStatus}
               />
             </div>
           ))}

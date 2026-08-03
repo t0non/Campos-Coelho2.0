@@ -48,12 +48,14 @@ export function parseCatalogParams(
   }
 
   const query = getSingle('q')?.trim() || getSingle('query')?.trim()
-  const category = getSingle('categoria') || getSingle('category')
+  const category = getSingle('categoria') || getSingle('category') || getSingle('cat')
   const subcategory = getSingle('subcategoria') || getSingle('subcategory')
   const brands = getArray('marca').concat(getArray('brands'))
   const availability = getSingle('disponibilidade') || getSingle('availability')
   const isNew = getSingle('novidade') === '1' || getSingle('isNew') === 'true'
-  const isPromotion = getSingle('promo') === '1' || getSingle('isPromotion') === 'true'
+  const isPromotion =
+    canViewPrices &&
+    (getSingle('promo') === '1' || getSingle('isPromotion') === 'true')
   const isBestSeller = getSingle('maisVendido') === '1' || getSingle('isBestSeller') === 'true'
   const minQuantityRange = getSingle('minQtyRange')
   const unit = getSingle('unidade') || getSingle('unit')

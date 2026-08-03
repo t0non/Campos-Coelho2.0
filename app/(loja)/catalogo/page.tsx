@@ -12,13 +12,14 @@ import { CatalogFilterSidebar } from '@/components/catalog/catalog-filter-sideba
 import { ProductCard } from '@/components/product/product-card'
 import { Pagination } from '@/components/ui/pagination'
 import { EmptyState } from '@/components/ui/empty-state'
+import { getSiteUrl } from '@/lib/utils/site-url'
 
 export const metadata: Metadata = {
-  title: 'Catálogo de Produtos para Revenda | Central Atacado B2B',
+  title: 'Catálogo de produtos para revenda',
   description:
     'Explore produtos para revenda em utilidades, brinquedos, ferramentas e papelaria com condições de atacado para empresas.',
   alternates: {
-    canonical: 'http://localhost:3000/catalogo',
+    canonical: `${getSiteUrl()}/catalogo`,
   },
 }
 
@@ -35,7 +36,7 @@ export default async function CatalogPage({ searchParams }: PageProps) {
   const filterOptions = await getCatalogFilterOptions(params, authContext)
 
   return (
-    <div className="py-6 bg-slate-50 min-h-screen">
+    <div className="min-h-screen bg-slate-50 py-10 sm:py-12">
       <Container className="space-y-6">
         {/* Breadcrumb */}
         <CatalogBreadcrumb items={[{ label: 'Catálogo de Produtos' }]} />
@@ -85,13 +86,12 @@ export default async function CatalogPage({ searchParams }: PageProps) {
                 actionHref="/catalogo"
               />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 md:gap-6">
                 {catalogData.products.map((product) => (
                   <ProductCard
                     key={product.id}
                     product={product}
                     canViewPrices={catalogData.canViewPrices}
-                    userStatus={catalogData.userStatus}
                   />
                 ))}
               </div>

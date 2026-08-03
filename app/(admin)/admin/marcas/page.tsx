@@ -1,4 +1,3 @@
-import { Suspense } from 'react'
 import Link from 'next/link'
 import { requireAdmin } from '@/lib/supabase/auth'
 import { getAdminBrands } from '@/lib/data/admin-catalog'

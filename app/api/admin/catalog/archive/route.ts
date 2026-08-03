@@ -1,20 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getAdminApiContext } from '@/lib/supabase/api-admin'
+import { ArchiveCatalogSchema } from '@/lib/validations/admin-import'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { confirmation_text } = await request.json()
-
-    if (confirmation_text !== 'REMOVER TODOS OS PRODUTOS') {
+    const auth = await getAdminApiContext()
+    if ('response' in auth) return auth.response
+    const { supabase } = auth
+    const parsed = ArchiveCatalogSchema.safeParse(await request.json())
+    if (!parsed.success) {
       return NextResponse.json({ error: 'Texto de confirmação incorreto' }, { status: 400 })
     }
+    const { confirmation_text } = parsed.data
 
     const { data, error } = await supabase.rpc('archive_all_catalog_products_atomic', {
       p_confirmation_text: confirmation_text
@@ -28,7 +25,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error: unknown) {
     console.error('Archive API Error:', error)
-    const message = error instanceof Error ? error.message : 'Erro interno no servidor'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: 'Não foi possível arquivar o catálogo.' }, { status: 500 })
   }
 }

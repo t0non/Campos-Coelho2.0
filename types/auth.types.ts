@@ -24,6 +24,7 @@ export interface UserCompany {
   trade_name: string | null
   status: CompanyStatus
   seller_id: string | null
+  price_table_id: string | null
 }
 
 // Contexto de autenticação resolvido no servidor
@@ -32,7 +33,7 @@ export interface AuthContext {
   company: UserCompany | null
   /**
    * Indica se o usuário tem permissão de visualizar preços.
-   * true somente para role=customer com company.status=approved,
+   * true somente para role=customer com company.status=approved e tabela de preços,
    * role=seller ou role=admin.
    */
   canViewPrices: boolean

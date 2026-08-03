@@ -15,7 +15,7 @@ import { Pagination } from '@/components/ui/pagination'
 import { EmptyState } from '@/components/ui/empty-state'
 
 export const metadata: Metadata = {
-  title: 'Busca de Produtos no Atacado | Central Atacado',
+  title: 'Busca de produtos no atacado',
   robots: {
     index: false,
     follow: true,
@@ -37,7 +37,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
   const queryTerm = params.query || ''
 
   return (
-    <div className="py-6 bg-slate-50 min-h-screen">
+    <div className="min-h-screen bg-slate-50 py-10 sm:py-12">
       <Container className="space-y-6">
         {/* Breadcrumb */}
         <CatalogBreadcrumb
@@ -134,13 +134,12 @@ export default async function SearchPage({ searchParams }: PageProps) {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 md:gap-6">
                 {catalogData.products.map((product) => (
                   <ProductCard
                     key={product.id}
                     product={product}
                     canViewPrices={catalogData.canViewPrices}
-                    userStatus={catalogData.userStatus}
                   />
                 ))}
               </div>

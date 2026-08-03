@@ -12,11 +12,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-')
 
     return (
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-1.5" data-field>
         {label && (
           <label
             htmlFor={inputId}
-            className="text-sm font-medium text-gray-700"
+            className="text-xs font-semibold text-gray-700"
           >
             {label}
             {props.required && (
@@ -30,7 +30,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={cn(
-            'h-10 w-full rounded-lg border bg-white px-3 text-sm text-gray-900 placeholder:text-gray-400 transition-colors',
+            'h-11 w-full rounded-lg border bg-white px-3.5 text-sm text-gray-900 placeholder:text-gray-400 transition-colors',
             'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent',
             error
               ? 'border-red-400 focus:ring-red-400'

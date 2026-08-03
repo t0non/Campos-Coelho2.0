@@ -64,11 +64,9 @@ npm run seed
 ```
 
 **Usuários criados para desenvolvimento:**
-- 🛡️ **Administrador**: `admin@atacado.com.br` | Senha: `DevelopmentPassword123!`
-- 👔 **Vendedor**: `vendedor@atacado.com.br` | Senha: `DevelopmentPassword123!`
-- ✅ **Cliente Aprovado**: `aprovado@cliente.com.br` | Senha: `DevelopmentPassword123!`
-- ⏳ **Cliente Pendente**: `pendente@cliente.com.br` | Senha: `DevelopmentPassword123!`
-- ❌ **Cliente Recusado**: `recusado@cliente.com.br` | Senha: `DevelopmentPassword123!`
+As credenciais de desenvolvimento não são armazenadas no repositório. Configure
+contas descartáveis e senhas exclusivas por meio da variável
+`TEST_USER_PASSWORD` no seu `.env.local`.
 
 ---
 

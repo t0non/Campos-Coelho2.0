@@ -2,16 +2,19 @@
 
 import { Check, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { getProductDisplayName } from '@/lib/utils/product-display-name'
 
 interface VariantOption {
   id: string
   sku: string
   name: string
   attributes: Record<string, string>
-  availableStock: number
+  availableStock?: number
+  isAvailable: boolean
 }
 
 interface VariantSelectorProps {
+  productName: string
   variants: VariantOption[]
   selectedVariantId: string | null
   onSelect: (variantId: string) => void
@@ -26,6 +29,7 @@ function variantLabel(v: VariantOption): string {
 }
 
 export function VariantSelector({
+  productName,
   variants,
   selectedVariantId,
   onSelect,
@@ -33,6 +37,14 @@ export function VariantSelector({
   isPending = false,
 }: VariantSelectorProps) {
   if (variants.length === 0) return null
+  if (
+    !interactive &&
+    variants.length === 1 &&
+    getProductDisplayName(productName, variantLabel(variants[0])) ===
+      getProductDisplayName(productName)
+  ) {
+    return null
+  }
 
   return (
     <div className="space-y-2">
@@ -48,7 +60,7 @@ export function VariantSelector({
       <div className="flex flex-wrap gap-2" role={interactive ? 'radiogroup' : undefined}>
         {variants.map((v) => {
           const isSelected = v.id === selectedVariantId
-          const outOfStock = v.availableStock <= 0
+          const outOfStock = !v.isAvailable
 
           if (!interactive) {
             // Única variante ativa: indicador não-clicável, apenas informativo.

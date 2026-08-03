@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "node --experimental-strip-types --test tests/security-and-business-rules.test.ts",
+    "test:functional": "tsx tests/registration-to-product.functional.ts",
     "type-check": "tsc --noEmit",
     "seed": "npx tsx scripts/seed.ts"
   },
@@ -14,15 +16,15 @@
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.50.0",
     "clsx": "^2.1.1",
-    "date-fns": "^4.4.0",
     "lucide-react": "^0.517.0",
-    "next": "16.2.11",
+    "next": "16.2.12",
+    "postcss": "8.5.25",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-hook-form": "^7.56.4",
+    "sharp": "0.35.3",
     "tailwind-merge": "^3.3.1",
-    "use-debounce": "^10.1.1",
-    "xlsx": "^0.18.5",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
     "zod": "^3.25.67"
   },
   "devDependencies": {
@@ -33,5 +35,9 @@
     "tailwindcss": "^4",
     "tsx": "^4.19.2",
     "typescript": "5.9.3"
+  },
+  "overrides": {
+    "postcss": "8.5.25",
+    "sharp": "0.35.3"
   }
 }

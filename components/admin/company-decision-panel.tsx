@@ -4,7 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { CheckCircle2, XCircle, UserCheck, ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { approveCompanyAction, rejectCompanyAction, assignSellerAction } from '@/app/actions/company'
+import {
+  approveCompanyAction,
+  rejectCompanyAction,
+  assignSellerAction,
+  reactivateCompanyAction,
+  suspendCompanyAction,
+} from '@/app/actions/company'
 
 interface SellerOption {
   id: string
@@ -38,6 +44,8 @@ export function CompanyDecisionPanel({
   const [rejectionReason, setRejectionReason] = useState<string>(currentReason || '')
   const [internalNotes, setInternalNotes] = useState<string>(currentNotes || '')
   const [showRejectForm, setShowRejectForm] = useState(false)
+  const [showSuspendForm, setShowSuspendForm] = useState(false)
+  const [suspensionReason, setSuspensionReason] = useState('')
 
   const handleApprove = async () => {
     if (!confirm('Confirmar a APROVAÇÃO desta empresa? O cliente terá acesso liberado aos preços e pedidos.')) {
@@ -98,11 +106,43 @@ export function CompanyDecisionPanel({
     }
   }
 
+  const handleSuspend = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setLoading(true)
+    setErrorMsg(null)
+    setSuccessMsg(null)
+    try {
+      await suspendCompanyAction(companyId, suspensionReason)
+      setSuccessMsg('Empresa suspensa e cliente notificado.')
+      setShowSuspendForm(false)
+      router.refresh()
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : 'Falha ao suspender empresa.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleReactivate = async () => {
+    setLoading(true)
+    setErrorMsg(null)
+    setSuccessMsg(null)
+    try {
+      await reactivateCompanyAction(companyId, internalNotes)
+      setSuccessMsg('Empresa reativada com acesso comercial liberado.')
+      router.refresh()
+    } catch (err: unknown) {
+      setErrorMsg(err instanceof Error ? err.message : 'Falha ao reativar empresa.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-6">
-      <h2 className="text-base font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
-        <ShieldAlert className="h-5 w-5 text-blue-600" />
-        <span>Painel de Decisão Comercial (Administrador)</span>
+    <div className="space-y-5 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5 lg:space-y-6">
+      <h2 className="flex items-start gap-2 border-b border-gray-100 pb-3 text-sm font-bold leading-5 text-gray-900 sm:items-center sm:text-base">
+        <ShieldAlert className="h-5 w-5 shrink-0 text-blue-600" />
+        <span>Decisão comercial</span>
       </h2>
 
       {errorMsg && (
@@ -119,12 +159,12 @@ export function CompanyDecisionPanel({
 
       {/* Atribuição de Vendedor */}
       <div className="space-y-2">
-        <label className="block text-xs font-bold text-gray-700">Vendedor Responsável pela Carteira:</label>
-        <div className="flex items-center gap-3">
+        <label className="block text-xs font-bold text-gray-700">Vendedor responsável pela carteira</label>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center lg:flex-col xl:flex-row">
           <select
             value={selectedSeller}
             onChange={(e) => setSelectedSeller(e.target.value)}
-            className="flex-1 rounded-lg border border-gray-300 p-2 text-xs font-medium outline-none"
+            className="h-11 w-full min-w-0 rounded-lg border border-gray-300 bg-white px-3 text-xs font-medium outline-none"
           >
             <option value="">Nenhum vendedor atribuído (Sem carteira)</option>
             {sellers.map((s) => (
@@ -139,7 +179,7 @@ export function CompanyDecisionPanel({
             size="sm"
             onClick={handleAssignSeller}
             loading={loading}
-            className="text-xs font-bold"
+            className="w-full shrink-0 text-xs font-bold sm:w-auto lg:w-full xl:w-auto"
           >
             <UserCheck className="h-3.5 w-3.5 mr-1 text-blue-600" />
             <span>Atribuir</span>
@@ -149,7 +189,7 @@ export function CompanyDecisionPanel({
 
       {/* Observação Interna (Apenas Admin) */}
       <div className="space-y-1">
-        <label className="block text-xs font-bold text-gray-700">Observação Interna (Visível apenas para administradores):</label>
+        <label className="block text-xs font-bold text-gray-700">Observação interna <span className="font-medium text-gray-500">(somente administradores)</span></label>
         <textarea
           rows={2}
           value={internalNotes}
@@ -160,35 +200,54 @@ export function CompanyDecisionPanel({
       </div>
 
       {/* Ações de Aprovação ou Recusa */}
-      <div className="pt-2 border-t border-gray-100 flex flex-wrap items-center gap-3">
-        {currentStatus !== 'approved' && (
+      <div className="grid gap-2 border-t border-gray-100 pt-3 sm:grid-cols-2 lg:grid-cols-1">
+        {currentStatus === 'suspended' && (
+          <Button type="button" onClick={handleReactivate} loading={loading} className="w-full">
+            <CheckCircle2 className="h-4 w-4 mr-2" />
+            <span>Reativar Empresa</span>
+          </Button>
+        )}
+
+        {(currentStatus === 'pending' || currentStatus === 'rejected') && (
           <Button
             type="button"
             onClick={handleApprove}
             loading={loading}
-            className="bg-green-600 hover:bg-green-700 text-white font-bold"
+            className="w-full bg-green-600 font-bold text-white hover:bg-green-700"
           >
             <CheckCircle2 className="h-4 w-4 mr-2" />
             <span>Aprovar Empresa</span>
           </Button>
         )}
 
-        {currentStatus !== 'rejected' && (
+        {(currentStatus === 'pending' || currentStatus === 'approved') && (
           <Button
             type="button"
             variant="outline"
             onClick={() => setShowRejectForm(!showRejectForm)}
-            className="border-red-200 text-red-700 hover:bg-red-50 font-bold"
+            className="w-full border-red-200 font-bold text-red-700 hover:bg-red-50"
           >
             <XCircle className="h-4 w-4 mr-2 text-red-600" />
             <span>Recusar Cadastro...</span>
+          </Button>
+        )}
+
+        {currentStatus === 'approved' && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShowSuspendForm(!showSuspendForm)}
+            className="w-full border-amber-200 font-bold text-amber-800 hover:bg-amber-50"
+          >
+            <ShieldAlert className="h-4 w-4 mr-2" />
+            <span>Suspender acesso...</span>
           </Button>
         )}
       </div>
 
       {/* Formulário de Recusa com Mensagem Pública */}
       {showRejectForm && (
-        <form onSubmit={handleReject} className="rounded-xl border border-red-200 bg-red-50/60 p-4 space-y-3">
+        <form onSubmit={handleReject} className="space-y-3 rounded-xl border border-red-200 bg-red-50/60 p-3 sm:p-4">
           <h3 className="text-xs font-bold text-red-900">Mensagem Pública de Recusa (Visível ao cliente):</h3>
           <textarea
             rows={3}
@@ -198,22 +257,46 @@ export function CompanyDecisionPanel({
             placeholder="Informe claramente o motivo da recusa ou as correções necessárias (ex: Contrato social desatualizado ou Inscrição Estadual inapta...)"
             className="w-full rounded-lg border border-red-300 bg-white p-2.5 text-xs outline-none focus:border-red-500"
           />
-          <div className="flex items-center justify-end gap-2">
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
             <Button
               type="button"
               variant="ghost"
               size="sm"
               onClick={() => setShowRejectForm(false)}
             >
-              Cancelar
+              <span>Cancelar</span>
             </Button>
             <Button
               type="submit"
               size="sm"
               loading={loading}
-              className="bg-red-600 hover:bg-red-700 text-white font-bold"
+              className="w-full bg-red-600 font-bold text-white hover:bg-red-700 sm:w-auto"
             >
               Confirmar Recusa
+            </Button>
+          </div>
+        </form>
+      )}
+
+      {showSuspendForm && (
+        <form onSubmit={handleSuspend} className="space-y-3 rounded-xl border border-amber-200 bg-amber-50/60 p-3 sm:p-4">
+          <h3 className="text-xs font-bold text-amber-950">Motivo da suspensão (visível ao cliente):</h3>
+          <textarea
+            rows={3}
+            required
+            minLength={5}
+            maxLength={1000}
+            value={suspensionReason}
+            onChange={(event) => setSuspensionReason(event.target.value)}
+            placeholder="Explique por que o acesso comercial foi suspenso e como regularizar."
+            className="w-full rounded-lg border border-amber-300 bg-white p-2.5 text-xs outline-none focus:border-amber-600"
+          />
+          <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+            <Button type="button" variant="ghost" size="sm" onClick={() => setShowSuspendForm(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" size="sm" loading={loading} className="w-full bg-amber-700 text-white hover:bg-amber-800 sm:w-auto">
+              Confirmar suspensão
             </Button>
           </div>
         </form>

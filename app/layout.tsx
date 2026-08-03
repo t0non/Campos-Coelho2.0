@@ -1,28 +1,17 @@
 import type { Metadata } from 'next'
-import { Inter, Manrope } from 'next/font/google'
 import './globals.css'
-
-const inter = Inter({
-  subsets: ['latin'],
-  variable: '--font-inter',
-  display: 'swap',
-  weight: ['400', '500', '600'],
-})
-
-const manrope = Manrope({
-  subsets: ['latin'],
-  variable: '--font-manrope',
-  display: 'swap',
-  weight: ['600', '700', '800'],
-})
+import { montserrat } from './fonts'
+import { getSiteUrl } from '@/lib/utils/site-url'
+import { AuthUrlErrorRedirect } from '@/components/auth/auth-url-error-redirect'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
   title: {
-    default: 'AtacadoB2B — Plataforma de Atacado para Empresas',
-    template: '%s | AtacadoB2B',
+    default: 'Campos & Coelho Atacado — Distribuição para empresas',
+    template: '%s | Campos & Coelho Atacado',
   },
   description:
-    'Plataforma B2B para compras no atacado. Cadastre sua empresa e acesse preços exclusivos, pedido mínimo e condições especiais.',
+    'Distribuidora B2B para lojistas e empresas. Cadastre sua empresa e acesse preços, disponibilidade e condições comerciais.',
   robots: {
     index: true,
     follow: true,
@@ -40,8 +29,9 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} ${manrope.variable} h-full antialiased`}>
-      <body className="min-h-full bg-white font-sans text-gray-900 leading-relaxed">
+    <html lang="pt-BR" className={`${montserrat.variable} h-full antialiased`}>
+      <body className="min-h-full bg-neutral-50 font-sans text-neutral-900">
+        <AuthUrlErrorRedirect />
         {children}
       </body>
     </html>

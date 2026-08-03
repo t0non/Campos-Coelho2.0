@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Copy, Check, Share2, MessageCircle, Mail } from 'lucide-react'
+import { Copy, Check, MessageCircle } from 'lucide-react'
 import { Modal } from '@/components/ui/modal'
 
 interface ProductShareModalProps {
@@ -24,7 +24,7 @@ export function ProductShareModal({ isOpen, onClose, productName }: ProductShare
   const handleWhatsApp = () => {
     if (typeof window !== 'undefined') {
       const text = encodeURIComponent(
-        `Confira este produto na Central Atacado: ${productName}\n${window.location.href}`,
+        `Confira este produto na Campos & Coelho: ${productName}\n${window.location.href}`,
       )
       window.open(`https://api.whatsapp.com/send?text=${text}`, '_blank')
     }

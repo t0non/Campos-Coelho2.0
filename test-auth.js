@@ -1,13 +1,25 @@
 const { createClient } = require('@supabase/supabase-js');
+const { loadEnvConfig } = require('@next/env');
+
+loadEnvConfig(process.cwd());
+
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY) {
+  throw new Error('Configure as variáveis públicas do Supabase em .env.local.');
+}
+
+if (!process.env.TEST_ADMIN_EMAIL || !process.env.TEST_ADMIN_PASSWORD) {
+  throw new Error('Defina TEST_ADMIN_EMAIL e TEST_ADMIN_PASSWORD apenas no ambiente local.');
+}
+
 const supabase = createClient(
-  'https://szntzeclwouyidfossrk.supabase.co',
-  'sb_publishable__8fluEp5frSCj8e6L4Ey7A_yD38juUJ'
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 );
 
 async function test() {
   const { data: auth, error: authError } = await supabase.auth.signInWithPassword({
-    email: 'admin@camposecoelho.com.br',
-    password: 'Admin@2026!'
+    email: process.env.TEST_ADMIN_EMAIL,
+    password: process.env.TEST_ADMIN_PASSWORD
   });
   
   if (authError) {

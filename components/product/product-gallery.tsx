@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { ChevronLeft, ChevronRight, ZoomIn, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react'
 import { Modal } from '@/components/ui/modal'
 
 interface ProductGalleryProps {
@@ -26,13 +26,13 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
   return (
     <div className="space-y-4 select-none">
       {/* Contêiner da Imagem Principal */}
-      <div className="relative aspect-square overflow-hidden rounded-2xl bg-white border border-slate-200 p-4 shadow-xs group">
+      <div className="group relative aspect-square overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-xs sm:p-4">
         <Image
           src={galleryImages[selectedIndex]}
           alt={`${productName} - Imagem ${selectedIndex + 1}`}
           fill
-          priority
-          className="object-contain p-4 transition-transform duration-300 group-hover:scale-105"
+          preload
+          className="object-contain p-2 transition-transform duration-300 group-hover:scale-105 sm:p-4"
           sizes="(max-width: 1024px) 100vw, 50vw"
         />
 
@@ -41,7 +41,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           type="button"
           onClick={() => setIsZoomOpen(true)}
           aria-label="Ampliar imagem do produto"
-          className="absolute top-3 right-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 text-slate-700 shadow-sm border border-slate-200 backdrop-blur-xs hover:bg-orange-500 hover:text-white transition-colors"
+          className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white/95 text-slate-700 shadow-sm backdrop-blur-xs transition-colors hover:bg-orange-500 hover:text-white"
         >
           <ZoomIn className="h-4 w-4" />
         </button>

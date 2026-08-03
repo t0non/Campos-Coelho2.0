@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { AdminPageHeader } from '@/components/admin/admin-page-header'
 import { Button } from '@/components/ui/button'
-import { AlertCircle, Upload, CheckCircle2, FileSpreadsheet, Loader2 } from 'lucide-react'
+import { AlertCircle, CheckCircle2, FileSpreadsheet, Loader2 } from 'lucide-react'
 
 type PriceTable = { id: string; name: string }
 
@@ -20,14 +20,11 @@ type Step = 1 | 2 | 3 | 4 | 5
 
 export default function ImportarPlanilhaClient({ initialPriceTables }: { initialPriceTables: PriceTable[] }) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const initialMode = 'import_update'
-
   const [step, setStep] = useState<Step>(1)
   const [file, setFile] = useState<File | null>(null)
-  const [mode, setMode] = useState<'import_update' | 'replace'>(initialMode)
+  const [mode, setMode] = useState<'import_update' | 'replace'>('import_update')
   const [priceTableId, setPriceTableId] = useState<string>('')
-  const [publish, setPublish] = useState(false)
+  const [publish, setPublish] = useState(true)
   const [confirmGlobal, setConfirmGlobal] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -193,20 +190,29 @@ export default function ImportarPlanilhaClient({ initialPriceTables }: { initial
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Modo de Importação</label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div 
-                    className={`border rounded-lg p-4 transition-colors border-navy-600 bg-navy-50`}
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => setMode('import_update')}
+                    className={`border rounded-lg p-4 text-left transition-colors ${
+                      mode === 'import_update' ? 'border-navy-600 bg-navy-50' : 'border-slate-200 bg-white'
+                    }`}
                   >
                     <h4 className="font-semibold text-slate-900">Importar e Atualizar</h4>
                     <p className="text-xs text-slate-500 mt-1">Cria novos produtos e atualiza os existentes. Não remove nada.</p>
-                  </div>
-                  <div 
-                    className={`border rounded-lg p-4 bg-slate-50 opacity-50 cursor-not-allowed`}
-                    title="Função disponível após a homologação inicial do catálogo."
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode('replace')}
+                    className={`border rounded-lg p-4 text-left transition-colors ${
+                      mode === 'replace'
+                        ? 'border-amber-500 bg-amber-50'
+                        : 'border-slate-200 bg-white hover:border-slate-400'
+                    }`}
                   >
-                    <h4 className="font-semibold text-slate-600">Substituir Catálogo</h4>
-                    <p className="text-xs text-slate-500 mt-1">Função disponível após a homologação inicial do catálogo.</p>
-                  </div>
+                    <h4 className="font-semibold text-slate-900">Substituir Catálogo</h4>
+                    <p className="text-xs text-slate-500 mt-1">Arquiva produtos ausentes após importar a planilha completa.</p>
+                  </button>
                 </div>
               </div>
 
@@ -239,7 +245,7 @@ export default function ImportarPlanilhaClient({ initialPriceTables }: { initial
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Tabela de Preços (Opcional)</label>
                   <select 
@@ -256,11 +262,11 @@ export default function ImportarPlanilhaClient({ initialPriceTables }: { initial
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Publicação de Novos Produtos</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Publicação no Catálogo</label>
                   <div className="flex items-center h-10">
                     <label className="flex items-center gap-2 text-sm">
                       <input type="checkbox" checked={publish} onChange={e => setPublish(e.target.checked)} className="rounded border-slate-300" />
-                      Publicar automaticamente novos produtos
+                      Manter produtos ativos publicados
                     </label>
                   </div>
                 </div>
@@ -281,7 +287,7 @@ export default function ImportarPlanilhaClient({ initialPriceTables }: { initial
           <div className="space-y-6">
             <h3 className="text-lg font-medium">Prévia da Importação</h3>
             
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
               <div className="p-4 border rounded-lg bg-slate-50">
                 <p className="text-sm text-slate-500">Total Analisado</p>
                 <p className="text-2xl font-semibold">{stats.total}</p>
@@ -364,7 +370,7 @@ export default function ImportarPlanilhaClient({ initialPriceTables }: { initial
               ></div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 max-w-md mx-auto mt-6 text-sm text-slate-600">
+            <div className="mx-auto mt-6 grid max-w-md grid-cols-1 gap-4 text-sm text-slate-600 sm:grid-cols-2">
               <div className="text-right">Criados: <strong>{results.created}</strong></div>
               <div className="text-left">Atualizados: <strong>{results.updated}</strong></div>
             </div>

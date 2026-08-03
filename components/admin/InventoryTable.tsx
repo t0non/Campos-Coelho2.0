@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { StatusBadge } from '@/components/admin/status-badge'
 import { Button } from '@/components/ui/button'
 import { History, Pencil } from 'lucide-react'
 import { InventoryAdjustmentModal } from './InventoryAdjustmentModal'
@@ -37,7 +36,51 @@ export function InventoryTable({ data }: InventoryTableProps) {
 
   return (
     <>
-      <div className="bg-white border rounded-md overflow-x-auto">
+      <div className="grid gap-3 md:hidden">
+        {data.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-10 text-center text-sm text-neutral-500">
+            Nenhum registro de estoque encontrado.
+          </div>
+        ) : data.map((inv) => {
+          const usable = inv.quantity_available - inv.quantity_reserved
+          return (
+            <article key={inv.id} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h2 className="truncate text-sm font-extrabold text-neutral-950">{inv.product?.name}</h2>
+                  <p className="mt-1 truncate text-xs text-neutral-500">{inv.variant?.name || 'Sem variante'}</p>
+                  <p className="mt-1 font-mono text-[11px] text-neutral-400">{inv.variant?.sku || inv.product?.sku}</p>
+                </div>
+                {getStockStatusBadge(inv)}
+              </div>
+              <dl className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-neutral-50 p-3 text-center">
+                <div>
+                  <dt className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Físico</dt>
+                  <dd className="mt-1 text-base font-extrabold text-neutral-900">{inv.quantity_available}</dd>
+                </div>
+                <div>
+                  <dt className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Reservado</dt>
+                  <dd className="mt-1 text-base font-extrabold text-neutral-600">{inv.quantity_reserved}</dd>
+                </div>
+                <div>
+                  <dt className="text-[10px] font-bold uppercase tracking-wide text-neutral-400">Utilizável</dt>
+                  <dd className={`mt-1 text-base font-extrabold ${usable <= 0 ? 'text-rose-600' : 'text-emerald-700'}`}>{usable}</dd>
+                </div>
+              </dl>
+              <div className="mt-3 flex gap-2">
+                <Button variant="secondary" size="sm" onClick={() => setSelectedInventory(inv)} className="min-h-10 flex-1">
+                  <Pencil className="h-4 w-4" /> Ajustar
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => setHistoryInventory(inv)} className="min-h-10 flex-1">
+                  <History className="h-4 w-4" /> Histórico
+                </Button>
+              </div>
+            </article>
+          )
+        })}
+      </div>
+
+      <div className="hidden md:block">
         <Table>
           <TableHeader>
             <TableRow>

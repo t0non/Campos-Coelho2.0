@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import {
   Gamepad2,
   Home,
@@ -13,7 +14,7 @@ import {
   Utensils,
   LayoutGrid,
 } from 'lucide-react'
-import type { CategoryCardData } from '@/lib/mocks/mock-categories'
+import type { CategoryCardData } from '@/lib/data/home'
 
 interface FeaturedCategoriesProps {
   categories: CategoryCardData[]
@@ -40,11 +41,11 @@ export function FeaturedCategories({ categories }: FeaturedCategoriesProps) {
   const displayCategories = categories.slice(0, 12)
 
   return (
-    <section className="py-12 bg-white select-none">
-      <div className="max-w-[1200px] mx-auto px-4">
+    <section className="site-section select-none border-y border-neutral-100 bg-neutral-50">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6">
         {/* Title Centered like Importec */}
-        <div className="text-center mb-10">
-          <h2 className="text-3xl font-extrabold text-[#333333]">
+        <div className="site-section-header text-center">
+          <h2 className="site-section-title text-neutral-950">
             Navegue por departamentos
           </h2>
         </div>
@@ -53,6 +54,9 @@ export function FeaturedCategories({ categories }: FeaturedCategoriesProps) {
         <div className="flex flex-wrap justify-center gap-6 sm:gap-10">
           {displayCategories.map((cat) => {
             const IconComponent = CATEGORY_ICON_MAP[cat.slug ?? ''] ?? LayoutGrid
+            const hasCustomImage = Boolean(
+              cat.imageUrl && cat.imageUrl !== '/placeholder-category.png',
+            )
 
             return (
               <Link
@@ -61,11 +65,21 @@ export function FeaturedCategories({ categories }: FeaturedCategoriesProps) {
                 className="flex flex-col items-center group w-24 sm:w-32"
               >
                 {/* Circle Container */}
-                <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border-[1.5px] border-[#333333] bg-white flex items-center justify-center mb-4 group-hover:bg-[#f5f5f5] group-hover:scale-105 transition-all duration-300 shadow-sm">
-                  <IconComponent className="w-10 h-10 sm:w-14 sm:h-14 text-[#333333] group-hover:text-[#111111] stroke-[1.5]" />
+                <div className="relative mb-4 flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-neutral-200 bg-white shadow-[0_8px_24px_rgba(0,0,0,0.06)] transition-all duration-300 group-hover:-translate-y-1 group-hover:border-black group-hover:shadow-[0_14px_32px_rgba(0,0,0,0.12)] sm:h-32 sm:w-32">
+                  {hasCustomImage ? (
+                    <Image
+                      src={cat.imageUrl}
+                      alt={cat.name}
+                      fill
+                      sizes="(min-width: 640px) 128px, 96px"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <IconComponent className="h-10 w-10 stroke-[1.5] text-neutral-800 transition-transform duration-300 group-hover:scale-110 sm:h-14 sm:w-14" />
+                  )}
                 </div>
                 {/* Text Label */}
-                <span className="text-xs sm:text-sm font-bold text-[#333333] group-hover:text-[#111111] uppercase tracking-wide text-center leading-tight">
+                <span className="text-center text-xs font-bold uppercase leading-tight tracking-wide text-neutral-800 transition-colors group-hover:text-black sm:text-sm">
                   {cat.name}
                 </span>
               </Link>

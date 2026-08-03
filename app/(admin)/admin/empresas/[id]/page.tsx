@@ -79,10 +79,10 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
     .limit(20)
 
   return (
-    <div className="space-y-6 max-w-5xl">
+    <div className="mx-auto w-full max-w-6xl space-y-5 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
+      <div className="flex flex-col gap-3 border-b border-neutral-200 pb-5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div className="min-w-0 space-y-1">
           <Link
             href="/admin/empresas"
             className="inline-flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-800 font-medium mb-2"
@@ -90,56 +90,64 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
             <ArrowLeft className="h-3.5 w-3.5" />
             Voltar à listagem
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
-            <Building2 className="h-7 w-7 text-blue-600" />
-            {company.company_name}
+          <h1 className="flex min-w-0 items-start gap-2.5 text-xl font-extrabold leading-tight text-neutral-950 sm:items-center sm:text-2xl">
+            <Building2 className="mt-0.5 h-6 w-6 shrink-0 text-blue-600 sm:mt-0 sm:h-7 sm:w-7" />
+            <span className="min-w-0 break-words">{company.company_name}</span>
           </h1>
           {company.trade_name && (
             <p className="text-sm text-gray-500">({company.trade_name})</p>
           )}
         </div>
-        <Badge variant={statusVariant[company.status] ?? 'default'} className="px-3 py-1.5 text-sm font-semibold shrink-0">
+        <Badge variant={statusVariant[company.status] ?? 'default'} className="w-fit shrink-0 px-3 py-1.5 text-xs font-bold sm:text-sm">
           {COMPANY_STATUS_LABELS[company.status] || company.status}
         </Badge>
       </div>
 
       {/* Grid de 2 colunas */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid gap-4 lg:grid-cols-3 lg:gap-6">
         {/* Coluna principal (2/3) */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="order-2 space-y-4 lg:order-1 lg:col-span-2 lg:space-y-6">
           {/* Dados Cadastrais */}
-          <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+          <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
             <h2 className="text-base font-bold text-gray-900 border-b pb-3">Dados Cadastrais</h2>
-            <dl className="grid sm:grid-cols-2 gap-3 text-sm">
-              <div>
+            <dl className="grid gap-4 text-sm sm:grid-cols-2 sm:gap-3">
+              <div className="min-w-0">
                 <dt className="text-xs text-gray-500">CNPJ:</dt>
-                <dd className="font-bold text-gray-900 font-mono">{maskCNPJ(company.cnpj)}</dd>
+                <dd className="break-words font-mono font-bold text-gray-900">{maskCNPJ(company.cnpj)}</dd>
               </div>
-              <div>
+              <div className="min-w-0">
                 <dt className="text-xs text-gray-500">Inscrição Estadual:</dt>
                 <dd className="font-semibold text-gray-900">{company.state_registration || 'Isento / Não informado'}</dd>
               </div>
-              <div>
+              <div className="min-w-0">
                 <dt className="text-xs text-gray-500">E-mail Comercial:</dt>
-                <dd className="font-semibold text-gray-900">{company.email || '—'}</dd>
+                <dd className="break-all font-semibold text-gray-900">{company.email || '—'}</dd>
               </div>
-              <div>
+              <div className="min-w-0">
                 <dt className="text-xs text-gray-500">Telefone:</dt>
                 <dd className="font-semibold text-gray-900">{company.phone ? maskPhone(company.phone) : '—'}</dd>
               </div>
-              <div>
+              <div className="min-w-0">
                 <dt className="text-xs text-gray-500">WhatsApp:</dt>
                 <dd className="font-semibold text-gray-900">{company.whatsapp ? maskPhone(company.whatsapp) : '—'}</dd>
               </div>
-              <div>
+              <div className="min-w-0">
                 <dt className="text-xs text-gray-500">Segmento:</dt>
                 <dd className="font-semibold text-gray-900">{company.segment || '—'}</dd>
               </div>
-              <div>
-                <dt className="text-xs text-gray-500">Site:</dt>
-                <dd className="font-semibold text-gray-900 truncate">{company.website || '—'}</dd>
+              <div className="min-w-0">
+                <dt className="text-xs text-gray-500">Tipo de negocio:</dt>
+                <dd className="font-semibold text-gray-900">{company.business_type || '—'}</dd>
               </div>
-              <div>
+              <div className="min-w-0">
+                <dt className="text-xs text-gray-500">Volume estimado:</dt>
+                <dd className="font-semibold text-gray-900">{company.estimated_order_volume || '—'}</dd>
+              </div>
+              <div className="min-w-0">
+                <dt className="text-xs text-gray-500">Site:</dt>
+                <dd className="break-all font-semibold text-gray-900">{company.website || '—'}</dd>
+              </div>
+              <div className="min-w-0">
                 <dt className="text-xs text-gray-500">Data de Submissão:</dt>
                 <dd className="font-semibold text-gray-900">
                   {company.submitted_at
@@ -180,12 +188,12 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
 
           {/* Endereço */}
           {address && (
-            <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+            <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
               <h2 className="text-base font-bold text-gray-900 border-b pb-3">Endereço Comercial</h2>
-              <dl className="grid sm:grid-cols-2 gap-3 text-sm">
+              <dl className="grid gap-4 text-sm sm:grid-cols-2 sm:gap-3">
                 <div className="sm:col-span-2">
                   <dt className="text-xs text-gray-500">Logradouro:</dt>
-                  <dd className="font-semibold text-gray-900">{address.street}, {address.number} {address.complement ? `— ${address.complement}` : ''}</dd>
+                  <dd className="break-words font-semibold text-gray-900">{address.street}, {address.number} {address.complement ? `— ${address.complement}` : ''}</dd>
                 </div>
                 <div>
                   <dt className="text-xs text-gray-500">Bairro:</dt>
@@ -205,15 +213,15 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
 
           {/* Responsáveis / Membros */}
           {members && members.length > 0 && (
-            <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+            <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
               <h2 className="text-base font-bold text-gray-900 border-b pb-3">Responsáveis da Empresa</h2>
               <div className="divide-y divide-gray-100">
                 {members.map((m: any) => (
                   <div key={m.id} className="py-3 text-sm">
-                    <div className="flex items-center justify-between">
-                      <div>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
                         <p className="font-bold text-gray-900">{m.profiles?.full_name || 'Nome não disponível'}</p>
-                        <p className="text-xs text-gray-500">{m.profiles?.email}</p>
+                        <p className="break-all text-xs text-gray-500">{m.profiles?.email}</p>
                         {m.profiles?.phone && <p className="text-xs text-gray-500">{maskPhone(m.profiles.phone)}</p>}
                       </div>
                       <div className="flex items-center gap-2">
@@ -229,13 +237,13 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
           )}
 
           {/* Documentos */}
-          <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
-            <h2 className="text-base font-bold text-gray-900 border-b pb-3 flex items-center gap-2">
-              <FileCheck className="h-5 w-5 text-blue-600" />
-              Documentos Comprobatórios ({documents?.length || 0})
+          <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
+            <h2 className="flex items-start gap-2 border-b pb-3 text-sm font-bold leading-5 text-gray-900 sm:items-center sm:text-base">
+              <FileCheck className="h-5 w-5 shrink-0 text-blue-600" />
+              <span>Documentos Comprobatórios ({documents?.length || 0})</span>
             </h2>
             {documents && documents.length > 0 ? (
-              <AdminDocumentList companyId={id} documents={documents} />
+              <AdminDocumentList documents={documents} />
             ) : (
               <p className="text-xs text-gray-400 text-center py-4">Nenhum documento enviado.</p>
             )}
@@ -243,7 +251,7 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
 
           {/* Histórico de Auditoria */}
           {auditLogs && auditLogs.length > 0 && (
-            <section className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm space-y-4">
+            <section className="space-y-4 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-6">
               <h2 className="text-base font-bold text-gray-900 border-b pb-3 flex items-center gap-2">
                 <Clock className="h-5 w-5 text-gray-500" />
                 Histórico de Auditoria
@@ -264,7 +272,7 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
         </div>
 
         {/* Sidebar de Ações (1/3) */}
-        <div className="space-y-4">
+        <div className="order-1 space-y-4 lg:order-2 lg:sticky lg:top-24 lg:self-start">
           <CompanyDecisionPanel
             companyId={id}
             currentStatus={company.status}

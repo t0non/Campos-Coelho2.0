@@ -1,20 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { getAdminApiContext } from '@/lib/supabase/api-admin'
+import { ConfirmCatalogImportSchema } from '@/lib/validations/admin-import'
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const auth = await getAdminApiContext()
+    if ('response' in auth) return auth.response
+    const { supabase } = auth
+    const parsed = ConfirmCatalogImportSchema.safeParse(await request.json())
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Parâmetros de importação inválidos.' }, { status: 400 })
     }
-
-    const { session_id, mode, price_table_id, publish_products } = await request.json()
-
-    if (!session_id || !mode) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
-    }
+    const { session_id, mode, price_table_id, publish_products } = parsed.data
 
     const { data, error } = await supabase.rpc('confirm_catalog_import_session_atomic', {
       p_session_id: session_id,
@@ -31,7 +28,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error: unknown) {
     console.error('Confirm API Error:', error)
-    const message = error instanceof Error ? error.message : 'Erro interno no servidor'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ error: 'Não foi possível confirmar a importação.' }, { status: 500 })
   }
 }

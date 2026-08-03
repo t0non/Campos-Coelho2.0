@@ -13,6 +13,13 @@ interface BannerFormProps {
 }
 
 export function BannerForm({ initialData, onClose }: BannerFormProps) {
+  const [placement, setPlacement] = useState<'hero' | 'secondary' | 'institutional'>(
+    initialData?.subtitle === '__secondary__'
+      ? 'secondary'
+      : initialData?.subtitle === '__institutional__'
+        ? 'institutional'
+        : 'hero',
+  )
   const [formData, setFormData] = useState<Partial<Banner>>(
     initialData || {
       title: '',
@@ -75,7 +82,12 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
       const res = await saveBanner({
         id: formData.id,
         title: formData.title || '',
-        subtitle: formData.subtitle || null,
+        subtitle:
+          placement === 'secondary'
+            ? '__secondary__'
+            : placement === 'institutional'
+              ? '__institutional__'
+              : null,
         image_url: finalImageUrl || '',
         mobile_image_url: finalMobileUrl || null,
         link_url: formData.link_url || null,
@@ -94,11 +106,23 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
   }
 
   return (
-    <div className="bg-white border rounded-lg p-6 shadow-sm">
+    <div className="border border-neutral-200 bg-white p-5 sm:p-7">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold">{initialData ? 'Editar Banner' : 'Novo Banner'}</h2>
-        <button onClick={onClose} className="p-2 text-gray-400 hover:bg-gray-100 rounded-full">
-          <X className="h-5 w-5" />
+        <div>
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-neutral-400">
+            Conteúdo da loja
+          </p>
+          <h2 className="mt-1 text-xl font-extrabold text-neutral-950">
+            {initialData ? 'Editar banner' : 'Novo banner'}
+          </h2>
+        </div>
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex h-9 w-9 items-center justify-center rounded-md text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900"
+          aria-label="Fechar formulário de banner"
+        >
+          <X className="h-5 w-5" aria-hidden="true" />
         </button>
       </div>
 
@@ -110,7 +134,13 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
           {/* Upload Desktop */}
           <div>
             <label className="block text-sm font-semibold mb-2">Imagem Desktop (Computador) *</label>
-            <p className="text-xs text-gray-500 mb-2">Recomendado: 1920x600 px (Paisagem)</p>
+            <p className="mb-2 text-xs text-gray-500">
+              {placement === 'institutional'
+                ? 'Recomendado: 1536 × 512 px (proporção 3:1)'
+                : placement === 'secondary'
+                  ? 'Recomendado: 1600 × 560 px (proporção aproximada 20:7)'
+                  : 'Recomendado: 1920 × 600 px (proporção 16:5)'}
+            </p>
             
             <div className="relative border-2 border-dashed border-gray-300 rounded-lg h-32 flex items-center justify-center bg-gray-50 overflow-hidden hover:bg-gray-100 transition-colors">
               <input 
@@ -124,6 +154,7 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
                   src={desktopFile ? URL.createObjectURL(desktopFile) : (formData.image_url || '')}
                   alt="Desktop Preview"
                   fill
+                  sizes="(min-width: 768px) 50vw, 100vw"
                   className="object-cover"
                 />
               ) : (
@@ -138,7 +169,13 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
           {/* Upload Mobile */}
           <div>
             <label className="block text-sm font-semibold mb-2">Imagem Mobile (Celular)</label>
-            <p className="text-xs text-gray-500 mb-2">Recomendado: 1080x1350 px (Vertical)</p>
+            <p className="mb-2 text-xs text-gray-500">
+              {placement === 'institutional'
+                ? 'Recomendado: 1280 × 800 px (proporção 8:5)'
+                : placement === 'secondary'
+                  ? 'Recomendado: 1080 × 675 px (proporção 8:5)'
+                  : 'Recomendado: 1080 × 1350 px (proporção 4:5)'}
+            </p>
             
             <div className="relative border-2 border-dashed border-gray-300 rounded-lg h-32 flex items-center justify-center bg-gray-50 overflow-hidden hover:bg-gray-100 transition-colors">
               <input 
@@ -152,6 +189,7 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
                   src={mobileFile ? URL.createObjectURL(mobileFile) : (formData.mobile_image_url || '')}
                   alt="Mobile Preview"
                   fill
+                  sizes="(min-width: 768px) 50vw, 100vw"
                   className="object-contain bg-black/5"
                 />
               ) : (
@@ -175,6 +213,20 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
               className="w-full p-2 border rounded"
               placeholder="Ex: Campanha Dia dos Pais"
             />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold mb-1">Local de Exibição</label>
+            <select
+              value={placement}
+              onChange={e =>
+                setPlacement(e.target.value as 'hero' | 'secondary' | 'institutional')
+              }
+              className="w-full p-2 border rounded bg-white"
+            >
+              <option value="hero">Carrossel principal</option>
+              <option value="secondary">Banner intermediário</option>
+              <option value="institutional">Atendimento e localização</option>
+            </select>
           </div>
           <div>
             <label className="block text-sm font-semibold mb-1">Link de Destino</label>
@@ -212,7 +264,7 @@ export function BannerForm({ initialData, onClose }: BannerFormProps) {
           </button>
           <button 
             type="submit"
-            className="px-6 py-2 bg-[#111111] text-white rounded text-sm font-bold hover:bg-[#142d55] disabled:opacity-50"
+            className="min-h-10 rounded-md bg-neutral-950 px-6 py-2 text-sm font-bold text-white hover:bg-neutral-800 disabled:opacity-50"
             disabled={isSubmitting}
           >
             {isSubmitting ? 'Salvando...' : 'Salvar Banner'}

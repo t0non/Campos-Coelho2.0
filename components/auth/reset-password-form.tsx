@@ -10,8 +10,14 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ErrorMessage } from '@/components/ui/error-message'
+import { updateOwnPassword } from '@/app/actions/auth'
 
 type RecoveryState = 'loading' | 'ready' | 'invalid' | 'success'
+
+interface ResetPasswordFormProps {
+  initiallyInvalid?: boolean
+  flow?: 'recovery' | 'invite'
+}
 
 /**
  * Formulário de definição de nova senha, exibido após o usuário clicar
@@ -20,8 +26,13 @@ type RecoveryState = 'loading' | 'ready' | 'invalid' | 'success'
  * Detecta a sessão de recovery via onAuthStateChange com evento PASSWORD_RECOVERY.
  * Chama supabase.auth.updateUser({ password }) para efetuar a troca.
  */
-export function ResetPasswordForm() {
-  const [recoveryState, setRecoveryState] = useState<RecoveryState>('loading')
+export function ResetPasswordForm({
+  initiallyInvalid = false,
+  flow = 'recovery',
+}: ResetPasswordFormProps) {
+  const [recoveryState, setRecoveryState] = useState<RecoveryState>(
+    initiallyInvalid ? 'invalid' : 'loading',
+  )
   const [serverError, setServerError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -37,6 +48,8 @@ export function ResetPasswordForm() {
   })
 
   useEffect(() => {
+    if (initiallyInvalid) return
+
     // Escuta o evento PASSWORD_RECOVERY para confirmar sessão válida
     const {
       data: { subscription },
@@ -67,28 +80,16 @@ export function ResetPasswordForm() {
     })
 
     return () => subscription.unsubscribe()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [initiallyInvalid]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const onSubmit = async (data: ResetPasswordInput) => {
     setServerError(null)
 
-    const { error } = await supabase.auth.updateUser({
-      password: data.password,
-    })
+    const result = await updateOwnPassword(data.password, data.confirm_password)
 
-    if (error) {
-      if (error.message.toLowerCase().includes('same password')) {
-        setServerError('A nova senha não pode ser igual à senha atual.')
-      } else if (error.message.toLowerCase().includes('weak password')) {
-        setServerError('Senha muito fraca. Use ao menos 8 caracteres, uma maiúscula e um número.')
-      } else if (
-        error.message.toLowerCase().includes('session') ||
-        error.message.toLowerCase().includes('expired')
-      ) {
-        setRecoveryState('invalid')
-      } else {
-        setServerError('Erro ao atualizar a senha. Tente novamente.')
-      }
+    if (!result.success) {
+      if (result.invalidSession) setRecoveryState('invalid')
+      else setServerError(result.error)
       return
     }
 
@@ -105,7 +106,9 @@ export function ResetPasswordForm() {
     return (
       <div className="flex flex-col items-center gap-4 py-8 text-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-        <p className="text-sm text-gray-500">Verificando link de recuperação…</p>
+        <p className="text-sm text-gray-500">
+          {flow === 'invite' ? 'Validando seu convite…' : 'Verificando link de recuperação…'}
+        </p>
       </div>
     )
   }
@@ -117,18 +120,24 @@ export function ResetPasswordForm() {
           <AlertTriangle className="h-8 w-8 text-red-600" />
         </div>
         <div>
-          <p className="font-semibold text-gray-900">Link inválido ou expirado</p>
+          <p className="font-semibold text-gray-900">
+            {flow === 'invite' ? 'Convite inválido ou expirado' : 'Link inválido ou expirado'}
+          </p>
           <p className="mt-1 text-sm text-gray-500">
-            Este link de recuperação não é mais válido. Solicite um novo link.
+            {flow === 'invite'
+              ? 'Este convite não é mais válido. Peça a um administrador para enviar um novo.'
+              : 'Este link de recuperação não é mais válido. Solicite um novo link.'}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => router.push('/recuperar-senha')}
-          className="text-sm text-blue-600 hover:underline"
-        >
-          Solicitar novo link
-        </button>
+        {flow === 'recovery' && (
+          <button
+            type="button"
+            onClick={() => router.push('/recuperar-senha')}
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Solicitar novo link
+          </button>
+        )}
       </div>
     )
   }
@@ -140,9 +149,13 @@ export function ResetPasswordForm() {
           <CheckCircle className="h-8 w-8 text-green-600" />
         </div>
         <div>
-          <p className="font-semibold text-gray-900">Senha atualizada!</p>
+          <p className="font-semibold text-gray-900">
+            {flow === 'invite' ? 'Acesso ativado!' : 'Senha atualizada!'}
+          </p>
           <p className="mt-1 text-sm text-gray-500">
-            Sua senha foi alterada com sucesso. Você pode entrar com a nova senha.
+            {flow === 'invite'
+              ? 'Sua senha foi criada com sucesso. Agora você já pode entrar no painel.'
+              : 'Sua senha foi alterada com sucesso. Você pode entrar com a nova senha.'}
           </p>
         </div>
         <button

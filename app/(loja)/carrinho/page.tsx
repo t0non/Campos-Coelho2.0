@@ -6,13 +6,14 @@ import { getAuthContext } from '@/lib/supabase/auth'
 import { readActiveCart } from '@/lib/data/cart'
 import { Container } from '@/components/ui/container'
 import { formatPrice } from '@/lib/utils/format'
+import { getProductDisplayName } from '@/lib/utils/product-display-name'
 import { CartPageActions } from '@/components/cart/cart-page-actions'
 import { ShoppingBag, AlertTriangle, ArrowLeft, ArrowRight, Info } from 'lucide-react'
 
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Meu Carrinho | AtacadoB2B',
+  title: 'Meu carrinho',
   description: 'Revise os itens do seu pedido antes de finalizar.',
 }
 
@@ -42,7 +43,7 @@ export default async function CarrinhoPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Container className="py-8 max-w-5xl">
+      <Container className="max-w-5xl py-10 sm:py-12">
         {/* Cabeçalho */}
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -153,8 +154,7 @@ export default async function CarrinhoPage() {
                     <div className="flex items-start justify-between gap-2">
                       <div>
                         <h3 className="text-sm font-bold text-slate-900 leading-tight">
-                          {item.product_name}
-                          {item.variant_name ? ` — ${item.variant_name}` : ''}
+                          {getProductDisplayName(item.product_name, item.variant_name)}
                         </h3>
                         <p className="text-[11px] text-slate-400 mt-0.5">
                           REF: {item.variant_sku ?? item.product_sku}
@@ -239,21 +239,13 @@ export default async function CarrinhoPage() {
                       <p className="text-[10px] text-slate-400 mb-4">
                         Valores e disponibilidade confirmados ao finalizar.
                       </p>
-                      {/* Checkout será implementado no BLOCO 12B — botão
-                          desabilitado para não criar pedido falso. */}
-                      <button
-                        type="button"
-                        disabled
-                        aria-disabled="true"
-                        title="Checkout disponível no BLOCO 12B"
-                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-3.5 text-sm font-bold text-white opacity-50 cursor-not-allowed transition-colors shadow-md"
+                      <Link
+                        href="/checkout"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-black px-4 py-3.5 text-sm font-bold text-white shadow-md transition-colors hover:bg-neutral-800"
                       >
-                        <span>Finalizar Pedido</span>
+                        <span>Finalizar pedido</span>
                         <ArrowRight className="h-4 w-4" />
-                      </button>
-                      <p className="text-[11px] text-slate-400 text-center mt-2">
-                        A finalização do pedido (checkout) será liberada em breve.
-                      </p>
+                      </Link>
                       {hasUnavailable && (
                         <p className="text-[11px] text-red-500 text-center mt-2">
                           Remova os itens indisponíveis antes de finalizar.
