@@ -12,7 +12,15 @@ export const metadata: Metadata = {
 
 export default async function AdminUsersPage() {
   const context = await requireAdmin()
-  const admins = await getAdminUsers()
+  let admins: Awaited<ReturnType<typeof getAdminUsers>> = []
+  let loadError = false
+
+  try {
+    admins = await getAdminUsers()
+  } catch (error) {
+    console.error('[admin-users] Falha ao carregar administradores:', error)
+    loadError = true
+  }
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-7">
@@ -47,7 +55,16 @@ export default async function AdminUsersPage() {
         </div>
       </div>
 
-      <AdminUserManager admins={admins} currentUserId={context.user!.id} />
+      {loadError ? (
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-950">
+          <p className="font-extrabold">Não foi possível carregar os administradores.</p>
+          <p className="mt-1 text-red-800">
+            Verifique se a chave administrativa do Supabase está configurada no ambiente publicado e atualize a página.
+          </p>
+        </div>
+      ) : (
+        <AdminUserManager admins={admins} currentUserId={context.user!.id} />
+      )}
     </div>
   )
 }

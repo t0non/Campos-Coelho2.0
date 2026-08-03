@@ -10,14 +10,15 @@ import { SupabaseClient } from '@supabase/supabase-js'
  */
 export function createAdminClient(): SupabaseClient<Database, "public", any> {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const secretKey = process.env.SUPABASE_SECRET_KEY
+  const secretKey =
+    process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY
 
   if (!supabaseUrl) {
     throw new Error('NEXT_PUBLIC_SUPABASE_URL não configurada.')
   }
 
   if (!secretKey) {
-    throw new Error('SUPABASE_SECRET_KEY não configurada. Operação administrativa negada.')
+    throw new Error('Chave administrativa do Supabase não configurada. Operação administrativa negada.')
   }
 
   return createClient<Database, 'public'>(supabaseUrl, secretKey, {
