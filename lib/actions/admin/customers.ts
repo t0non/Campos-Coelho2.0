@@ -7,6 +7,7 @@ import { requireAdmin } from '@/lib/supabase/auth'
 import { z } from 'zod'
 import { notifyCompanyDecision } from '@/lib/email/events'
 import { validateCNPJ } from '@/lib/utils/masks'
+import { addDays, REJECTED_DOCUMENT_RETENTION_DAYS } from '@/lib/privacy/config'
 
 const companyIdSchema = z.string().uuid()
 const companyStatusSchema = z.enum(['pending', 'approved', 'rejected', 'suspended'])
@@ -124,23 +125,24 @@ export async function getCustomerDetails(companyId: string) {
     .select('*')
     .eq('company_id', parsedId.data)
 
-  const { data: registrationLog } = await supabase
-    .from('audit_logs')
-    .select('payload')
-    .eq('target_table', 'companies')
-    .eq('target_id', parsedId.data)
-    .eq('action', 'public_registration_submitted')
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-
   return { 
     customer: {
       ...company,
       addresses: addresses || [],
       members: members || [],
       documents: documents || [],
-      registration_data: registrationLog?.payload || null,
+      registration_data: {
+        company: {
+          segment: company.segment,
+          businessType: company.business_type,
+        },
+        interests: {
+          averageOrderValue: company.estimated_order_volume,
+        },
+        responsible: {
+          role: members?.find((member) => member.is_primary)?.role ?? null,
+        },
+      },
     } 
   }
 }
@@ -215,6 +217,19 @@ export async function updateCustomerStatus(
   if (error) {
     console.error('Erro ao atualizar status do cliente:', error)
     return { error: 'Erro ao atualizar status da empresa.' }
+  }
+
+  const { error: retentionError } = await adminClient
+    .from('company_documents')
+    .update({
+      retention_until:
+        status === 'rejected'
+          ? addDays(new Date(), REJECTED_DOCUMENT_RETENTION_DAYS)
+          : null,
+    })
+    .eq('company_id', parsed.data.companyId)
+  if (retentionError) {
+    return { error: 'O status mudou, mas o prazo de retencao dos documentos nao foi atualizado.' }
   }
 
   if (primaryMember?.profile_id) {

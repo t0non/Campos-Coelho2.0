@@ -49,7 +49,18 @@ export function ForgotPasswordForm() {
             Verifique sua caixa de entrada e siga as instruções para redefinir sua
             senha.
           </p>
+          <p className="mt-2 text-xs text-gray-500">
+            Use somente o e-mail mais recente. O link é temporário e funciona
+            apenas uma vez.
+          </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setSent(false)}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          Enviar outro link
+        </button>
         <Link href="/login" className="text-sm text-blue-600 hover:underline">
           Voltar para o login
         </Link>

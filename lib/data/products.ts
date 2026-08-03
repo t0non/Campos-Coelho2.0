@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { AuthContext } from '@/types/auth.types'
 import type { CatalogProduct, PriceInfo } from '@/types/product.types'
 import { getProductImageUrl } from '@/lib/utils/storage-url'
@@ -8,6 +9,10 @@ import {
   getCatalogPricingForCurrentCustomer,
 } from '@/lib/data/pricing'
 import { withCategoryProductFallback } from '@/lib/catalog/product-image-fallback'
+import {
+  findProductAttribute,
+  isMeaningfulProductValue,
+} from '@/lib/catalog/product-details'
 
 export interface ProductDetailInfo {
   longDescription?: string
@@ -50,11 +55,20 @@ export interface FullProductData {
   brand: { id: string; name: string; slug: string } | null
   price?: PriceInfo
   detail: ProductDetailInfo
-  variants: Array<{ id: string; sku: string; name: string; attributes: Record<string, string>; availableStock: number }>
+  variants: Array<{
+    id: string
+    sku: string
+    name: string
+    barcode: string | null
+    attributes: Record<string, string>
+    availableStock?: number
+    isAvailable: boolean
+  }>
   /** Variante que o servidor resolveu para exibição/preço (null quando o produto não tem variantes). */
   currentVariantId: string | null
   volumeDiscounts?: VolumeDiscountTier[]
   attributes: Record<string, string>
+  isAvailable: boolean
   exactStock?: number
   canViewPrices: boolean
   userStatus: 'visitor' | 'pending' | 'approved' | 'rejected' | 'suspended'
@@ -85,6 +99,7 @@ export async function getProductBySlug(
       slug,
       description,
       short_description,
+      weight_grams,
       unit,
       min_quantity,
       multiple_quantity,
@@ -95,7 +110,7 @@ export async function getProductBySlug(
       categories!category_id (id, name, slug, is_active),
       brands!brand_id (id, name, slug, is_active),
       product_images (url, alt_text, is_primary, position),
-      product_variants (id, sku, name, attributes, is_active)
+      product_variants (id, sku, name, barcode, attributes, is_active)
       `,
     )
     .eq('slug', sanitizedSlug)
@@ -112,6 +127,7 @@ export async function getProductBySlug(
     slug: string
     description: string | null
     short_description: string | null
+    weight_grams: number | null
     unit: string
     min_quantity: number
     multiple_quantity: number | null
@@ -120,7 +136,14 @@ export async function getProductBySlug(
     categories: { id: string; name: string; slug: string; is_active: boolean } | null
     brands: { id: string; name: string; slug: string; is_active: boolean } | null
     product_images: Array<{ url: string; alt_text: string | null; is_primary: boolean; position: number }> | null
-    product_variants: Array<{ id: string; sku: string; name: string; attributes: Record<string, string>; is_active: boolean }> | null
+    product_variants: Array<{
+      id: string
+      sku: string
+      name: string
+      barcode: string | null
+      attributes: Record<string, string>
+      is_active: boolean
+    }> | null
   }
 
   let inventoryRows: Array<{
@@ -129,19 +152,18 @@ export async function getProductBySlug(
     quantity_reserved: number
   }> = []
 
-  // Estoque é informação comercial protegida. Separar esta consulta evita
-  // que a RLS de inventories transforme a página pública do produto em 404.
-  if (canViewPrices) {
-    const { data: inventories, error: inventoryError } = await supabase
-      .from('inventories')
-      .select('variant_id, quantity_available, quantity_reserved')
-      .eq('product_id', raw.id)
+  // A página pública recebe somente disponibilidade qualitativa. O saldo exato
+  // continua sendo incluído apenas para clientes aprovados.
+  const inventoryClient = canViewPrices ? supabase : createAdminClient()
+  const { data: inventories, error: inventoryError } = await inventoryClient
+    .from('inventories')
+    .select('variant_id, quantity_available, quantity_reserved')
+    .eq('product_id', raw.id)
 
-    if (inventoryError) {
-      console.error('Erro ao consultar estoque do produto:', inventoryError.message)
-    } else {
-      inventoryRows = inventories ?? []
-    }
+  if (inventoryError) {
+    console.error('Erro ao consultar disponibilidade do produto:', inventoryError.message)
+  } else {
+    inventoryRows = inventories ?? []
   }
 
   // Filtrar variantes ativas. Produtos SEM nenhuma variante ativa são
@@ -169,6 +191,25 @@ export async function getProductBySlug(
   const currentStock = currentVariant
     ? (stockByVariant.get(currentVariant.id) ?? 0)
     : (stockByVariant.get(null) ?? 0)
+
+  const currentAttributes = (currentVariant?.attributes ?? {}) as Record<string, string>
+  const ean =
+    (isMeaningfulProductValue(currentVariant?.barcode)
+      ? currentVariant?.barcode?.trim()
+      : undefined) ??
+    findProductAttribute(currentAttributes, ['EAN', 'Código EAN', 'Código de barras', 'Barcode'])
+  const ncm = findProductAttribute(currentAttributes, ['NCM'])
+  const attributeWeight = findProductAttribute(currentAttributes, [
+    'Peso',
+    'Peso bruto',
+    'Peso líquido',
+  ])
+  const weight =
+    raw.weight_grams && raw.weight_grams > 0
+      ? raw.weight_grams >= 1000
+        ? `${(raw.weight_grams / 1000).toLocaleString('pt-BR')} kg`
+        : `${raw.weight_grams.toLocaleString('pt-BR')} g`
+      : attributeWeight
 
   // Se o cliente puder ver preços, buscar preço efetivo: por variante quando
   // existir, ou a nível de produto (variant_id NULL) quando não houver
@@ -205,18 +246,27 @@ export async function getProductBySlug(
     brand: brandObj,
     price: priceInfo,
     detail: {
-      packaging: `Caixa com ${raw.min_quantity} ${raw.unit}`,
-      masterBox: raw.multiple_quantity ? `Master com ${raw.multiple_quantity} unidades` : undefined,
+      longDescription: isMeaningfulProductValue(raw.description)
+        ? raw.description.trim()
+        : isMeaningfulProductValue(raw.short_description)
+          ? raw.short_description.trim()
+          : undefined,
+      ean,
+      ncm,
+      weight,
     },
     variants: activeVariants.map((v) => ({
       id: v.id,
       sku: v.sku,
       name: v.name,
+      barcode: v.barcode,
       attributes: (v.attributes as Record<string, string>) ?? {},
-      availableStock: stockByVariant.get(v.id) ?? 0,
+      availableStock: canViewPrices ? (stockByVariant.get(v.id) ?? 0) : undefined,
+      isAvailable: (stockByVariant.get(v.id) ?? 0) > 0,
     })),
     currentVariantId: currentVariant?.id ?? null,
-    attributes: {},
+    attributes: currentAttributes,
+    isAvailable: currentStock > 0,
     exactStock: canViewPrices ? currentStock : undefined,
     canViewPrices,
     userStatus,

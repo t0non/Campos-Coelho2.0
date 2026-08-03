@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
-import { safeRedirectPath } from '@/lib/security/navigation'
+import {
+  authCallbackFailurePath,
+  safeRedirectPath,
+} from '@/lib/security/navigation'
 
 /**
  * Callback do Supabase Auth para OAuth, magic links e recuperação de senha.
@@ -14,6 +17,7 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const type = searchParams.get('type')
+  const errorCode = searchParams.get('error_code')
   const next = safeRedirectPath(searchParams.get('next'))
   const baseUrl = origin
 
@@ -33,6 +37,10 @@ export async function GET(request: Request) {
     }
   }
 
-  // Redireciona para login com erro se algo falhar
-  return NextResponse.redirect(new URL('/login?error=auth_callback_failed', baseUrl))
+  // Mantém erros de recovery/convite dentro do fluxo correto. Respostas de
+  // erro do Supabase também podem chegar no fragmento (#), invisível ao servidor;
+  // o componente global no cliente trata esse caso.
+  return NextResponse.redirect(
+    new URL(authCallbackFailurePath(type, errorCode), baseUrl),
+  )
 }

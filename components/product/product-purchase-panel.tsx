@@ -49,6 +49,7 @@ export function ProductPurchasePanel({
     !isPending &&
     !isNavPending &&
     !added &&
+    product.isAvailable &&
     priceIsAuthoritative &&
     (!requiresVariantSelection || Boolean(selectedVariantId))
 
@@ -140,6 +141,8 @@ export function ProductPurchasePanel({
               <Check className="h-5 w-5 mr-1" />
               Adicionado ao Pedido!
             </>
+          ) : !product.isAvailable ? (
+            'Indisponível no momento'
           ) : requiresVariantSelection && !selectedVariantId ? (
             'Selecione uma opção'
           ) : (

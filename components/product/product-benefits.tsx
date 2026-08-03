@@ -1,11 +1,11 @@
-import { ShieldCheck, Truck, Headset, FileText } from 'lucide-react'
+import { Store, Headset, Building2, PackageCheck } from 'lucide-react'
 
 export function ProductBenefits() {
   const benefits = [
-    { icon: ShieldCheck, title: 'Garantia de Qualidade', text: 'Produtos inspecionados' },
-    { icon: Truck, title: 'Frete Seguro B2B', text: 'Embalagem reforçada' },
-    { icon: FileText, title: 'Nota Fiscal CNPJ', text: '100% faturado' },
-    { icon: Headset, title: 'Atendimento Dedicado', text: 'Suporte no WhatsApp' },
+    { icon: Store, title: 'Retirada presencial', text: 'Loja no bairro Planalto' },
+    { icon: Headset, title: 'Atendimento comercial', text: 'WhatsApp e telefone' },
+    { icon: Building2, title: 'Venda empresarial', text: 'Cadastro com CNPJ' },
+    { icon: PackageCheck, title: 'Pedido mínimo', text: 'R$ 1.000 no site' },
   ]
 
   return (

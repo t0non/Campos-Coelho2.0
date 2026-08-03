@@ -1,27 +1,32 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, type FieldPath } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Loader2, UploadCloud, X, FileText } from 'lucide-react'
+import {
+  Building2,
+  Check,
+  FileText,
+  Loader2,
+  MapPin,
+  ShieldCheck,
+  UploadCloud,
+  UserRound,
+  X,
+} from 'lucide-react'
 
-import { fullRegistrationSchema, type FullRegistrationFormValues } from '@/lib/validations/registration'
+import {
+  fullRegistrationSchema,
+  type FullRegistrationFormValues,
+} from '@/lib/validations/registration'
 import { maskCNPJ, maskPhone, maskCPF, maskCEP } from '@/lib/utils/masks'
 import { submitPublicRegistration } from '@/app/actions/registration'
-
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
-
-const INTEREST_CATEGORIES = [
-  'Informática', 'Festas', 'Acessórios de uso pessoal', 'Pelúcia',
-  'Times de futebol', 'Eletro eletrônicos', 'Brinquedos', 'Automóveis',
-  'Perfumaria e beleza', 'Papelaria', "Pet's", 'Esportes e lazer',
-  'Decoração', 'Utilidade doméstica', 'Bebês e cia', 'Ferramentas, jardinagem e bricolagem',
-]
 
 interface UploadedFile {
   id: string
@@ -31,15 +36,129 @@ interface UploadedFile {
   category: 'contrato_social' | 'doc_responsavel'
 }
 
+const STEPS = [
+  {
+    number: 1,
+    title: 'Cadastro rápido',
+    description: 'Empresa e contato',
+    icon: Building2,
+  },
+  {
+    number: 2,
+    title: 'Perfil comercial',
+    description: 'Negócio e endereço',
+    icon: MapPin,
+  },
+  {
+    number: 3,
+    title: 'Análise cadastral',
+    description: 'Documentos e acesso',
+    icon: ShieldCheck,
+  },
+] as const
+
+const STEP_FIELDS: Record<1 | 2, FieldPath<FullRegistrationFormValues>[]> = {
+  1: [
+    'company.cnpj',
+    'company.companyName',
+    'responsible.fullName',
+    'responsible.whatsapp',
+    'responsible.email',
+  ],
+  2: [
+    'company.segment',
+    'company.businessType',
+    'interests.averageOrderValue',
+    'addresses.fiscal.cep',
+    'addresses.fiscal.street',
+    'addresses.fiscal.number',
+    'addresses.fiscal.neighborhood',
+    'addresses.fiscal.city',
+    'addresses.fiscal.state',
+  ],
+}
+
+interface DocumentUploadFieldProps {
+  title: string
+  description: string
+  files: UploadedFile[]
+  onFile: (file: File) => void
+  onRemove: (id: string) => void
+}
+
+function DocumentUploadField({
+  title,
+  description,
+  files,
+  onFile,
+  onRemove,
+}: DocumentUploadFieldProps) {
+  return (
+    <div className="space-y-3">
+      <div>
+        <p className="text-sm font-bold text-slate-900">{title}</p>
+        <p className="mt-1 text-xs text-slate-500">{description}</p>
+      </div>
+
+      <label
+        className="flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 text-center transition-colors hover:border-slate-500 hover:bg-slate-100"
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault()
+          const file = event.dataTransfer.files?.[0]
+          if (file) onFile(file)
+        }}
+      >
+        <UploadCloud className="mb-2 h-8 w-8 text-slate-600" />
+        <span className="text-sm font-semibold text-slate-800">
+          Selecione ou arraste o arquivo
+        </span>
+        <span className="mt-1 text-xs text-slate-500">PDF, PNG ou JPG · até 2 MB</span>
+        <input
+          type="file"
+          className="hidden"
+          accept=".png,.jpg,.jpeg,.pdf"
+          onChange={(event) => {
+            const file = event.target.files?.[0]
+            if (file) onFile(file)
+            event.target.value = ''
+          }}
+        />
+      </label>
+
+      {files.length > 0 && (
+        <ul className="space-y-2">
+          {files.map((item) => (
+            <li
+              key={item.id}
+              className="flex items-center justify-between gap-3 rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm"
+            >
+              <div className="flex min-w-0 items-center gap-2">
+                <FileText className="h-4 w-4 shrink-0 text-green-700" />
+                <span className="truncate font-medium text-slate-800">{item.fileName}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => onRemove(item.id)}
+                className="rounded-md p-1 text-slate-500 hover:bg-white hover:text-red-600"
+                aria-label={`Remover ${item.fileName}`}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
 export function ContinuousRegistrationForm() {
   const router = useRouter()
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-
-  // Document upload state
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([])
-  const contratoRef = useRef<HTMLInputElement>(null)
-  const docIdRef = useRef<HTMLInputElement>(null)
 
   const {
     register,
@@ -47,27 +166,142 @@ export function ContinuousRegistrationForm() {
     setValue,
     setError,
     watch,
-    control,
+    trigger,
     formState: { errors },
   } = useForm<FullRegistrationFormValues>({
     resolver: zodResolver(fullRegistrationSchema),
     defaultValues: {
-      company: { isStateRegistrationExempt: false },
-      addresses: { isShippingSameAsFiscal: true, isBillingSameAsFiscal: true },
-      interests: { categories: [], operatingStates: [] },
+      company: {
+        cnpj: '',
+        companyName: '',
+        tradingName: '',
+        stateRegistration: '',
+        isStateRegistrationExempt: false,
+        segment: '',
+        businessType: '',
+        employeeCount: '',
+        phone: '',
+        whatsapp: '',
+        email: '',
+      },
+      responsible: {
+        fullName: '',
+        cpf: '',
+        role: 'owner',
+        email: '',
+        phone: '',
+        whatsapp: '',
+        password: '',
+        confirmPassword: '',
+      },
+      addresses: {
+        fiscal: {
+          cep: '',
+          street: '',
+          number: '',
+          complement: '',
+          neighborhood: '',
+          city: '',
+          state: '',
+        },
+        isShippingSameAsFiscal: true,
+        isBillingSameAsFiscal: true,
+      },
+      interests: {
+        categories: [],
+        purchaseFrequency: '',
+        averageOrderValue: '',
+        storeCount: '',
+        operatingStates: [],
+        salesChannel: '',
+        howDidYouHear: '',
+      },
       consents: {
         termsOfUse: false,
         privacyPolicy: false,
         lgpdDataProcessing: false,
         declarationOfTruth: false,
+        receiveNewsletter: false,
       },
     },
   })
 
   const isStateRegistrationExempt = watch('company.isStateRegistrationExempt')
+  const acceptedTerms = watch('consents.termsOfUse')
+  const acknowledgedPrivacy = watch('consents.privacyPolicy')
+  const declaredTruth = watch('consents.declarationOfTruth')
+  const receiveNewsletter = watch('consents.receiveNewsletter')
+  const contratoFiles = uploadedFiles.filter((file) => file.category === 'contrato_social')
+  const responsibleDocumentFiles = uploadedFiles.filter(
+    (file) => file.category === 'doc_responsavel',
+  )
+
+  const handleMaskChange = (
+    field: FieldPath<FullRegistrationFormValues>,
+    value: string,
+    mask: (input: string) => string,
+  ) => {
+    setValue(field, mask(value) as never, { shouldValidate: true })
+  }
+
+  const moveToStep = (step: 1 | 2 | 3) => {
+    setCurrentStep(step)
+    setSubmitError(null)
+    requestAnimationFrame(() => {
+      document.querySelector('[data-registration-card]')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+    })
+  }
+
+  const handleNextStep = async () => {
+    if (currentStep === 3) return
+    const valid = await trigger(STEP_FIELDS[currentStep], { shouldFocus: true })
+    if (!valid) {
+      setSubmitError('Revise os campos destacados para continuar.')
+      return
+    }
+    moveToStep((currentStep + 1) as 2 | 3)
+  }
+
+  const handleFileUpload = (file: File, category: UploadedFile['category']) => {
+    const maxSize = 2 * 1024 * 1024
+    const allowedTypes = new Set(['application/pdf', 'image/png', 'image/jpeg'])
+
+    if (file.size > maxSize) {
+      setSubmitError(`O arquivo “${file.name}” excede o limite de 2 MB.`)
+      return
+    }
+    if (!allowedTypes.has(file.type)) {
+      setSubmitError('Use somente arquivos PDF, PNG ou JPG.')
+      return
+    }
+    if (uploadedFiles.length >= 4) {
+      setSubmitError('Você pode enviar no máximo quatro documentos.')
+      return
+    }
+
+    setSubmitError(null)
+    setUploadedFiles((current) => [
+      ...current,
+      {
+        id: `file-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        file,
+        fileName: file.name,
+        fileSize: file.size,
+        category,
+      },
+    ])
+  }
 
   const onSubmit = async (data: FullRegistrationFormValues) => {
     if (isSubmitting) return
+    if (contratoFiles.length === 0 || responsibleDocumentFiles.length === 0) {
+      setSubmitError('Envie o contrato social e um documento do responsável.')
+      return
+    }
+
     setIsSubmitting(true)
     setSubmitError(null)
 
@@ -78,32 +312,33 @@ export function ContinuousRegistrationForm() {
         submission.append('documents', item.file, item.fileName)
         submission.append('documentCategories', item.category)
       })
+
       const result = await submitPublicRegistration(submission)
       if (result.success) {
         router.push(`/cadastro/sucesso?protocol=${encodeURIComponent(result.protocol)}`)
-      } else {
-        if (result.field) {
-          setError(result.field, { type: 'server', message: result.error })
-        }
-        setSubmitError(result.error || 'Erro ao processar o cadastro. Tente novamente.')
-        setIsSubmitting(false)
-        requestAnimationFrame(() => {
-          document.querySelector('[data-submit-error]')?.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center',
-          })
-        })
+        return
       }
+
+      if (result.field) {
+        setError(result.field, { type: 'server', message: result.error })
+        if (result.field === 'company.cnpj' || result.field === 'responsible.email') {
+          moveToStep(1)
+        }
+      }
+      setSubmitError(result.error || 'Erro ao processar o cadastro. Tente novamente.')
     } catch (error) {
       setSubmitError(
-        error instanceof Error ? error.message : 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
+        error instanceof Error
+          ? error.message
+          : 'Ocorreu um erro inesperado. Tente novamente mais tarde.',
       )
+    } finally {
       setIsSubmitting(false)
     }
   }
 
   const onInvalid = () => {
-    setSubmitError('Revise os campos obrigatórios destacados antes de concluir o cadastro.')
+    setSubmitError('Revise os campos obrigatórios destacados antes de concluir.')
     requestAnimationFrame(() => {
       document.querySelector('[aria-invalid="true"]')?.scrollIntoView({
         behavior: 'smooth',
@@ -112,720 +347,536 @@ export function ContinuousRegistrationForm() {
     })
   }
 
-  const handleMaskChange = (field: any, val: string, maskFn: (v: string) => string) => {
-    setValue(field, maskFn(val), { shouldValidate: true })
-  }
-
-  const handleFileUpload = (file: File, category: UploadedFile['category']) => {
-    const maxSize = 2 * 1024 * 1024 // 2MB
-    const allowedTypes = new Set(['application/pdf', 'image/png', 'image/jpeg'])
-    if (file.size > maxSize) {
-      alert(`O arquivo "${file.name}" excede o limite de 2MB.`)
-      return
-    }
-    if (!allowedTypes.has(file.type)) {
-      alert('Use somente arquivos PDF, PNG ou JPG.')
-      return
-    }
-    if (uploadedFiles.length >= 4) {
-      alert('Você pode enviar no máximo quatro documentos.')
-      return
-    }
-    const newFile: UploadedFile = {
-      id: `file-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      file,
-      fileName: file.name,
-      fileSize: file.size,
-      category,
-    }
-    setUploadedFiles((prev) => [...prev, newFile])
-  }
-
-  const removeFile = (id: string) => {
-    setUploadedFiles((prev) => prev.filter((f) => f.id !== id))
-  }
-
-  const contratoFiles = uploadedFiles.filter((f) => f.category === 'contrato_social')
-  const docIdFiles = uploadedFiles.filter((f) => f.category === 'doc_responsavel')
-
   return (
-    <div className="registration-importec w-full bg-white px-[3.5vw] py-12 sm:py-14">
-      <nav aria-label="Breadcrumb" className="mb-8 text-sm text-[#333333]">
-        <span>Você está em:</span>{' '}
-        <Link href="/" className="text-[#171717] hover:underline">
-          Página inicial
-        </Link>
-      </nav>
+    <div className="bg-slate-50 px-4 py-8 sm:px-6 sm:py-12">
+      <div className="mx-auto max-w-5xl">
+        <nav aria-label="Breadcrumb" className="mb-6 text-xs text-slate-500">
+          <Link href="/" className="font-semibold text-slate-700 hover:underline">
+            Início
+          </Link>{' '}
+          / Cadastro empresarial
+        </nav>
 
-      <div className="mb-12">
-        <h1 className="text-3xl sm:text-[34px] leading-tight font-extrabold text-[#171717]">
-          Cadastre-se
-        </h1>
-        <p className="text-[#333333] mt-4">
-          Para efetuar seu cadastro, basta preencher o formulário abaixo com os seus dados.
-        </p>
-        <p className="text-sm text-red-600 mt-3 italic">
-          Atenção: Os campos marcados com * são de preenchimento obrigatório.
-        </p>
-        <p className="text-base text-[#333333] mt-6">
-          Cadastro exclusivo para clientes com CNPJ e Inscrição Estadual.
-        </p>
-        <p className="text-base text-[#333333] mt-6 leading-relaxed">
-          Após o envio, os dados serão analisados pela nossa equipe comercial. Em breve entraremos
-          em contato para confirmar o cadastro e liberar o acesso às condições de atacado.
-        </p>
-      </div>
+        <header className="mb-8 max-w-3xl">
+          <span className="text-xs font-bold uppercase tracking-[0.14em] text-orange-600">
+            Cadastro empresarial
+          </span>
+          <h1 className="mt-2 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+            Solicite seu acesso em três etapas
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+            Preencha os dados essenciais. A equipe comercial analisará a solicitação antes
+            de liberar preços e pedidos.
+          </p>
+          <p className="mt-2 text-sm text-slate-600">
+            Atendemos empresas com CNPJ ativo. A Inscrição Estadual é informada somente
+            quando se aplica à atividade da empresa.
+          </p>
+        </header>
 
-      {submitError && (
-        <div data-submit-error role="alert" className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-md">
-          {submitError}
-        </div>
-      )}
-
-      <form
-        onSubmit={handleSubmit(onSubmit, onInvalid)}
-        className="space-y-12"
-        data-registration-form
-      >
-        {/* ═══════════════ 1. Cadastro da Empresa ═══════════════ */}
-        <section>
-          <h2 className="text-xl font-extrabold text-[#171717] mb-6">
-            Cadastro da Empresa
-          </h2>
-          <div className="grid sm:grid-cols-2 gap-x-8 gap-y-6">
-            <Input
-              label="CNPJ *"
-              placeholder="*CNPJ"
-              {...register('company.cnpj')}
-              onChange={(e) => handleMaskChange('company.cnpj', e.target.value, maskCNPJ)}
-              error={errors.company?.cnpj?.message}
-            />
-            <Input
-              label="Nome Fantasia *"
-              placeholder="*Nome Fantasia"
-              {...register('company.tradingName')}
-              error={errors.company?.tradingName?.message}
-            />
-            <Input
-              label="Razão Social *"
-              placeholder="*Razão Social"
-              {...register('company.companyName')}
-              error={errors.company?.companyName?.message}
-            />
-            <Input
-              label="E-mail comercial da empresa *"
-              placeholder="E-mail usado para contato comercial"
-              type="email"
-              {...register('company.email')}
-              error={errors.company?.email?.message}
-            />
-
-            <div className="space-y-2">
-              <Input
-                label="Inscrição Estadual"
-                placeholder="*Inscrição Estadual"
-                disabled={isStateRegistrationExempt}
-                {...register('company.stateRegistration')}
-                error={errors.company?.stateRegistration?.message}
-              />
-              <Checkbox
-                label="Isento de Inscrição Estadual"
-                checked={isStateRegistrationExempt}
-                onChange={(e) => {
-                  setValue('company.isStateRegistrationExempt', e.target.checked)
-                  if (e.target.checked) setValue('company.stateRegistration', '')
-                }}
-              />
-            </div>
-
-            <Input
-              label="Telefone *"
-              placeholder="*Telefone"
-              {...register('company.phone')}
-              onChange={(e) => handleMaskChange('company.phone', e.target.value, maskPhone)}
-              error={errors.company?.phone?.message}
-            />
-
-            <Select
-              label="Segmento de Atuação *"
-              placeholder="*Segmento de Atuação"
-              options={[
-                { label: 'Supermercado / Mercearia', value: 'supermercado' },
-                { label: 'Loja de Utilidades Domésticas', value: 'utilidades' },
-                { label: 'Papelaria & Escritório', value: 'papelaria' },
-                { label: 'Loja de Brinquedos', value: 'brinquedos' },
-                { label: 'Distribuidor / Atacadista', value: 'distribuidor' },
-                { label: 'Outro Segmento', value: 'outro' },
-              ]}
-              {...register('company.segment')}
-              error={errors.company?.segment?.message}
-            />
-
-            <Select
-              label="Tipo de Negócio *"
-              placeholder="*Tipo de Negócio"
-              options={[
-                { label: 'Matriz', value: 'matriz' },
-                { label: 'Filial', value: 'filial' },
-                { label: 'MEI', value: 'mei' },
-                { label: 'ME / EPP', value: 'me_epp' },
-              ]}
-              {...register('company.businessType')}
-              error={errors.company?.businessType?.message}
-            />
-
-            <Select
-              label="Número de funcionários *"
-              placeholder="*Número de funcionários"
-              options={[
-                { label: '1 a 5', value: '1-5' },
-                { label: '6 a 15', value: '6-15' },
-                { label: '16 a 50', value: '16-50' },
-                { label: 'Mais de 50', value: '50+' },
-              ]}
-              {...register('company.employeeCount')}
-              error={errors.company?.employeeCount?.message}
-            />
-
-            <Input
-              label="WhatsApp"
-              placeholder="WhatsApp"
-              {...register('company.whatsapp')}
-              onChange={(e) => handleMaskChange('company.whatsapp', e.target.value, maskPhone)}
-              error={errors.company?.whatsapp?.message}
-            />
-          </div>
-        </section>
-
-        {/* ═══════════════ 2. Documentos ═══════════════ */}
-        <section>
-          <h2 className="sr-only">Documentos</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Contrato Social */}
-            <div>
-              <p className="text-[#333333] text-sm mb-2">
-                *Inserir contrato social
-              </p>
-              <label
-                className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded cursor-pointer bg-[#fcfcfc] hover:bg-[#f7f9fc] transition-colors"
-                onDragOver={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                }}
-                onDrop={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  const file = e.dataTransfer.files?.[0]
-                  if (file) handleFileUpload(file, 'contrato_social')
-                }}
+        <ol className="mb-6 grid grid-cols-3 gap-2" aria-label="Etapas do cadastro">
+          {STEPS.map((step) => {
+            const Icon = step.icon
+            const completed = currentStep > step.number
+            const active = currentStep === step.number
+            return (
+              <li
+                key={step.number}
+                className={`rounded-xl border p-3 sm:p-4 ${
+                  active
+                    ? 'border-slate-950 bg-slate-950 text-white'
+                    : completed
+                      ? 'border-green-200 bg-green-50 text-slate-900'
+                      : 'border-slate-200 bg-white text-slate-500'
+                }`}
+                aria-current={active ? 'step' : undefined}
               >
-                <div className="flex flex-col items-center justify-center py-4">
-                  <UploadCloud className="w-10 h-10 mb-2 text-[#171717]" />
-                  <p className="text-sm text-gray-500">
-                    Arraste e solte seus arquivos ou{' '}
-                    <span className="text-[#171717] font-semibold">Clique para localizar</span>
-                  </p>
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${
+                      active ? 'bg-white/15' : completed ? 'bg-green-600 text-white' : 'bg-slate-100'
+                    }`}
+                  >
+                    {completed ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                  </span>
+                  <span className="hidden text-xs font-bold sm:inline">Etapa {step.number}</span>
                 </div>
-                <input
-                  ref={contratoRef}
-                  type="file"
-                  className="hidden"
-                  accept=".png,.jpg,.jpeg,.pdf"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) handleFileUpload(file, 'contrato_social')
-                    e.target.value = ''
-                  }}
-                />
-              </label>
-              <div className="flex justify-between items-center mt-2 text-[11px] text-gray-400">
-                <span>Formatos suportados: PNG, JPG e PDF</span>
-                <span>Tamanho máximo: 2MB</span>
-              </div>
-              {/* Lista de arquivos do contrato social */}
-              {contratoFiles.length > 0 && (
-                <ul className="mt-3 space-y-2">
-                  {contratoFiles.map((f) => (
-                    <li
-                      key={f.id}
-                      className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-md px-3 py-2 text-sm"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <FileText className="h-4 w-4 text-[#111111] shrink-0" />
-                        <span className="truncate text-gray-800">{f.fileName}</span>
-                        <span className="text-gray-400 text-xs shrink-0">
-                          ({(f.fileSize / (1024 * 1024)).toFixed(2)} MB)
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeFile(f.id)}
-                        className="text-red-500 hover:text-red-700 ml-2 shrink-0"
-                        aria-label="Remover arquivo"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-
-            {/* Documento de Identidade do Responsável */}
-            <div>
-              <p className="text-[#333333] text-sm mb-2">
-                *Inserir documento de identidade da pessoa responsável
-              </p>
-              <label
-                className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-gray-300 rounded cursor-pointer bg-[#fcfcfc] hover:bg-[#f7f9fc] transition-colors"
-                onDragOver={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                }}
-                onDrop={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  const file = e.dataTransfer.files?.[0]
-                  if (file) handleFileUpload(file, 'doc_responsavel')
-                }}
-              >
-                <div className="flex flex-col items-center justify-center py-4">
-                  <UploadCloud className="w-10 h-10 mb-2 text-[#171717]" />
-                  <p className="text-sm text-gray-500">
-                    Arraste e solte seus arquivos ou{' '}
-                    <span className="text-[#171717] font-semibold">Clique para localizar</span>
-                  </p>
-                </div>
-                <input
-                  ref={docIdRef}
-                  type="file"
-                  className="hidden"
-                  accept=".png,.jpg,.jpeg,.pdf"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (file) handleFileUpload(file, 'doc_responsavel')
-                    e.target.value = ''
-                  }}
-                />
-              </label>
-              <div className="flex justify-between items-center mt-2 text-[11px] text-gray-400">
-                <span>Formatos suportados: PNG, JPG e PDF</span>
-                <span>Tamanho máximo: 2MB</span>
-              </div>
-              {/* Lista de arquivos do documento de identidade */}
-              {docIdFiles.length > 0 && (
-                <ul className="mt-3 space-y-2">
-                  {docIdFiles.map((f) => (
-                    <li
-                      key={f.id}
-                      className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-md px-3 py-2 text-sm"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <FileText className="h-4 w-4 text-[#111111] shrink-0" />
-                        <span className="truncate text-gray-800">{f.fileName}</span>
-                        <span className="text-gray-400 text-xs shrink-0">
-                          ({(f.fileSize / (1024 * 1024)).toFixed(2)} MB)
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeFile(f.id)}
-                        className="text-red-500 hover:text-red-700 ml-2 shrink-0"
-                        aria-label="Remover arquivo"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* ═══════════════ 3. Áreas de interesse ═══════════════ */}
-        <section>
-          <h2 className="text-xl font-extrabold text-[#171717] mb-6">
-            Áreas de interesse
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {INTEREST_CATEGORIES.map((category) => (
-              <label
-                key={category}
-                className="flex items-center space-x-2 text-sm text-gray-700 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  value={category}
-                  {...register('interests.categories')}
-                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <span>{category}</span>
-              </label>
-            ))}
-          </div>
-          {errors.interests?.categories?.message && (
-            <p className="text-red-500 text-xs mt-2">{errors.interests.categories.message}</p>
-          )}
-
-          <div className="grid sm:grid-cols-4 gap-4 mt-6">
-            <Select
-              label="Canal de Vendas *"
-              placeholder="*Canal de Vendas"
-              options={[
-                { label: 'Loja Física', value: 'fisica' },
-                { label: 'Online', value: 'online' },
-                { label: 'Ambos', value: 'ambos' },
-              ]}
-              {...register('interests.salesChannel')}
-              error={errors.interests?.salesChannel?.message}
-            />
-            <Select
-              label="Frequência de Compra *"
-              placeholder="*Frequência de Compra"
-              options={[
-                { label: 'Semanal', value: 'semanal' },
-                { label: 'Quinzenal', value: 'quinzenal' },
-                { label: 'Mensal', value: 'mensal' },
-              ]}
-              {...register('interests.purchaseFrequency')}
-              error={errors.interests?.purchaseFrequency?.message}
-            />
-            <Select
-              label="Volume Médio *"
-              placeholder="*Volume Médio"
-              options={[
-                { label: 'Até R$ 5.000', value: 'ate_5k' },
-                { label: 'R$ 5.000 a R$ 20.000', value: '5k_20k' },
-                { label: 'Acima de R$ 20.000', value: 'acima_20k' },
-              ]}
-              {...register('interests.averageOrderValue')}
-              error={errors.interests?.averageOrderValue?.message}
-            />
-            <Select
-              label="Como nos conheceu? *"
-              placeholder="*Como nos conheceu?"
-              options={[
-                { label: 'Google', value: 'google' },
-                { label: 'Instagram', value: 'instagram' },
-                { label: 'Indicação', value: 'indicacao' },
-                { label: 'Outro', value: 'outro' },
-              ]}
-              {...register('interests.howDidYouHear')}
-              error={errors.interests?.howDidYouHear?.message}
-            />
-          </div>
-
-          <div className="grid sm:grid-cols-2 gap-4 mt-4">
-            <Select
-              label="Número de Lojas *"
-              placeholder="*Número de Lojas"
-              options={[
-                { label: '1 loja', value: '1' },
-                { label: '2 a 5 lojas', value: '2-5' },
-                { label: 'Mais de 5', value: '5+' },
-              ]}
-              {...register('interests.storeCount')}
-              error={errors.interests?.storeCount?.message}
-            />
-            <div className="sm:col-span-2">
-              <p className="mt-1 text-sm font-medium text-gray-700">
-                Onde sua empresa vende ou atende clientes? *
-              </p>
-              <p className="mb-3 mt-1 text-xs text-gray-500">
-                Selecione os estados em que sua empresa comercializa ou entrega produtos.
-              </p>
-              <div className="grid grid-cols-5 gap-2 sm:grid-cols-9">
-                {[
-                  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO',
-                  'MA', 'MT', 'MS', 'MG', 'PA', 'PB', 'PR', 'PE', 'PI',
-                  'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
-                ].map((state) => (
-                  <label key={state} className="flex items-center gap-1.5 text-xs text-gray-700">
-                    <input
-                      type="checkbox"
-                      value={state}
-                      {...register('interests.operatingStates')}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    {state}
-                  </label>
-                ))}
-              </div>
-              {errors.interests?.operatingStates?.message && (
-                <p className="text-red-500 text-xs mt-1">
-                  {errors.interests.operatingStates.message}
+                <p className="mt-2 text-xs font-bold leading-tight sm:text-sm">{step.title}</p>
+                <p className={`mt-1 hidden text-xs sm:block ${active ? 'text-white/65' : 'text-slate-500'}`}>
+                  {step.description}
                 </p>
-              )}
-            </div>
-          </div>
-        </section>
+              </li>
+            )
+          })}
+        </ol>
 
-        {/* ═══════════════ 4. Endereço ═══════════════ */}
-        <section>
-          <h2 className="text-xl font-extrabold text-[#171717] mb-6">Endereço</h2>
-          <div className="grid sm:grid-cols-4 gap-4">
-            <Input
-              label="CEP *"
-              placeholder="*CEP"
-              {...register('addresses.fiscal.cep')}
-              onChange={(e) =>
-                handleMaskChange('addresses.fiscal.cep', e.target.value, maskCEP)
-              }
-              error={errors.addresses?.fiscal?.cep?.message}
-            />
-            <div className="sm:col-span-2">
-              <Input
-                label="Endereço *"
-                placeholder="*Endereço"
-                {...register('addresses.fiscal.street')}
-                error={errors.addresses?.fiscal?.street?.message}
-              />
-            </div>
-            <Input
-              label="Número *"
-              placeholder="*Número"
-              {...register('addresses.fiscal.number')}
-              error={errors.addresses?.fiscal?.number?.message}
-            />
-
-            <Input
-              label="Complemento"
-              placeholder="Complemento"
-              {...register('addresses.fiscal.complement')}
-            />
-            <Input
-              label="Bairro *"
-              placeholder="*Bairro"
-              {...register('addresses.fiscal.neighborhood')}
-              error={errors.addresses?.fiscal?.neighborhood?.message}
-            />
-            <Input
-              label="Cidade *"
-              placeholder="*Cidade"
-              {...register('addresses.fiscal.city')}
-              error={errors.addresses?.fiscal?.city?.message}
-            />
-            <Input
-              label="Estado *"
-              placeholder="*Estado"
-              {...register('addresses.fiscal.state')}
-              error={errors.addresses?.fiscal?.state?.message}
-            />
-          </div>
-
-          <div className="mt-4 text-xs text-gray-600">
-            <p>
-              As informações relativas à razão social e endereço são as mesmas da base de dados da
-              Receita Federal para o CNPJ informado. Aceito receber informações de acordo com a
-              Política de Segurança (Lei Geral de Proteção de Dados).
-            </p>
-          </div>
-        </section>
-
-        {/* ═══════════════ 5. Contato Responsável ═══════════════ */}
-        <section>
-          <h2 className="text-xl font-extrabold text-[#171717] mb-6">
-            Contato Responsável
-          </h2>
-          <div className="grid sm:grid-cols-3 gap-4">
-            <Input
-              label="Nome Completo *"
-              placeholder="*Nome Completo"
-              {...register('responsible.fullName')}
-              error={errors.responsible?.fullName?.message}
-            />
-            <Input
-              label="CPF *"
-              placeholder="*CPF"
-              {...register('responsible.cpf')}
-              onChange={(e) => handleMaskChange('responsible.cpf', e.target.value, maskCPF)}
-              error={errors.responsible?.cpf?.message}
-            />
-            <Select
-              label="Cargo *"
-              placeholder="*Cargo"
-              options={[
-                { label: 'Proprietário(a)', value: 'proprietario' },
-                { label: 'Comprador(a)', value: 'comprador' },
-                { label: 'Gerente', value: 'gerente' },
-                { label: 'Outro', value: 'outro' },
-              ]}
-              {...register('responsible.role')}
-              error={errors.responsible?.role?.message}
-            />
-
-            <Input
-              label="E-mail de acesso do responsável *"
-              placeholder="E-mail que será usado para entrar na conta"
-              type="email"
-              {...register('responsible.email')}
-              error={errors.responsible?.email?.message}
-              hint="Este e-mail cria a conta de acesso e precisa ser exclusivo."
-            />
-            <Input
-              label="Telefone *"
-              placeholder="*Telefone"
-              {...register('responsible.phone')}
-              onChange={(e) => handleMaskChange('responsible.phone', e.target.value, maskPhone)}
-              error={errors.responsible?.phone?.message}
-            />
-            <Input
-              label="WhatsApp *"
-              placeholder="*WhatsApp"
-              {...register('responsible.whatsapp')}
-              onChange={(e) =>
-                handleMaskChange('responsible.whatsapp', e.target.value, maskPhone)
-              }
-              error={errors.responsible?.whatsapp?.message}
-            />
-
-            <Input
-              label="Senha *"
-              placeholder="*Senha"
-              type="password"
-              {...register('responsible.password')}
-              error={errors.responsible?.password?.message}
-            />
-            <Input
-              label="Confirmar Senha *"
-              placeholder="*Confirmar Senha"
-              type="password"
-              {...register('responsible.confirmPassword')}
-              error={errors.responsible?.confirmPassword?.message}
-            />
-          </div>
-        </section>
-
-        {/* ═══════════════ 6. Termos e Condições ═══════════════ */}
-        <section className="border-t border-slate-200 pt-8">
-          <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <form
+          onSubmit={handleSubmit(onSubmit, onInvalid)}
+          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8"
+          data-registration-form
+          data-registration-card
+          noValidate
+        >
+          <div className="mb-7 flex items-start justify-between gap-4 border-b border-slate-200 pb-5">
             <div>
-              <h2 className="text-xl font-extrabold text-[#171717]">
-                Termos e declarações
-              </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Revise e confirme cada item antes de concluir o cadastro.
+              <p className="text-xs font-bold uppercase tracking-wider text-orange-600">
+                Etapa {currentStep} de 3
               </p>
+              <h2 className="mt-1 text-xl font-black text-slate-950 sm:text-2xl">
+                {STEPS[currentStep - 1].title}
+              </h2>
             </div>
-            <span className="w-fit rounded-full bg-[#f0f0f0] px-3 py-1 text-xs font-bold text-[#050505]">
-              4 confirmações obrigatórias
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
+              * obrigatórios
             </span>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2">
-            <Controller
-              name="consents.termsOfUse"
-              control={control}
-              render={({ field }) => (
-                <div className="rounded-md border border-slate-200 bg-white p-4 transition-colors hover:border-[#171717]/40">
-                  <Checkbox
-                    label={
-                      <span className="block leading-snug">
-                        <strong className="block text-[#171717]">Termos de Uso</strong>
-                        <span className="mt-1 block text-xs font-normal text-slate-500">
-                          Li e aceito as regras de utilização da plataforma.
-                        </span>
-                      </span>
-                    }
-                    checked={field.value}
-                    onChange={field.onChange}
-                  />
-                </div>
-              )}
-            />
-            <Controller
-              name="consents.privacyPolicy"
-              control={control}
-              render={({ field }) => (
-                <div className="rounded-md border border-slate-200 bg-white p-4 transition-colors hover:border-[#171717]/40">
-                  <Checkbox
-                    label={
-                      <span className="block leading-snug">
-                        <strong className="block text-[#171717]">Política de Privacidade</strong>
-                        <span className="mt-1 block text-xs font-normal text-slate-500">
-                          Declaro que li como os meus dados serão utilizados.
-                        </span>
-                      </span>
-                    }
-                    checked={field.value}
-                    onChange={field.onChange}
-                  />
-                </div>
-              )}
-            />
-            <Controller
-              name="consents.lgpdDataProcessing"
-              control={control}
-              render={({ field }) => (
-                <div className="rounded-md border border-slate-200 bg-white p-4 transition-colors hover:border-[#171717]/40">
-                  <Checkbox
-                    label={
-                      <span className="block leading-snug">
-                        <strong className="block text-[#171717]">Tratamento de dados</strong>
-                        <span className="mt-1 block text-xs font-normal text-slate-500">
-                          Autorizo o tratamento dos dados para análise e gestão do cadastro.
-                        </span>
-                      </span>
-                    }
-                    checked={field.value}
-                    onChange={field.onChange}
-                  />
-                </div>
-              )}
-            />
-            <Controller
-              name="consents.declarationOfTruth"
-              control={control}
-              render={({ field }) => (
-                <div className="rounded-md border border-slate-200 bg-white p-4 transition-colors hover:border-[#171717]/40">
-                  <Checkbox
-                    label={
-                      <span className="block leading-snug">
-                        <strong className="block text-[#171717]">Veracidade das informações</strong>
-                        <span className="mt-1 block text-xs font-normal text-slate-500">
-                          Confirmo que os dados e documentos informados são verdadeiros.
-                        </span>
-                      </span>
-                    }
-                    checked={field.value}
-                    onChange={field.onChange}
-                  />
-                </div>
-              )}
-            />
-            <div className="text-red-500 text-xs md:col-span-2">
-              {errors.consents?.termsOfUse?.message ||
-                errors.consents?.privacyPolicy?.message ||
-                errors.consents?.lgpdDataProcessing?.message ||
-                errors.consents?.declarationOfTruth?.message}
+          {submitError && (
+            <div role="alert" className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+              {submitError}
             </div>
-          </div>
-        </section>
+          )}
 
-        {/* ═══════════════ Botão de Submit ═══════════════ */}
-        {submitError && (
-          <div data-submit-error role="alert" className="rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {submitError}
-          </div>
-        )}
-        <div className="flex justify-end pt-4">
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full rounded-lg bg-black px-12 py-6 text-lg font-extrabold text-white transition-colors hover:bg-neutral-800 sm:w-auto"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                PROCESSANDO...
-              </>
+          {currentStep === 1 && (
+            <section className="space-y-6" aria-labelledby="step-one-title">
+              <div className="flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-orange-600" />
+                <h3 id="step-one-title" className="font-bold text-slate-900">
+                  Empresa e responsável
+                </h3>
+              </div>
+              <div className="grid gap-5 sm:grid-cols-2">
+                <Input
+                  label="CNPJ"
+                  required
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder="00.000.000/0000-00"
+                  {...register('company.cnpj')}
+                  onChange={(event) =>
+                    handleMaskChange('company.cnpj', event.target.value, maskCNPJ)
+                  }
+                  error={errors.company?.cnpj?.message}
+                />
+                <Input
+                  label="Nome da empresa"
+                  required
+                  autoComplete="organization"
+                  placeholder="Como sua empresa é conhecida"
+                  {...register('company.companyName')}
+                  error={errors.company?.companyName?.message}
+                />
+                <Input
+                  label="Nome do responsável"
+                  required
+                  autoComplete="name"
+                  placeholder="Nome completo"
+                  {...register('responsible.fullName')}
+                  error={errors.responsible?.fullName?.message}
+                />
+                <Input
+                  label="WhatsApp"
+                  required
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="(31) 99999-9999"
+                  {...register('responsible.whatsapp')}
+                  onChange={(event) =>
+                    handleMaskChange('responsible.whatsapp', event.target.value, maskPhone)
+                  }
+                  error={errors.responsible?.whatsapp?.message}
+                />
+                <div className="sm:col-span-2">
+                  <Input
+                    label="E-mail"
+                    required
+                    type="email"
+                    autoComplete="email"
+                    placeholder="contato@empresa.com.br"
+                    hint="Este e-mail será usado para acessar a conta."
+                    {...register('responsible.email')}
+                    error={errors.responsible?.email?.message}
+                  />
+                </div>
+              </div>
+            </section>
+          )}
+
+          {currentStep === 2 && (
+            <section className="space-y-8" aria-labelledby="step-two-title">
+              <div className="space-y-5">
+                <div className="flex items-center gap-2">
+                  <UserRound className="h-5 w-5 text-orange-600" />
+                  <h3 id="step-two-title" className="font-bold text-slate-900">
+                    Perfil comercial
+                  </h3>
+                </div>
+                <div className="grid gap-5 sm:grid-cols-3">
+                  <Select
+                    label="Segmento"
+                    required
+                    placeholder="Selecione"
+                    options={[
+                      { label: 'Supermercado / Mercearia', value: 'supermercado' },
+                      { label: 'Loja de Utilidades', value: 'utilidades' },
+                      { label: 'Papelaria / Escritório', value: 'papelaria' },
+                      { label: 'Loja de Brinquedos', value: 'brinquedos' },
+                      { label: 'Distribuidor / Atacadista', value: 'distribuidor' },
+                      { label: 'Outro', value: 'outro' },
+                    ]}
+                    {...register('company.segment')}
+                    error={errors.company?.segment?.message}
+                  />
+                  <Select
+                    label="Tipo de negócio"
+                    required
+                    placeholder="Selecione"
+                    options={[
+                      { label: 'Loja física', value: 'loja_fisica' },
+                      { label: 'Loja online', value: 'loja_online' },
+                      { label: 'Loja física e online', value: 'loja_hibrida' },
+                      { label: 'Distribuidor', value: 'distribuidor' },
+                      { label: 'Outro', value: 'outro' },
+                    ]}
+                    {...register('company.businessType')}
+                    error={errors.company?.businessType?.message}
+                  />
+                  <Select
+                    label="Volume estimado por pedido"
+                    required
+                    placeholder="Selecione"
+                    options={[
+                      { label: 'R$ 1.000 a R$ 5.000', value: '1k_5k' },
+                      { label: 'R$ 5.000 a R$ 20.000', value: '5k_20k' },
+                      { label: 'Acima de R$ 20.000', value: 'acima_20k' },
+                      { label: 'Ainda não sei informar', value: 'nao_informado' },
+                    ]}
+                    {...register('interests.averageOrderValue')}
+                    error={errors.interests?.averageOrderValue?.message}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-5 border-t border-slate-200 pt-7">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5 text-orange-600" />
+                  <h3 className="font-bold text-slate-900">Endereço da empresa</h3>
+                </div>
+                <div className="grid gap-5 sm:grid-cols-4">
+                  <Input
+                    label="CEP"
+                    required
+                    inputMode="numeric"
+                    placeholder="00000-000"
+                    {...register('addresses.fiscal.cep')}
+                    onChange={(event) =>
+                      handleMaskChange('addresses.fiscal.cep', event.target.value, maskCEP)
+                    }
+                    error={errors.addresses?.fiscal?.cep?.message}
+                  />
+                  <div className="sm:col-span-2">
+                    <Input
+                      label="Endereço"
+                      required
+                      autoComplete="street-address"
+                      {...register('addresses.fiscal.street')}
+                      error={errors.addresses?.fiscal?.street?.message}
+                    />
+                  </div>
+                  <Input
+                    label="Número"
+                    required
+                    {...register('addresses.fiscal.number')}
+                    error={errors.addresses?.fiscal?.number?.message}
+                  />
+                  <Input
+                    label="Complemento"
+                    {...register('addresses.fiscal.complement')}
+                  />
+                  <Input
+                    label="Bairro"
+                    required
+                    {...register('addresses.fiscal.neighborhood')}
+                    error={errors.addresses?.fiscal?.neighborhood?.message}
+                  />
+                  <Input
+                    label="Cidade"
+                    required
+                    {...register('addresses.fiscal.city')}
+                    error={errors.addresses?.fiscal?.city?.message}
+                  />
+                  <Input
+                    label="UF"
+                    required
+                    maxLength={2}
+                    placeholder="MG"
+                    className="uppercase"
+                    {...register('addresses.fiscal.state')}
+                    error={errors.addresses?.fiscal?.state?.message}
+                  />
+                </div>
+              </div>
+            </section>
+          )}
+
+          {currentStep === 3 && (
+            <section className="space-y-8" aria-labelledby="step-three-title">
+              <div className="space-y-5">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-orange-600" />
+                  <h3 id="step-three-title" className="font-bold text-slate-900">
+                    Dados fiscais
+                  </h3>
+                </div>
+                <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-blue-900">
+                  Empresas contribuintes de ICMS devem informar a Inscrição Estadual.
+                  Empresas legalmente dispensadas podem marcar a opção de isenção.
+                </div>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <Input
+                      label="Inscrição Estadual"
+                      required={!isStateRegistrationExempt}
+                      disabled={isStateRegistrationExempt}
+                      placeholder={isStateRegistrationExempt ? 'Empresa isenta' : 'Informe a inscrição'}
+                      {...register('company.stateRegistration')}
+                      error={errors.company?.stateRegistration?.message}
+                    />
+                    <Checkbox
+                      label="Sou legalmente isento de Inscrição Estadual"
+                      checked={isStateRegistrationExempt}
+                      onChange={(event) => {
+                        setValue('company.isStateRegistrationExempt', event.target.checked, {
+                          shouldValidate: true,
+                        })
+                        if (event.target.checked) {
+                          setValue('company.stateRegistration', '', { shouldValidate: true })
+                        }
+                      }}
+                    />
+                  </div>
+                  <Input
+                    label="CPF do responsável"
+                    required
+                    inputMode="numeric"
+                    placeholder="000.000.000-00"
+                    {...register('responsible.cpf')}
+                    onChange={(event) =>
+                      handleMaskChange('responsible.cpf', event.target.value, maskCPF)
+                    }
+                    error={errors.responsible?.cpf?.message}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-5 border-t border-slate-200 pt-7">
+                <div>
+                  <h3 className="font-bold text-slate-900">Documentos para análise</h3>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Envie um arquivo de cada tipo. A equipe pode pedir complementos depois.
+                  </p>
+                </div>
+                <div className="grid gap-6 md:grid-cols-2">
+                  <DocumentUploadField
+                    title="Contrato social"
+                    description="Documento empresarial atualizado"
+                    files={contratoFiles}
+                    onFile={(file) => handleFileUpload(file, 'contrato_social')}
+                    onRemove={(id) =>
+                      setUploadedFiles((current) => current.filter((file) => file.id !== id))
+                    }
+                  />
+                  <DocumentUploadField
+                    title="Documento do responsável"
+                    description="Documento de identificação com foto"
+                    files={responsibleDocumentFiles}
+                    onFile={(file) => handleFileUpload(file, 'doc_responsavel')}
+                    onRemove={(id) =>
+                      setUploadedFiles((current) => current.filter((file) => file.id !== id))
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-5 border-t border-slate-200 pt-7">
+                <div>
+                  <h3 className="font-bold text-slate-900">Crie sua senha</h3>
+                  <p className="mt-1 text-xs text-slate-500">
+                    Use pelo menos 8 caracteres, com maiúscula, minúscula, número e símbolo.
+                  </p>
+                </div>
+                <div className="grid gap-5 sm:grid-cols-2">
+                  <Input
+                    label="Senha"
+                    required
+                    type="password"
+                    autoComplete="new-password"
+                    {...register('responsible.password')}
+                    error={errors.responsible?.password?.message}
+                  />
+                  <Input
+                    label="Confirmar senha"
+                    required
+                    type="password"
+                    autoComplete="new-password"
+                    {...register('responsible.confirmPassword')}
+                    error={errors.responsible?.confirmPassword?.message}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+                <div>
+                  <Checkbox
+                    id="registration-terms"
+                    label={
+                      <span>
+                        Li e aceito os{' '}
+                        <Link href="/termos-de-uso" target="_blank" className="font-semibold underline">
+                          Termos de Uso
+                        </Link>
+                        .
+                      </span>
+                    }
+                    checked={acceptedTerms}
+                    onChange={(event) =>
+                      setValue('consents.termsOfUse', event.target.checked, { shouldValidate: true })
+                    }
+                  />
+                  {errors.consents?.termsOfUse?.message && (
+                    <p className="mt-1 pl-6 text-xs text-red-600">{errors.consents.termsOfUse.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Checkbox
+                    id="registration-privacy"
+                    label={
+                      <span>
+                        Li o{' '}
+                        <Link href="/politica-de-privacidade" target="_blank" className="font-semibold underline">
+                          Aviso de Privacidade
+                        </Link>{' '}
+                        e entendi como os dados ser&atilde;o usados na an&aacute;lise cadastral.
+                      </span>
+                    }
+                    checked={acknowledgedPrivacy}
+                    onChange={(event) =>
+                      setValue('consents.privacyPolicy', event.target.checked, { shouldValidate: true })
+                    }
+                  />
+                  {errors.consents?.privacyPolicy?.message && (
+                    <p className="mt-1 pl-6 text-xs text-red-600">{errors.consents.privacyPolicy.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <Checkbox
+                    id="registration-truth"
+                    label={
+                      <span>
+                        Declaro que os dados e documentos enviados s&atilde;o verdadeiros e que posso representar a empresa.
+                      </span>
+                    }
+                    checked={declaredTruth}
+                    onChange={(event) =>
+                      setValue('consents.declarationOfTruth', event.target.checked, { shouldValidate: true })
+                    }
+                  />
+                  {errors.consents?.declarationOfTruth?.message && (
+                    <p className="mt-1 pl-6 text-xs text-red-600">{errors.consents.declarationOfTruth.message}</p>
+                  )}
+                </div>
+
+                <div className="border-t border-slate-200 pt-4">
+                  <Checkbox
+                    id="registration-newsletter"
+                    label="Quero receber novidades e ofertas por e-mail (opcional)."
+                    checked={Boolean(receiveNewsletter)}
+                    onChange={(event) => setValue('consents.receiveNewsletter', event.target.checked)}
+                  />
+                  <p className="mt-1 pl-6 text-xs leading-5 text-slate-500">
+                    Esta escolha n&atilde;o interfere na an&aacute;lise do cadastro e pode ser cancelada a qualquer momento.
+                  </p>
+                </div>
+              </div>
+
+              <div className="hidden" aria-hidden="true">
+                <Checkbox
+                  label="Li e aceito os Termos de Uso e a Política de Privacidade e confirmo que os dados enviados são verdadeiros."
+                  checked={acceptedTerms}
+                  onChange={() => undefined}
+                />
+                <p className="mt-2 pl-6 text-xs text-slate-500">
+                  Consulte os{' '}
+                  <Link href="/termos-de-uso" target="_blank" className="font-semibold underline">
+                    Termos de Uso
+                  </Link>{' '}
+                  e a{' '}
+                  <Link href="/politica-de-privacidade" target="_blank" className="font-semibold underline">
+                    Política de Privacidade
+                  </Link>
+                  .
+                </p>
+                {(errors.consents?.termsOfUse?.message ||
+                  errors.consents?.privacyPolicy?.message ||
+                  errors.consents?.lgpdDataProcessing?.message ||
+                  errors.consents?.declarationOfTruth?.message) && (
+                  <p className="mt-2 pl-6 text-xs text-red-600">
+                    Confirme a leitura e a veracidade dos dados para continuar.
+                  </p>
+                )}
+              </div>
+            </section>
+          )}
+
+          <div className="mt-8 flex flex-col-reverse gap-3 border-t border-slate-200 pt-6 sm:flex-row sm:justify-between">
+            {currentStep > 1 ? (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => moveToStep((currentStep - 1) as 1 | 2)}
+                disabled={isSubmitting}
+                className="w-full sm:w-auto"
+              >
+                Voltar
+              </Button>
             ) : (
-              'CADASTRAR'
+              <Link
+                href="/login"
+                className="flex h-11 items-center justify-center px-4 text-sm font-semibold text-slate-600 hover:text-slate-950"
+              >
+                Já tenho cadastro
+              </Link>
             )}
-          </Button>
-        </div>
-      </form>
+
+            {currentStep < 3 ? (
+              <Button
+                type="button"
+                onClick={handleNextStep}
+                className="w-full bg-black text-white hover:bg-neutral-800 sm:w-auto sm:min-w-40"
+              >
+                Continuar
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-black text-white hover:bg-neutral-800 sm:w-auto sm:min-w-48"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  'Enviar para análise'
+                )}
+              </Button>
+            )}
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

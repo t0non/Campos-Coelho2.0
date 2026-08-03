@@ -6,6 +6,7 @@ import { getAuthContext } from '@/lib/supabase/auth'
 import { getActiveCartSummary } from '@/lib/data/cart'
 import { getCategories } from '@/lib/supabase/queries/categories'
 import type { CartSummary } from '@/lib/types/cart'
+import { EssentialCookieNotice } from '@/components/privacy/essential-cookie-notice'
 
 export const metadata: Metadata = {
   title: 'Campos & Coelho Atacado — Variedade para o seu negócio crescer',
@@ -47,6 +48,7 @@ export default async function LojaLayout({
       <main className="flex-1">{children}</main>
       <Footer />
       <WhatsAppButton />
+      <EssentialCookieNotice />
     </div>
   )
 }

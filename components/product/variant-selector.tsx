@@ -9,7 +9,8 @@ interface VariantOption {
   sku: string
   name: string
   attributes: Record<string, string>
-  availableStock: number
+  availableStock?: number
+  isAvailable: boolean
 }
 
 interface VariantSelectorProps {
@@ -59,7 +60,7 @@ export function VariantSelector({
       <div className="flex flex-wrap gap-2" role={interactive ? 'radiogroup' : undefined}>
         {variants.map((v) => {
           const isSelected = v.id === selectedVariantId
-          const outOfStock = v.availableStock <= 0
+          const outOfStock = !v.isAvailable
 
           if (!interactive) {
             // Única variante ativa: indicador não-clicável, apenas informativo.

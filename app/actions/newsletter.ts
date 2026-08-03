@@ -3,6 +3,7 @@
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { consumePublicRateLimit } from '@/lib/security/public-rate-limit'
+import { PRIVACY_POLICY_VERSION } from '@/lib/privacy/config'
 
 const newsletterSchema = z.object({
   name: z.string().trim().max(120).optional(),
@@ -42,11 +43,18 @@ export async function subscribeNewsletterAction(input: {
   }
 
   const supabase = createAdminClient()
-  const { error } = await supabase.from('newsletter_leads').insert({
-    email: parsed.data.email,
-    name: parsed.data.name || null,
-    company_name: parsed.data.companyName || null,
-  })
+  const { error } = await supabase.from('newsletter_leads').upsert(
+    {
+      email: parsed.data.email,
+      name: parsed.data.name || null,
+      company_name: parsed.data.companyName || null,
+      consent_at: new Date().toISOString(),
+      consent_source: 'website_footer',
+      privacy_policy_version: PRIVACY_POLICY_VERSION,
+      unsubscribed_at: null,
+    },
+    { onConflict: 'email' },
+  )
 
   if (error?.code === '23505') {
     return { success: true, message: 'Este e-mail já recebe nossas novidades.' }

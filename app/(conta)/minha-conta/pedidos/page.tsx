@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowRight, PackageSearch } from 'lucide-react'
 import { getMyOrders } from '@/lib/supabase/queries/orders'
 import { formatPrice } from '@/lib/utils/format'
+import { ORDER_STATUS_LABELS, type OrderStatus } from '@/lib/orders/status'
 
 export const metadata: Metadata = { title: 'Meus Pedidos' }
 
@@ -59,7 +60,7 @@ export default async function PedidosPage() {
                   </p>
                 </div>
                 <span className="w-fit rounded-full bg-neutral-100 px-3 py-1 text-[11px] font-bold text-neutral-700">
-                  {statusLabels[order.status] ?? order.status}
+                  {ORDER_STATUS_LABELS[order.status as OrderStatus] ?? order.status}
                 </span>
                 <div>
                   <p className="text-xs text-neutral-500">{order.item_count} item(ns)</p>

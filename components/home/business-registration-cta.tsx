@@ -3,10 +3,10 @@ import { ArrowRight, CheckCircle2 } from 'lucide-react'
 
 export function BusinessRegistrationCTA() {
   const benefits = [
-    'Acesso à tabela de preços atacadistas',
-    'Pedidos via boleto faturado (CNPJ aprovado)',
+    'Acesso aos preços após aprovação do cadastro',
+    'Pedido mínimo e quantidades informados no catálogo',
     'Acompanhamento completo dos pedidos',
-    'Suporte dedicado para lojistas',
+    'Atendimento comercial para lojistas',
   ]
 
   return (
@@ -33,7 +33,8 @@ export function BusinessRegistrationCTA() {
             </h2>
 
             <p className="max-w-2xl text-sm leading-relaxed text-neutral-300">
-              Cadastre seu CNPJ com Inscrição Estadual para acessar preços, disponibilidade e condições comerciais exclusivas para lojistas e revendedores.
+              Cadastre sua empresa com CNPJ ativo. A Inscrição Estadual é solicitada
+              somente quando se aplica à atividade da empresa.
             </p>
 
             <div className="grid sm:grid-cols-2 gap-2 pt-1">

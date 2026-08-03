@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic'
 import type { Metadata } from 'next'
 import { Container } from '@/components/ui/container'
-import { FileText, ShieldAlert } from 'lucide-react'
+import { FileText } from 'lucide-react'
 
 export const metadata: Metadata = {
   title: 'Termos de uso comercial',
@@ -21,17 +21,6 @@ export default function TermosDeUsoPage() {
           <p className="text-xs text-slate-500">Última atualização: Julho de 2026</p>
         </div>
 
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs font-medium text-amber-800 flex items-start gap-3">
-          <ShieldAlert className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <p className="font-bold">Versão preliminar:</p>
-            <p className="mt-0.5">
-              Este documento apresenta as condições comerciais gerais da Campos &amp; Coelho.
-              O conteúdo deve ser validado pela assessoria jurídica responsável.
-            </p>
-          </div>
-        </div>
-
         <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 space-y-6 text-xs sm:text-sm text-slate-600 leading-relaxed">
           <section className="space-y-2">
             <h2 className="text-base font-bold text-slate-900">1. Objeto e Condições B2B</h2>
@@ -46,14 +35,30 @@ export default function TermosDeUsoPage() {
           <section className="space-y-2">
             <h2 className="text-base font-bold text-slate-900">2. Cadastro e Aprovação Comercial</h2>
             <p>
-              Ao solicitar o cadastro, a empresa compromete-se a fornecer informações verdadeiras e atualizadas. A aprovação fica sujeita à análise de crédito, verificação cadastral na Receita Federal e conformidade fiscal.
+              Ao solicitar o cadastro, a empresa deve fornecer informações verdadeiras e
+              atualizadas. A equipe comercial pode pedir documentos adicionais antes de
+              liberar o acesso às condições de compra.
             </p>
           </section>
 
           <section className="space-y-2">
             <h2 className="text-base font-bold text-slate-900">3. Pedidos Mínimos e Condições de Pagamento</h2>
             <p>
-              Os pedidos estão sujeitos a valores mínimos por pedido e quantidades mínimas por lote/caixa. Condições faturadas via boleto dependem de análise e concessão de limite comercial.
+              Os pedidos respeitam o valor mínimo e as quantidades indicadas no catálogo.
+              Formas de pagamento, retirada e demais condições são apresentadas ao cliente
+              aprovado antes da confirmação do pedido.
+            </p>
+          </section>
+
+          <section className="space-y-2">
+            <h2 className="text-base font-bold text-slate-900">4. Conta, Seguran&ccedil;a e Privacidade</h2>
+            <p>
+              O respons&aacute;vel deve manter a senha em sigilo e informar qualquer uso indevido da conta.
+              O tratamento de dados pessoais segue o{' '}
+              <a href="/politica-de-privacidade" className="font-semibold underline underline-offset-2">
+                Aviso de Privacidade
+              </a>
+              . A aceita&ccedil;&atilde;o destes termos n&atilde;o representa consentimento para receber publicidade.
             </p>
           </section>
         </div>

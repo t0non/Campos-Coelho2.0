@@ -6,6 +6,13 @@ import { canTransitionOrderStatus } from '../lib/orders/status.ts'
 import { MINIMUM_ORDER_VALUE } from '../lib/utils/constants.ts'
 import { createAdminUserSchema } from '../lib/validations/admin-users.ts'
 import { getRateLimitSecret } from '../lib/security/rate-limit-secret.ts'
+import { authCallbackFailurePath } from '../lib/security/navigation.ts'
+import { fullRegistrationSchema } from '../lib/validations/registration.ts'
+import { privacyRequestSchema } from '../lib/validations/privacy.ts'
+import {
+  findProductAttribute,
+  isMeaningfulProductValue,
+} from '../lib/catalog/product-details.ts'
 import {
   companyDecisionEmail,
   escapeEmailHtml,
@@ -146,4 +153,116 @@ test('e-mail de pedido informa retirada na loja', () => {
 
   assert.match(email.text, /Retirada na loja/)
   assert.doesNotMatch(email.text, /entrega nacional/i)
+})
+
+test('erro de recuperação permanece no fluxo de nova senha', () => {
+  assert.equal(
+    authCallbackFailurePath('recovery', 'otp_expired'),
+    '/recuperar-senha?type=recovery&error_code=otp_expired',
+  )
+  assert.equal(
+    authCallbackFailurePath('recovery', 'código inválido'),
+    '/recuperar-senha?type=recovery&error_code=auth_callback_failed',
+  )
+  assert.equal(
+    authCallbackFailurePath(null, 'otp_expired'),
+    '/login?error=auth_callback_failed',
+  )
+})
+
+test('cadastro empresarial aceita o fluxo essencial de três etapas', () => {
+  const result = fullRegistrationSchema.safeParse({
+    company: {
+      cnpj: '11.444.777/0001-61',
+      companyName: 'Empresa Teste',
+      stateRegistration: '',
+      isStateRegistrationExempt: true,
+      segment: 'utilidades',
+      businessType: 'loja_fisica',
+    },
+    responsible: {
+      fullName: 'Responsável Teste',
+      cpf: '529.982.247-25',
+      email: 'responsavel@example.com',
+      whatsapp: '(31) 99999-9999',
+      password: 'SenhaForte#2026',
+      confirmPassword: 'SenhaForte#2026',
+    },
+    addresses: {
+      fiscal: {
+        cep: '31720-300',
+        street: 'Avenida Principal',
+        number: '975',
+        neighborhood: 'Planalto',
+        city: 'Belo Horizonte',
+        state: 'MG',
+      },
+      isShippingSameAsFiscal: true,
+      isBillingSameAsFiscal: true,
+    },
+    interests: {
+      averageOrderValue: '1k_5k',
+    },
+    consents: {
+      termsOfUse: true,
+      privacyPolicy: true,
+      declarationOfTruth: true,
+      receiveNewsletter: false,
+    },
+  })
+
+  assert.equal(result.success, true)
+})
+
+test('cadastro nao exige consentimento generico para dados necessarios', () => {
+  const consents = fullRegistrationSchema.shape.consents.safeParse({
+    termsOfUse: true,
+    privacyPolicy: true,
+    declarationOfTruth: true,
+    receiveNewsletter: false,
+  })
+
+  assert.equal(consents.success, true)
+})
+
+test('solicitacao de privacidade minimiza e valida os dados de entrada', () => {
+  const valid = privacyRequestSchema.safeParse({
+    requestType: 'confirmation_access',
+    requesterName: 'Maria da Silva',
+    requesterEmail: 'maria@example.com',
+    companyCnpj: '11.444.777/0001-61',
+    relationship: 'representative',
+    message: 'Quero confirmar quais dados pessoais estao vinculados ao cadastro.',
+    website: '',
+  })
+  const invalidCnpj = privacyRequestSchema.safeParse({
+    requestType: 'correction',
+    requesterName: 'Maria da Silva',
+    requesterEmail: 'maria@example.com',
+    companyCnpj: '00.000.000/0000-00',
+    relationship: 'representative',
+    message: 'Quero corrigir os dados vinculados ao cadastro.',
+    website: '',
+  })
+
+  assert.equal(valid.success, true)
+  assert.equal(invalidCnpj.success, false)
+})
+
+test('detalhes de produto descartam placeholders e preservam dados reais', () => {
+  assert.equal(isMeaningfulProductValue('Padrão'), false)
+  assert.equal(isMeaningfulProductValue('N/A'), false)
+  assert.equal(isMeaningfulProductValue(''), false)
+  assert.equal(isMeaningfulProductValue('500 ml'), true)
+  assert.equal(
+    findProductAttribute(
+      { Material: 'Polipropileno', Dimensões: 'N/A' },
+      ['Material'],
+    ),
+    'Polipropileno',
+  )
+  assert.equal(
+    findProductAttribute({ Dimensões: 'N/A' }, ['Dimensões']),
+    undefined,
+  )
 })

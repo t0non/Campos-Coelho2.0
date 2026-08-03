@@ -8,9 +8,14 @@ import { useEffect } from 'react'
  */
 export function AuthUrlErrorRedirect() {
   useEffect(() => {
-    if (window.location.pathname !== '/') return
-
     const query = new URLSearchParams(window.location.search)
+    const isRoot = window.location.pathname === '/'
+    const isCallbackFailureOnLogin =
+      window.location.pathname === '/login' &&
+      query.get('error') === 'auth_callback_failed'
+
+    if (!isRoot && !isCallbackFailureOnLogin) return
+
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''))
     const errorCode = query.get('error_code') || hash.get('error_code')
     const recoveryType = query.get('type') || hash.get('type')

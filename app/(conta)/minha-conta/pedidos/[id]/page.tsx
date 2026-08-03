@@ -6,6 +6,8 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, MapPin, Package } from 'lucide-react'
 import { getOrderById } from '@/lib/supabase/queries/orders'
 import { formatPrice } from '@/lib/utils/format'
+import { OrderStatusTracker } from '@/components/account/order-status-tracker'
+import { ORDER_STATUS_LABELS, type OrderStatus } from '@/lib/orders/status'
 
 export const metadata: Metadata = { title: 'Detalhes do Pedido' }
 
@@ -62,9 +64,17 @@ export default async function PedidoDetalhePage({
           </p>
         </div>
         <span className="w-fit rounded-full bg-black px-4 py-2 text-xs font-bold text-white">
-          {statusLabels[order.status] ?? order.status}
+          {ORDER_STATUS_LABELS[order.status as OrderStatus] ?? order.status}
         </span>
       </div>
+
+      <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+        <h2 className="text-sm font-extrabold text-neutral-950">Andamento do pedido</h2>
+        <p className="mt-1 text-sm text-neutral-500">Acompanhe a preparação até a retirada na loja.</p>
+        <div className="mt-5">
+          <OrderStatusTracker status={order.status as OrderStatus} />
+        </div>
+      </section>
 
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section className="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm">
