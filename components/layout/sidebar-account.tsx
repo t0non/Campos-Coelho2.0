@@ -10,10 +10,12 @@ import {
   Heart,
   MapPin,
   ChevronRight,
+  ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 
 const navItems = [
+  { href: '/privacidade', label: 'Privacidade', icon: ShieldCheck },
   { href: '/minha-conta', label: 'Minha Conta', icon: User, exact: true },
   { href: '/minha-conta/empresa', label: 'Dados da Empresa', icon: Building2 },
   { href: '/minha-conta/documentos', label: 'Documentos', icon: FileCheck },

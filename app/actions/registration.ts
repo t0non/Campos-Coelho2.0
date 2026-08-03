@@ -5,6 +5,7 @@ import { fullRegistrationSchema } from '@/lib/validations/registration'
 import { safeOriginalFilename, validateUploadedFile } from '@/lib/security/file-validation'
 import { consumePublicRateLimit } from '@/lib/security/public-rate-limit'
 import { notifyRegistrationSubmitted } from '@/lib/email/events'
+import { PRIVACY_POLICY_VERSION, TERMS_VERSION } from '@/lib/privacy/config'
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024
 const ALLOWED_DOCUMENT_CATEGORIES = new Set(['contrato_social', 'doc_responsavel'])
@@ -80,8 +81,12 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
 
   const supabase = createAdminClient()
   const cleanCnpj = data.company.cnpj.replace(/\D/g, '')
-  const cleanCpf = data.responsible.cpf.replace(/\D/g, '')
   const responsibleEmail = data.responsible.email.trim().toLowerCase()
+  const responsiblePhone = (data.responsible.phone || data.responsible.whatsapp).replace(/\D/g, '')
+  const companyEmail = data.company.email?.trim().toLowerCase() || responsibleEmail
+  const companyPhone = (data.company.phone || data.responsible.whatsapp).replace(/\D/g, '')
+  const companyWhatsapp = (data.company.whatsapp || data.responsible.whatsapp).replace(/\D/g, '')
+  const tradingName = data.company.tradingName?.trim() || data.company.companyName.trim()
   let createdUserId: string | null = null
   let createdCompanyId: string | null = null
   const uploadedPaths: string[] = []
@@ -107,7 +112,7 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
       email_confirm: true,
       user_metadata: {
         full_name: data.responsible.fullName.trim(),
-        phone: data.responsible.phone.replace(/\D/g, ''),
+        phone: responsiblePhone,
         role: 'customer',
       },
     })
@@ -131,7 +136,7 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
       id: createdUserId,
       full_name: data.responsible.fullName.trim(),
       email: responsibleEmail,
-      phone: data.responsible.phone.replace(/\D/g, ''),
+      phone: responsiblePhone,
       role: 'customer',
     })
     if (profileError) throw profileError
@@ -141,12 +146,14 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
       .insert({
         cnpj: cleanCnpj,
         company_name: data.company.companyName.trim(),
-        trade_name: data.company.tradingName.trim(),
+        trade_name: tradingName,
         state_registration: data.company.isStateRegistrationExempt ? null : data.company.stateRegistration?.trim() || null,
         segment: data.company.segment,
-        phone: data.company.phone.replace(/\D/g, ''),
-        whatsapp: data.company.whatsapp.replace(/\D/g, ''),
-        email: data.company.email.trim(),
+        business_type: data.company.businessType,
+        estimated_order_volume: data.interests.averageOrderValue,
+        phone: companyPhone,
+        whatsapp: companyWhatsapp,
+        email: companyEmail,
         website: data.company.website?.trim() || null,
         status: 'pending',
         submitted_at: new Date().toISOString(),
@@ -165,7 +172,7 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
     const { error: memberError } = await supabase.from('company_members').insert({
       company_id: company.id,
       profile_id: createdUserId,
-      role: data.responsible.role,
+      role: data.responsible.role?.trim() || 'owner',
       is_primary: true,
     })
     if (memberError) throw memberError
@@ -206,34 +213,75 @@ export async function submitPublicRegistration(formData: FormData): Promise<Publ
       if (documentError) throw new Error(`Falha ao registrar "${file.name}": ${documentError.message}`)
     }
 
+    const acknowledgedAt = new Date().toISOString()
+    const { error: acknowledgementError } = await supabase
+      .from('privacy_acknowledgements')
+      .upsert(
+        [
+          {
+            profile_id: createdUserId,
+            company_id: company.id,
+            document_type: 'terms_of_use',
+            document_version: TERMS_VERSION,
+            source: 'company_registration',
+            acknowledged_at: acknowledgedAt,
+          },
+          {
+            profile_id: createdUserId,
+            company_id: company.id,
+            document_type: 'privacy_notice',
+            document_version: PRIVACY_POLICY_VERSION,
+            source: 'company_registration',
+            acknowledged_at: acknowledgedAt,
+          },
+          {
+            profile_id: createdUserId,
+            company_id: company.id,
+            document_type: 'declaration_of_truth',
+            document_version: TERMS_VERSION,
+            source: 'company_registration',
+            acknowledged_at: acknowledgedAt,
+          },
+        ],
+        { onConflict: 'profile_id,document_type,document_version' },
+      )
+    if (acknowledgementError) throw acknowledgementError
+
+    const protocol = `B2B-${company.id.slice(0, 8).toUpperCase()}`
     const { error: auditError } = await supabase.from('audit_logs').insert({
       actor_id: createdUserId,
       action: 'public_registration_submitted',
       target_table: 'companies',
       target_id: company.id,
       payload: {
-        company: { ...data.company, cnpj: cleanCnpj },
-        responsible: {
-          fullName: data.responsible.fullName,
-          cpf: cleanCpf,
-          role: data.responsible.role,
-          department: data.responsible.department,
-          email: data.responsible.email,
-          phone: data.responsible.phone,
-          whatsapp: data.responsible.whatsapp,
-        },
-        addresses: {
-          fiscal,
-          shipping: data.addresses.isShippingSameAsFiscal ? fiscal : data.addresses.shipping,
-          billing: data.addresses.isBillingSameAsFiscal ? fiscal : data.addresses.billing,
-        },
-        interests: data.interests,
-        consents: data.consents,
+        protocol,
+        privacy_policy_version: PRIVACY_POLICY_VERSION,
+        terms_version: TERMS_VERSION,
+        document_count: validatedFiles.length,
       },
     })
     if (auditError) throw auditError
 
-    const protocol = `B2B-${company.id.slice(0, 8).toUpperCase()}`
+    if (data.consents.receiveNewsletter) {
+      const { error: newsletterError } = await supabase
+        .from('newsletter_leads')
+        .upsert(
+          {
+            email: responsibleEmail,
+            name: data.responsible.fullName.trim(),
+            company_name: data.company.companyName.trim(),
+            consent_at: acknowledgedAt,
+            consent_source: 'company_registration',
+            privacy_policy_version: PRIVACY_POLICY_VERSION,
+            unsubscribed_at: null,
+          },
+          { onConflict: 'email' },
+        )
+      if (newsletterError) {
+        console.error('Falha ao registrar a escolha opcional de newsletter:', newsletterError.message)
+      }
+    }
+
     await notifyRegistrationSubmitted({
       companyId: company.id,
       companyName: data.company.companyName.trim(),

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import { Heart, Share2, ShieldCheck } from 'lucide-react'
+import { Heart, Share2, CircleCheck, CircleX } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import type { FullProductData } from '@/lib/data/products'
 
@@ -46,13 +46,26 @@ export function ProductSummary({ product }: ProductSummaryProps) {
         {product.name}
       </h1>
 
-      {/* Metadados: SKU, EAN e Ações (Favoritos/Compartilhar) */}
+      {/* Metadados públicos e ações */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-y border-slate-100 py-3 text-xs text-slate-500">
         <div className="flex flex-wrap items-center gap-4">
           <span>REF: <strong className="text-slate-800 font-bold">{product.sku}</strong></span>
-          <span>EAN: <strong className="text-slate-800 font-bold">{product.detail.ean}</strong></span>
-          <span className="inline-flex items-center gap-1 font-bold text-green-600">
-            <ShieldCheck className="h-4 w-4" /> Em Estoque
+          {product.detail.ean && (
+            <span>
+              EAN: <strong className="font-bold text-slate-800">{product.detail.ean}</strong>
+            </span>
+          )}
+          <span
+            className={`inline-flex items-center gap-1 font-bold ${
+              product.isAvailable ? 'text-green-700' : 'text-slate-500'
+            }`}
+          >
+            {product.isAvailable ? (
+              <CircleCheck className="h-4 w-4" />
+            ) : (
+              <CircleX className="h-4 w-4" />
+            )}
+            {product.isAvailable ? 'Disponível' : 'Indisponível no momento'}
           </span>
         </div>
 

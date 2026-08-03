@@ -75,18 +75,6 @@ export interface BrandItem {
   logoBackground?: string
 }
 
-export interface TestimonialItem {
-  id: string
-  name: string
-  role: string
-  company: string
-  city: string
-  state: string
-  text: string
-  rating: number
-  isMockNotice?: boolean
-}
-
 export interface CollectionCampaign {
   id: string
   title: string
@@ -112,7 +100,6 @@ export interface HomePageData {
   weeklyOpportunities: CatalogProduct[]
   collections: CollectionCampaign[]
   brands: BrandItem[]
-  testimonials: TestimonialItem[]
   metrics: HomeMetric[]
   canViewPrices: boolean
   userStatus: 'visitor' | 'pending' | 'approved' | 'rejected' | 'suspended'
@@ -621,7 +608,6 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
     weeklyOpportunities,
     collections,
     brands,
-    testimonials: [],
     metrics: [
       {
         label: 'Produtos disponíveis',

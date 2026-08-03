@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, CircleAlert, CreditCard, Database, Truck } from 'lucide-react'
+import { ArrowRight, CheckCircle2, CircleAlert, CreditCard, Database, ShieldCheck, Truck } from 'lucide-react'
 import { CommercialSettingsManager } from '@/components/admin/commercial-settings-manager'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/supabase/auth'
@@ -33,8 +33,23 @@ export default async function AdminConfiguracoesPage() {
   const environmentReady = Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SECRET_KEY,
   )
+  const privacyIdentityReady = Boolean(
+    process.env.NEXT_PUBLIC_CONTROLLER_LEGAL_NAME &&
+      process.env.NEXT_PUBLIC_CONTROLLER_CNPJ &&
+      process.env.NEXT_PUBLIC_PRIVACY_CONTACT_EMAIL &&
+      process.env.CRON_SECRET,
+  )
 
   const statusCards = [
+    {
+      title: 'Governanca LGPD',
+      value: privacyIdentityReady ? 'Configurada' : 'Dados pendentes',
+      description: privacyIdentityReady
+        ? 'Controlador, canal de privacidade e rotina de retencao estao configurados.'
+        : 'Preencha razao social, CNPJ, e-mail de privacidade e segredo da rotina de retencao.',
+      icon: ShieldCheck,
+      ready: privacyIdentityReady,
+    },
     {
       title: 'Banco de dados',
       value: environmentReady ? 'Conectado' : 'Configuração incompleta',
@@ -74,7 +89,7 @@ export default async function AdminConfiguracoesPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {statusCards.map(({ title, value, description, icon: Icon, ready }) => (
           <article key={title} className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
             <div className="flex items-start justify-between gap-4">

@@ -15,6 +15,7 @@ import {
   Menu,
   Package,
   Settings,
+  ShieldCheck,
   Tags,
   UserCog,
   Users,
@@ -55,6 +56,7 @@ const navSections = [
   {
     label: 'Sistema',
     items: [
+      { href: '/admin/privacidade', label: 'Privacidade e LGPD', icon: ShieldCheck },
       { href: '/admin/administradores', label: 'Administradores', icon: UserCog },
       { href: '/admin/configuracoes', label: 'Configurações', icon: Settings },
     ],

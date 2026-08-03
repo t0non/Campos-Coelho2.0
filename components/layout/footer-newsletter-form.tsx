@@ -2,6 +2,7 @@
 
 import { FormEvent, useState, useTransition } from 'react'
 import { subscribeNewsletterAction } from '@/app/actions/newsletter'
+import Link from 'next/link'
 
 export function FooterNewsletterForm() {
   const [email, setEmail] = useState('')
@@ -41,10 +42,17 @@ export function FooterNewsletterForm() {
           disabled={isPending}
           className="shrink-0 bg-white px-5 py-3 text-xs font-black uppercase tracking-[0.08em] text-black transition-colors hover:bg-neutral-200 disabled:cursor-wait disabled:opacity-60 sm:px-7"
         >
-          {isPending ? 'Enviando' : 'Assinar'}
+          {isPending ? 'Enviando' : 'Quero receber'}
         </button>
       </form>
       {message && <p className="mt-2 text-xs text-neutral-400">{message}</p>}
+      <p className="mt-2 text-[11px] leading-4 text-neutral-500">
+        Ao assinar, voc&ecirc; escolhe receber comunica&ccedil;&otilde;es por e-mail. Cancele quando quiser em{' '}
+        <Link href="/privacidade" className="underline underline-offset-2 hover:text-white">
+          seus direitos e dados
+        </Link>
+        .
+      </p>
     </div>
   )
 }

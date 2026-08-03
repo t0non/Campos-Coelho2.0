@@ -1,5 +1,18 @@
 import { z } from 'zod'
-import { validateCNPJ, validateCPF } from '@/lib/utils/masks'
+import { validateCNPJ, validateCPF } from '../utils/masks.ts'
+
+const optionalPhoneSchema = z
+  .string()
+  .max(20)
+  .refine(
+    (value) => !value || value.replace(/\D/g, '').length >= 10,
+    'Telefone inválido.',
+  )
+  .optional()
+
+const optionalEmailSchema = z
+  .union([z.literal(''), z.string().trim().email('E-mail inválido.').max(254)])
+  .optional()
 
 // 1. Schema da Empresa
 export const companyStepSchema = z
@@ -8,16 +21,16 @@ export const companyStepSchema = z
       .string()
       .min(1, 'CNPJ é obrigatório.')
       .refine((val) => validateCNPJ(val), 'CNPJ inválido (verifique os dígitos).'),
-    companyName: z.string().trim().min(3, 'Razão social deve ter no mínimo 3 caracteres.').max(160),
-    tradingName: z.string().trim().min(2, 'Nome fantasia é obrigatório.').max(120),
+    companyName: z.string().trim().min(3, 'Nome da empresa deve ter no mínimo 3 caracteres.').max(160),
+    tradingName: z.string().trim().max(120).optional(),
     stateRegistration: z.string().trim().max(40).optional(),
     isStateRegistrationExempt: z.boolean().optional(),
     segment: z.string().trim().min(1, 'Selecione o segmento de atuação.').max(80),
     businessType: z.string().trim().min(1, 'Selecione o tipo de negócio.').max(80),
-    employeeCount: z.string().trim().min(1, 'Selecione a faixa de funcionários.').max(40),
-    phone: z.string().min(10, 'Telefone comercial inválido.').max(20),
-    whatsapp: z.string().min(10, 'WhatsApp comercial inválido.').max(20),
-    email: z.string().trim().email('E-mail comercial inválido.').max(254),
+    employeeCount: z.string().trim().max(40).optional(),
+    phone: optionalPhoneSchema,
+    whatsapp: optionalPhoneSchema,
+    email: optionalEmailSchema,
     website: z
       .string()
       .trim()
@@ -46,10 +59,10 @@ export const responsibleStepSchema = z
       .string()
       .min(1, 'CPF é obrigatório.')
       .refine((val) => validateCPF(val), 'CPF inválido (verifique os dígitos).'),
-    role: z.string().trim().min(1, 'Selecione o cargo.').max(80),
+    role: z.string().trim().max(80).optional(),
     department: z.string().trim().max(80).optional(),
     email: z.string().trim().email('E-mail pessoal/corporativo inválido.').max(254),
-    phone: z.string().min(10, 'Telefone inválido.').max(20),
+    phone: optionalPhoneSchema,
     whatsapp: z.string().min(10, 'WhatsApp inválido.').max(20),
     password: z
       .string()
@@ -102,14 +115,14 @@ export type AddressesStepFormValues = z.infer<typeof addressesStepSchema>
 
 // 5. Schema dos Interesses
 export const commercialInterestsStepSchema = z.object({
-  categories: z.array(z.string().trim().min(1).max(80)).min(1, 'Selecione pelo menos uma categoria de interesse.').max(30),
+  categories: z.array(z.string().trim().min(1).max(80)).max(30).optional(),
   mainProducts: z.string().trim().max(500).optional(),
-  purchaseFrequency: z.string().trim().min(1, 'Selecione a frequência estimada de compra.').max(80),
+  purchaseFrequency: z.string().trim().max(80).optional(),
   averageOrderValue: z.string().trim().min(1, 'Selecione a faixa média de valor.').max(80),
-  storeCount: z.string().trim().min(1, 'Informe o número de lojas.').max(20),
-  operatingStates: z.array(z.string().trim().length(2)).min(1, 'Selecione pelo menos um estado de atuação.').max(27),
-  salesChannel: z.string().trim().min(1, 'Selecione o canal principal de vendas.').max(80),
-  howDidYouHear: z.string().trim().min(1, 'Informe como nos conheceu.').max(120),
+  storeCount: z.string().trim().max(20).optional(),
+  operatingStates: z.array(z.string().trim().length(2)).max(27).optional(),
+  salesChannel: z.string().trim().max(80).optional(),
+  howDidYouHear: z.string().trim().max(120).optional(),
   notes: z.string().trim().max(1000).optional(),
 })
 
@@ -131,6 +144,18 @@ export const consentsStepSchema = z.object({
 })
 
 export type ConsentsStepFormValues = z.infer<typeof consentsStepSchema>
+
+// Dados necessarios para o cadastro usam bases legais proprias (execucao de
+// procedimentos pre-contratuais e obrigacoes aplicaveis), e nao um
+// "consentimento LGPD" generico. Mantemos a chave antiga apenas como opcional
+// para aceitar envios iniciados antes desta versao.
+export const registrationAcknowledgementsSchema = consentsStepSchema.extend({
+  privacyPolicy: z
+    .boolean()
+    .refine((value) => value === true, 'Confirme a leitura do Aviso de Privacidade.'),
+  lgpdDataProcessing: z.boolean().optional(),
+  receiveNewsletter: z.boolean().optional(),
+})
 
 /**
  * Calculador de força de senha (0 a 4).
@@ -162,7 +187,7 @@ export const fullRegistrationSchema = z.object({
   addresses: addressesStepSchema,
   documents: z.array(z.unknown()).optional(), // The file upload logic handles this manually in the component for now or via a specific schema
   interests: commercialInterestsStepSchema,
-  consents: consentsStepSchema,
+  consents: registrationAcknowledgementsSchema,
 })
 
 export type FullRegistrationFormValues = z.infer<typeof fullRegistrationSchema>

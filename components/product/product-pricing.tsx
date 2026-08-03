@@ -58,8 +58,6 @@ export function ProductPricing({ product, quantity, awaitingSelection = false, i
     ? (activeTier.pricePerUnit ?? activeTier.unitPrice ?? effectivePrice)
     : effectivePrice
   const totalSubtotal = (activeUnitPrice ?? 0) * quantity
-  const unitsPerMaster = 1
-  const totalUnitsCount = quantity * unitsPerMaster
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-4 shadow-xs">
@@ -70,7 +68,7 @@ export function ProductPricing({ product, quantity, awaitingSelection = false, i
             {formatPrice(activeUnitPrice ?? 0)}
           </span>
           <span className="text-xs font-semibold text-slate-500">
-            por {product.unit} ({unitsPerMaster} un/cx)
+            por {product.unit}
           </span>
         </div>
 
@@ -86,7 +84,7 @@ export function ProductPricing({ product, quantity, awaitingSelection = false, i
         )}
 
         <p className="text-[11px] text-slate-400 pt-1">
-          * Impostos inclusos na tabela B2B. Frete calculado na finalização do pedido.
+          Valor conforme a tabela comercial vinculada ao cadastro.
         </p>
       </div>
 
@@ -108,7 +106,7 @@ export function ProductPricing({ product, quantity, awaitingSelection = false, i
       <div className="flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
         <div className="space-y-0.5">
           <p className="font-semibold text-slate-600">
-            <strong>{quantity}</strong> {product.unit}s selecionadas (<strong>{totalUnitsCount}</strong> unidades)
+            <strong>{quantity}</strong> {product.unit}(s) selecionado(s)
           </p>
           <p className="text-[11px] text-slate-400">Embalagem Mínima: {product.min_quantity} {product.unit}</p>
         </div>

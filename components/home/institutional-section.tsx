@@ -8,7 +8,7 @@ export function InstitutionalSection() {
     'Catálogo focado em produtos de alta rotatividade comercial',
     'Preços diretos da tabela de atacado para cadastros aprovados',
     'Atendimento ágil para cotações e dúvidas de faturamento',
-    'Plataforma moderna, segura e fácil de navegar',
+    'Plataforma simples para consultar o catálogo e acompanhar pedidos',
   ]
 
   return (

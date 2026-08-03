@@ -91,13 +91,19 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Sessões temporárias de recuperação e convite precisam permanecer
-  // nas páginas de definição de senha.
+  // Deixa a página processar erros enviados no fragmento (#) pelo Supabase.
+  // O servidor não recebe o fragmento, então o redirecionamento é concluído
+  // pelo AuthUrlErrorRedirect no navegador, inclusive com sessão já aberta.
   if (
-    (pathname === '/recuperar-senha' &&
-      request.nextUrl.searchParams.get('type') === 'recovery') ||
-    pathname === '/aceitar-convite'
+    pathname === '/login' &&
+    request.nextUrl.searchParams.get('error') === 'auth_callback_failed'
   ) {
+    return response
+  }
+
+  // Recuperação e convite precisam permanecer acessíveis mesmo quando já
+  // existe uma sessão no navegador. Isso também permite solicitar outro link.
+  if (pathname === '/recuperar-senha' || pathname === '/aceitar-convite') {
     return response
   }
 

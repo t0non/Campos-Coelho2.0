@@ -120,7 +120,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
     )
   }
 
-  const { company_name, cnpj, trade_name, state_registration, email, phone, whatsapp, status, addresses, members, documents, registration_data } = details
+  const { company_name, cnpj, trade_name, state_registration, email, phone, whatsapp, segment, business_type, estimated_order_volume, status, addresses, members, documents, registration_data } = details
   const mainAddress = addresses?.find((a: any) => a.label === 'Principal') || addresses?.[0]
   const mainContact = members?.find((m: any) => m.is_primary)?.profile || members?.[0]?.profile
 
@@ -174,6 +174,9 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
               <div><span className="block text-gray-500 mb-1">E-mail Comercial</span><strong className="text-gray-900">{email || '-'}</strong></div>
               <div><span className="block text-gray-500 mb-1">Telefone Fixo</span><strong className="text-gray-900">{phone || '-'}</strong></div>
               <div><span className="block text-gray-500 mb-1">WhatsApp</span><strong className="text-gray-900">{whatsapp || '-'}</strong></div>
+              <div><span className="block text-gray-500 mb-1">Segmento</span><strong className="text-gray-900">{segment || '-'}</strong></div>
+              <div><span className="block text-gray-500 mb-1">Tipo de negocio</span><strong className="text-gray-900">{business_type || '-'}</strong></div>
+              <div><span className="block text-gray-500 mb-1">Volume estimado</span><strong className="text-gray-900">{estimated_order_volume || '-'}</strong></div>
             </div>
           </section>
 
@@ -211,7 +214,7 @@ export function CustomerDetailsModal({ companyId, onClose, onUpdate }: CustomerD
           </section>
 
           {/* Documentos */}
-          {registration_data && (
+          {false && registration_data && (
             <section className="rounded-lg border bg-white p-4">
               <h3 className="mb-3 border-b pb-2 text-sm font-extrabold text-gray-900">
                 Ficha comercial para aprovação

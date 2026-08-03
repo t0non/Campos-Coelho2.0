@@ -172,7 +172,7 @@ export function CartSlideOver({
             <div className="flex items-start gap-3 rounded-xl bg-neutral-100 px-3.5 py-3 [@media(max-height:600px)]:hidden">
               <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-neutral-700" />
               <div>
-                <p className="text-xs font-semibold text-neutral-900">Compra B2B segura</p>
+                <p className="text-xs font-semibold text-neutral-900">Resumo do pedido</p>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-neutral-500">
                   Valores, estoque e disponibilidade serão confirmados ao finalizar o pedido.
                 </p>
@@ -186,7 +186,7 @@ export function CartSlideOver({
                     Subtotal estimado
                   </p>
                   <p className="mt-1 text-[11px] text-neutral-400">
-                    Frete e impostos calculados depois
+                    Condições finais apresentadas antes da confirmação
                   </p>
                 </div>
                 <span className="text-2xl font-extrabold tracking-tight text-black">

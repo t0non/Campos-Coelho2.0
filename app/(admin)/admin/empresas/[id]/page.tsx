@@ -136,6 +136,14 @@ export default async function AdminEmpresaDetailPage({ params }: PageProps) {
                 <dd className="font-semibold text-gray-900">{company.segment || '—'}</dd>
               </div>
               <div className="min-w-0">
+                <dt className="text-xs text-gray-500">Tipo de negocio:</dt>
+                <dd className="font-semibold text-gray-900">{company.business_type || '—'}</dd>
+              </div>
+              <div className="min-w-0">
+                <dt className="text-xs text-gray-500">Volume estimado:</dt>
+                <dd className="font-semibold text-gray-900">{company.estimated_order_volume || '—'}</dd>
+              </div>
+              <div className="min-w-0">
                 <dt className="text-xs text-gray-500">Site:</dt>
                 <dd className="break-all font-semibold text-gray-900">{company.website || '—'}</dd>
               </div>

@@ -5,6 +5,7 @@ import { validateCNPJ } from '@/lib/utils/masks'
 import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { notifyCompanyDecision } from '@/lib/email/events'
+import { addDays, REJECTED_DOCUMENT_RETENTION_DAYS } from '@/lib/privacy/config'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type AnyClient = any
@@ -373,6 +374,14 @@ export async function approveCompanyAdmin(companyId: string, internalNotes?: str
     throw new Error(`Falha ao aprovar empresa: ${updateErr.message}`)
   }
 
+  const { error: retentionError } = await adminClient
+    .from('company_documents')
+    .update({ retention_until: null })
+    .eq('company_id', parsed.data.companyId)
+  if (retentionError) {
+    throw new Error('A empresa foi aprovada, mas a retencao dos documentos nao pode ser atualizada.')
+  }
+
   const { data: members } = await adminClient
     .from('company_members')
     .select('profile_id')
@@ -446,6 +455,16 @@ export async function rejectCompanyAdmin(companyId: string, rejectionReason: str
 
   if (updateErr) {
     throw new Error(`Falha ao recusar empresa: ${updateErr.message}`)
+  }
+
+  const { error: retentionError } = await adminClient
+    .from('company_documents')
+    .update({
+      retention_until: addDays(new Date(), REJECTED_DOCUMENT_RETENTION_DAYS),
+    })
+    .eq('company_id', parsed.data.companyId)
+  if (retentionError) {
+    throw new Error('A empresa foi recusada, mas o prazo dos documentos nao pode ser registrado.')
   }
 
   const { data: members } = await adminClient
@@ -628,6 +647,14 @@ export async function reactivateCompanyAdmin(companyId: string, internalNotes?: 
       })),
     )
   }
+  const { error: retentionError } = await adminClient
+    .from('company_documents')
+    .update({ retention_until: null })
+    .eq('company_id', parsed.data.companyId)
+  if (retentionError) {
+    throw new Error('A empresa foi reativada, mas a retencao dos documentos nao pode ser atualizada.')
+  }
+
   await adminClient.from('audit_logs').insert({
     actor_id: ctx.user!.id,
     action: 'company_reactivated',

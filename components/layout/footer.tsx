@@ -12,6 +12,7 @@ import {
 
 const footerLinks = {
   institucional: [
+    { label: 'Seus direitos e dados', href: '/privacidade' },
     { label: 'Política de Privacidade', href: '/politica-de-privacidade' },
     { label: 'Termos de Uso', href: '/termos-de-uso' },
   ],

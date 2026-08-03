@@ -12,7 +12,6 @@ import { InstitutionalBanners } from '@/components/home/institutional-banners'
 import { CampaignGrid } from '@/components/home/campaign-grid'
 import { BrandCarousel } from '@/components/home/brand-carousel'
 import { BusinessRegistrationCTA } from '@/components/home/business-registration-cta'
-import { Testimonials } from '@/components/home/testimonials'
 import { InstitutionalSection } from '@/components/home/institutional-section'
 import { getSiteUrl } from '@/lib/utils/site-url'
 import {
@@ -148,10 +147,7 @@ export default async function HomePage() {
         {/* 11. Chamada para cadastro empresarial */}
         <BusinessRegistrationCTA />
 
-        {/* 12. Depoimentos */}
-        <Testimonials testimonials={homeData.testimonials} />
-
-        {/* 13. Conteúdo institucional */}
+        {/* 12. Conteúdo institucional */}
         <InstitutionalSection />
       </div>
     </>

@@ -15,7 +15,6 @@ import { CatalogBreadcrumb } from '@/components/catalog/catalog-breadcrumb'
 import { ProductGallery } from '@/components/product/product-gallery'
 import { ProductSummary } from '@/components/product/product-summary'
 import { ProductPurchasePanelWrapper } from '@/components/product/product-purchase-panel-wrapper'
-import { ProductShippingEstimate } from '@/components/product/product-shipping-estimate'
 import { ProductBenefits } from '@/components/product/product-benefits'
 import { ProductDescription } from '@/components/product/product-description'
 import { ProductSpecifications } from '@/components/product/product-specifications'
@@ -154,10 +153,7 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
                 variantExplicitlySelected={variantExplicitlySelected}
               />
 
-              {/* Simulador de Frete */}
-              <ProductShippingEstimate />
-
-              {/* Selos de Benefícios B2B */}
+              {/* Informações operacionais */}
               <ProductBenefits />
             </div>
           </div>

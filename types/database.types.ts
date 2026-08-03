@@ -453,10 +453,12 @@ export type Database = {
       companies: {
         Row: {
           approved_at: string | null
+          business_type: string | null
           cnpj: string
           company_name: string
           created_at: string
           email: string | null
+          estimated_order_volume: string | null
           id: string
           internal_notes: string | null
           phone: string | null
@@ -475,10 +477,12 @@ export type Database = {
         }
         Insert: {
           approved_at?: string | null
+          business_type?: string | null
           cnpj: string
           company_name: string
           created_at?: string
           email?: string | null
+          estimated_order_volume?: string | null
           id?: string
           internal_notes?: string | null
           phone?: string | null
@@ -497,10 +501,12 @@ export type Database = {
         }
         Update: {
           approved_at?: string | null
+          business_type?: string | null
           cnpj?: string
           company_name?: string
           created_at?: string
           email?: string | null
+          estimated_order_volume?: string | null
           id?: string
           internal_notes?: string | null
           phone?: string | null
@@ -543,6 +549,7 @@ export type Database = {
           file_path: string
           id: string
           notes: string | null
+          retention_until: string | null
           status: Database["public"]["Enums"]["doc_status"]
           updated_at: string
         }
@@ -554,6 +561,7 @@ export type Database = {
           file_path: string
           id?: string
           notes?: string | null
+          retention_until?: string | null
           status?: Database["public"]["Enums"]["doc_status"]
           updated_at?: string
         }
@@ -565,6 +573,7 @@ export type Database = {
           file_path?: string
           id?: string
           notes?: string | null
+          retention_until?: string | null
           status?: Database["public"]["Enums"]["doc_status"]
           updated_at?: string
         }
@@ -777,24 +786,36 @@ export type Database = {
       newsletter_leads: {
         Row: {
           company_name: string | null
+          consent_at: string | null
+          consent_source: string | null
           created_at: string
           email: string
           id: string
           name: string | null
+          privacy_policy_version: string | null
+          unsubscribed_at: string | null
         }
         Insert: {
           company_name?: string | null
+          consent_at?: string | null
+          consent_source?: string | null
           created_at?: string
           email: string
           id?: string
           name?: string | null
+          privacy_policy_version?: string | null
+          unsubscribed_at?: string | null
         }
         Update: {
           company_name?: string | null
+          consent_at?: string | null
+          consent_source?: string | null
           created_at?: string
           email?: string
           id?: string
           name?: string | null
+          privacy_policy_version?: string | null
+          unsubscribed_at?: string | null
         }
         Relationships: []
       }
@@ -1174,6 +1195,113 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      privacy_acknowledgements: {
+        Row: {
+          acknowledged_at: string
+          company_id: string | null
+          document_type: string
+          document_version: string
+          id: string
+          profile_id: string | null
+          source: string
+        }
+        Insert: {
+          acknowledged_at?: string
+          company_id?: string | null
+          document_type: string
+          document_version: string
+          id?: string
+          profile_id?: string | null
+          source?: string
+        }
+        Update: {
+          acknowledged_at?: string
+          company_id?: string | null
+          document_type?: string
+          document_version?: string
+          id?: string
+          profile_id?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "privacy_acknowledgements_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "privacy_acknowledgements_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      privacy_requests: {
+        Row: {
+          assigned_to: string | null
+          company_cnpj: string | null
+          created_at: string
+          due_at: string
+          id: string
+          message: string
+          protocol: string
+          relationship: string
+          request_type: string
+          requester_email: string
+          requester_name: string
+          resolved_at: string | null
+          response_summary: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          company_cnpj?: string | null
+          created_at?: string
+          due_at: string
+          id?: string
+          message: string
+          protocol: string
+          relationship: string
+          request_type: string
+          requester_email: string
+          requester_name: string
+          resolved_at?: string | null
+          response_summary?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_to?: string | null
+          company_cnpj?: string | null
+          created_at?: string
+          due_at?: string
+          id?: string
+          message?: string
+          protocol?: string
+          relationship?: string
+          request_type?: string
+          requester_email?: string
+          requester_name?: string
+          resolved_at?: string | null
+          response_summary?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "privacy_requests_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_images: {
         Row: {
