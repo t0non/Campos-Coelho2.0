@@ -25,8 +25,14 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: '8mb',
-      ...(process.env.NEXT_PUBLIC_SITE_URL
-        ? { allowedOrigins: [new URL(process.env.NEXT_PUBLIC_SITE_URL).host] }
+      ...(process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL
+        ? {
+            allowedOrigins: [
+              new URL(
+                process.env.NEXT_PUBLIC_SITE_URL ?? process.env.NEXT_PUBLIC_APP_URL!,
+              ).host,
+            ],
+          }
         : {}),
     },
   },
