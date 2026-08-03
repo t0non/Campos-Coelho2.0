@@ -5,6 +5,8 @@ import { z } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/supabase/auth'
 import { validateUploadedFile } from '@/lib/security/file-validation'
+import { getProductImageUrl } from '@/lib/utils/storage-url'
+import type { AdminSeasonalProductOption } from '@/types/seasonal-campaign.types'
 
 const campaignSchema = z.object({
   id: z.string().uuid().optional(),
@@ -158,6 +160,49 @@ export async function saveSeasonalCampaign(input: {
   revalidatePath('/')
   revalidatePath('/admin/campanhas')
   return { success: true, id: campaignId }
+}
+
+export async function searchSeasonalProducts(query: string): Promise<AdminSeasonalProductOption[]> {
+  await requireAdmin()
+
+  const term = query.trim().slice(0, 100)
+  const supabase = createAdminClient()
+
+  let request = supabase
+    .from('products')
+    .select(
+      `
+      id,
+      sku,
+      name,
+      product_images(url, is_primary, position)
+      `,
+    )
+    .eq('is_active', true)
+    .eq('is_published', true)
+    .order('name')
+    .limit(100)
+
+  if (term) {
+    const escaped = term.replace(/[%_,]/g, (match) => `\\${match}`)
+    request = request.or(`name.ilike.%${escaped}%,sku.ilike.%${escaped}%`)
+  }
+
+  const { data, error } = await request
+  if (error || !data) return []
+
+  return data.map((product) => {
+    const primaryImage = [...(product.product_images ?? [])].sort(
+      (a, b) => Number(b.is_primary) - Number(a.is_primary) || (a.position ?? 0) - (b.position ?? 0),
+    )[0]
+
+    return {
+      id: product.id,
+      sku: product.sku,
+      name: product.name,
+      imageUrl: getProductImageUrl(primaryImage?.url),
+    }
+  })
 }
 
 export async function deleteSeasonalCampaign(id: string) {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import {
@@ -18,6 +18,7 @@ import {
 import {
   deleteSeasonalCampaign,
   saveSeasonalCampaign,
+  searchSeasonalProducts,
   uploadCollectionImage,
 } from '@/lib/actions/admin/collections'
 import type {
@@ -70,24 +71,52 @@ export function SeasonalCampaignManager({
   const [isSaving, setIsSaving] = useState(false)
   const [deletingId, setDeletingId] = useState('')
   const [error, setError] = useState('')
+  const [extraProducts, setExtraProducts] = useState<AdminSeasonalProductOption[]>([])
+  const [searchResults, setSearchResults] = useState<AdminSeasonalProductOption[] | null>(null)
+  const [isSearching, setIsSearching] = useState(false)
+  const searchRequestId = useRef(0)
+
+  const allKnownProducts = useMemo(() => {
+    const map = new Map(products.map((product) => [product.id, product]))
+    for (const product of extraProducts) map.set(product.id, product)
+    return Array.from(map.values())
+  }, [products, extraProducts])
 
   const productById = useMemo(
-    () => new Map(products.map((product) => [product.id, product])),
-    [products],
+    () => new Map(allKnownProducts.map((product) => [product.id, product])),
+    [allKnownProducts],
   )
 
-  const filteredProducts = useMemo(() => {
-    const query = productSearch.trim().toLocaleLowerCase('pt-BR')
-    if (!query) return products.slice(0, 80)
+  useEffect(() => {
+    const query = productSearch.trim()
+    if (!query) {
+      setSearchResults(null)
+      setIsSearching(false)
+      return
+    }
 
-    return products
-      .filter(
-        (product) =>
-          product.name.toLocaleLowerCase('pt-BR').includes(query) ||
-          product.sku.toLocaleLowerCase('pt-BR').includes(query),
-      )
-      .slice(0, 80)
-  }, [productSearch, products])
+    const requestId = ++searchRequestId.current
+    setIsSearching(true)
+    const timer = setTimeout(() => {
+      searchSeasonalProducts(query)
+        .then((results) => {
+          if (searchRequestId.current !== requestId) return
+          setSearchResults(results)
+          setExtraProducts((previous) => {
+            const map = new Map(previous.map((product) => [product.id, product]))
+            for (const product of results) map.set(product.id, product)
+            return Array.from(map.values())
+          })
+        })
+        .finally(() => {
+          if (searchRequestId.current === requestId) setIsSearching(false)
+        })
+    }, 300)
+
+    return () => clearTimeout(timer)
+  }, [productSearch])
+
+  const filteredProducts = searchResults ?? products.slice(0, 80)
 
   const openNew = () => {
     setDraft({ ...EMPTY_DRAFT })
@@ -387,10 +416,18 @@ export function SeasonalCampaignManager({
                 <input
                   value={productSearch}
                   onChange={(event) => setProductSearch(event.target.value)}
-                  placeholder="Buscar por nome ou SKU"
+                  placeholder="Buscar em todo o catálogo por nome ou SKU"
                   className="h-10 w-full rounded-md border border-gray-300 pl-9 pr-3 text-sm outline-none focus:border-[#171717] focus:ring-2 focus:ring-[#171717]/15"
                 />
               </div>
+              {!productSearch && (
+                <p className="mb-2 text-[11px] text-gray-400">
+                  Mostrando os primeiros produtos em ordem alfabética. Use a busca para encontrar qualquer item do catálogo.
+                </p>
+              )}
+              {isSearching && (
+                <p className="mb-2 text-[11px] text-gray-400">Buscando...</p>
+              )}
 
               <div className="grid max-h-[430px] grid-cols-1 gap-2 overflow-y-auto pr-1 sm:grid-cols-2">
                 {filteredProducts.map((product) => {

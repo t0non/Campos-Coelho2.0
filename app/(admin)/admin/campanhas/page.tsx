@@ -13,37 +13,21 @@ export default async function AdminSeasonalCampaignsPage() {
   await requireAdmin()
   const supabase = createAdminClient()
 
-  const [{ data: collectionsData }, { data: productsData }] = await Promise.all([
-    supabase
-      .from('collections')
-      .select(
-        `
-        id,
-        name,
-        slug,
-        description,
-        banner_url,
-        is_active,
-        updated_at,
-        collection_products(product_id, position)
-        `,
-      )
-      .order('updated_at', { ascending: false }),
-    supabase
-      .from('products')
-      .select(
-        `
-        id,
-        sku,
-        name,
-        product_images(url, is_primary, position)
-        `,
-      )
-      .eq('is_active', true)
-      .eq('is_published', true)
-      .order('name')
-      .limit(300),
-  ])
+  const { data: collectionsData } = await supabase
+    .from('collections')
+    .select(
+      `
+      id,
+      name,
+      slug,
+      description,
+      banner_url,
+      is_active,
+      updated_at,
+      collection_products(product_id, position)
+      `,
+    )
+    .order('updated_at', { ascending: false })
 
   const campaigns: AdminSeasonalCampaign[] = (collectionsData ?? []).map((collection) => ({
     id: collection.id,
@@ -57,7 +41,36 @@ export default async function AdminSeasonalCampaignsPage() {
       .map((item) => item.product_id),
   }))
 
-  const products: AdminSeasonalProductOption[] = (productsData ?? []).map((product) => {
+  const selectedProductIds = Array.from(
+    new Set(campaigns.flatMap((campaign) => campaign.productIds)),
+  )
+
+  const productColumns = `
+    id,
+    sku,
+    name,
+    product_images(url, is_primary, position)
+  `
+
+  const { data: browseProductsData } = await supabase
+    .from('products')
+    .select(productColumns)
+    .eq('is_active', true)
+    .eq('is_published', true)
+    .order('name')
+    .limit(100)
+
+  const { data: selectedProductsData } =
+    selectedProductIds.length > 0
+      ? await supabase.from('products').select(productColumns).in('id', selectedProductIds)
+      : { data: [] }
+
+  function mapProduct(product: {
+    id: string
+    sku: string
+    name: string
+    product_images: { url: string; is_primary: boolean; position: number | null }[] | null
+  }): AdminSeasonalProductOption {
     const primaryImage = [...(product.product_images ?? [])].sort(
       (a, b) =>
         Number(b.is_primary) - Number(a.is_primary) ||
@@ -70,7 +83,17 @@ export default async function AdminSeasonalCampaignsPage() {
       name: product.name,
       imageUrl: getProductImageUrl(primaryImage?.url),
     }
-  })
+  }
+
+  const productsById = new Map<string, AdminSeasonalProductOption>()
+  for (const product of browseProductsData ?? []) {
+    productsById.set(product.id, mapProduct(product))
+  }
+  for (const product of selectedProductsData ?? []) {
+    productsById.set(product.id, mapProduct(product))
+  }
+
+  const products = Array.from(productsById.values())
 
   return <SeasonalCampaignManager campaigns={campaigns} products={products} />
 }
