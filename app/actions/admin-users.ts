@@ -5,17 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { requireAdmin } from '@/lib/supabase/auth'
 import { createAdminUserSchema } from '@/lib/validations/admin-users'
 import { notifyAdminCreated } from '@/lib/email/events'
-
-export interface CreateAdminUserState {
-  status: 'idle' | 'success' | 'error'
-  message: string
-  fieldErrors?: Partial<Record<'fullName' | 'email' | 'password' | 'passwordConfirmation', string[]>>
-}
-
-export const initialCreateAdminUserState: CreateAdminUserState = {
-  status: 'idle',
-  message: '',
-}
+import type { CreateAdminUserState } from '@/lib/state/admin-users-state'
 
 export async function createAdminUser(
   _previousState: CreateAdminUserState,

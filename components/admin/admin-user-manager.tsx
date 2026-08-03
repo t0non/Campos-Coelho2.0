@@ -2,10 +2,8 @@
 
 import { useActionState, useEffect, useRef, useState } from 'react'
 import { CheckCircle2, Eye, EyeOff, KeyRound, ShieldCheck, UserPlus } from 'lucide-react'
-import {
-  createAdminUser,
-  initialCreateAdminUserState,
-} from '@/app/actions/admin-users'
+import { createAdminUser } from '@/app/actions/admin-users'
+import { initialCreateAdminUserState } from '@/lib/state/admin-users-state'
 import type { AdminUserListItem } from '@/lib/data/admin-users'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
