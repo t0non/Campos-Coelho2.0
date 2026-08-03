@@ -1,9 +1,10 @@
 export const dynamic = 'force-dynamic'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { XCircle, PhoneCall, Mail } from 'lucide-react'
+import { XCircle, PhoneCall } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { LogoutButton } from '@/components/auth/logout-button'
+import { COMPANY_PHONE_DISPLAY } from '@/lib/config/contact'
 
 export const metadata: Metadata = {
   title: 'Cadastro Não Aprovado',
@@ -27,12 +28,8 @@ export default function ContaRecusadaPage() {
       <div className="w-full rounded-lg bg-gray-50 border border-gray-200 p-4 text-xs text-gray-700 space-y-2 text-left">
         <p className="font-semibold text-gray-900">Deseja revisar seus dados ou esclarecer dúvidas?</p>
         <div className="flex items-center gap-2 text-gray-600">
-          <Mail className="h-4 w-4 text-blue-600 shrink-0" />
-          <span>comercial@atacadob2b.com.br</span>
-        </div>
-        <div className="flex items-center gap-2 text-gray-600">
           <PhoneCall className="h-4 w-4 text-blue-600 shrink-0" />
-          <span>(11) 4004-0000 / (11) 99999-8888</span>
+          <span>{COMPANY_PHONE_DISPLAY}</span>
         </div>
       </div>
 

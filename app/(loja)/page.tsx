@@ -18,6 +18,7 @@ import {
   COMPANY_GOOGLE_PROFILE_URL,
   COMPANY_PHONE_DISPLAY,
 } from '@/lib/config/contact'
+import { CONTROLLER_CNPJ, CONTROLLER_LEGAL_NAME } from '@/lib/privacy/config'
 
 const siteUrl = getSiteUrl()
 
@@ -54,6 +55,8 @@ export default async function HomePage() {
         '@type': 'Organization',
         '@id': `${siteUrl}/#organization`,
         name: 'Campos & Coelho Atacado',
+        legalName: CONTROLLER_LEGAL_NAME,
+        taxID: CONTROLLER_CNPJ.replace(/\D/g, ''),
         url: siteUrl,
         logo: `${siteUrl}/logo_campos_coelho.png`,
         description: 'Distribuidora de produtos no atacado para lojistas e empresas.',
@@ -61,7 +64,7 @@ export default async function HomePage() {
         sameAs: [COMPANY_GOOGLE_PROFILE_URL],
         address: {
           '@type': 'PostalAddress',
-          streetAddress: 'Av. Dr. Cristiano Guimarães, 975',
+          streetAddress: 'Avenida Doutor Cristiano Guimarães, 975',
           addressLocality: 'Belo Horizonte',
           addressRegion: 'MG',
           postalCode: '31720-300',

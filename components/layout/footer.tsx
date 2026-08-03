@@ -131,7 +131,7 @@ export function Footer() {
 
       <div className="border-t border-white/10 bg-black">
         <div className="mx-auto flex max-w-[1200px] flex-col items-center justify-between gap-2 px-4 py-5 text-center text-[11px] text-neutral-500 sm:flex-row sm:px-6 sm:text-left">
-          <p>© {new Date().getFullYear()} Campos &amp; Coelho Atacado.</p>
+          <p>© {new Date().getFullYear()} Distribuidora Campos &amp; Coelho Ltda.</p>
           <p className="text-neutral-600">Catálogo e atendimento comercial B2B.</p>
         </div>
       </div>

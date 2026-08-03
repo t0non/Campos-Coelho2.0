@@ -8,7 +8,7 @@ export const WHATSAPP_MESSAGE =
 export const COMPANY_PHONE_DISPLAY = '(31) 3441-9534'
 
 export const COMPANY_ADDRESS =
-  'Av. Dr. Cristiano Guimarães, 975 - Planalto, Belo Horizonte - MG, 31720-300'
+  'Avenida Doutor Cristiano Guimarães, 975 - Planalto, Belo Horizonte - MG, 31720-300'
 
 export const COMPANY_GOOGLE_PROFILE_URL = 'https://share.google/59o0CyAluDsA12xDg'
 
