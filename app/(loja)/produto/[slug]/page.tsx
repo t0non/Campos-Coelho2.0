@@ -81,8 +81,32 @@ export default async function ProductPage({ params: paramsPromise, searchParams:
   // cai de volta no default e não conta como seleção explícita).
   const variantExplicitlySelected = Boolean(variantParam) && product.currentVariantId === variantParam
 
-  const relatedProducts = await getRelatedProducts(product, authContext)
-  const frequentlyBoughtTogether = await getFrequentlyBoughtTogether(product, authContext)
+  // Blocos secundários (produtos relacionados / comprados juntos) nunca podem
+  // impedir a renderização do conteúdo essencial do produto: se a consulta
+  // falhar, registramos o erro e caímos para uma lista vazia (a seção
+  // correspondente simplesmente não aparece, em vez de quebrar a página).
+  const [relatedProductsResult, frequentlyBoughtTogetherResult] = await Promise.allSettled([
+    getRelatedProducts(product, authContext),
+    getFrequentlyBoughtTogether(product, authContext),
+  ])
+
+  if (relatedProductsResult.status === 'rejected') {
+    console.error(
+      `[produto/${slug}] Falha ao carregar produtos relacionados:`,
+      relatedProductsResult.reason,
+    )
+  }
+  if (frequentlyBoughtTogetherResult.status === 'rejected') {
+    console.error(
+      `[produto/${slug}] Falha ao carregar "comprados juntos":`,
+      frequentlyBoughtTogetherResult.reason,
+    )
+  }
+
+  const relatedProducts =
+    relatedProductsResult.status === 'fulfilled' ? relatedProductsResult.value : []
+  const frequentlyBoughtTogether =
+    frequentlyBoughtTogetherResult.status === 'fulfilled' ? frequentlyBoughtTogetherResult.value : []
 
   // Structured Data (JSON-LD) público (sem preços privados)
   const jsonLd = {
