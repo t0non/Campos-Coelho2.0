@@ -46,3 +46,6 @@ scripts/backups/
 
 # Arquivos temporários do Codex
 .codex-tmp/
+
+.vercel
+.env*
