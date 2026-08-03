@@ -468,7 +468,9 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
       banner.subtitle !== '__institutional__',
   )
 
-  const heroBanners: HeroBannerItem[] = [
+  // Fallback estático usado apenas se não houver nenhum banner de destaque
+  // cadastrado no banco — garante que a home nunca fique sem carrossel.
+  const FALLBACK_HERO_BANNERS: HeroBannerItem[] = [
     {
       id: 'banner-institucional-geral',
       title: 'Variedade para o seu negócio',
@@ -499,20 +501,24 @@ export async function getHomePageData(authContext: AuthContext): Promise<HomePag
       mobileImage: '/images/banners/hero-organizacao-mobile-v1.webp',
       theme: 'dark',
     },
-    ...heroBannerRows.map((b, index): HeroBannerItem => ({
-        id: b.id,
-        title: getStoreBannerTitle(b.title, index),
-        subtitle: b.subtitle || '',
-        description: '',
-        primaryCta: {
-          label: b.link_url ? 'Saiba Mais' : 'Explorar Catálogo',
-          href: getStoreBannerHref(b.link_url),
-        },
-        desktopImage: b.image_url,
-        mobileImage: b.mobile_image_url || b.image_url,
-        theme: 'dark',
-      })),
   ]
+
+  const heroBanners: HeroBannerItem[] =
+    heroBannerRows.length > 0
+      ? heroBannerRows.map((b, index): HeroBannerItem => ({
+          id: b.id,
+          title: getStoreBannerTitle(b.title, index),
+          subtitle: b.subtitle || '',
+          description: '',
+          primaryCta: {
+            label: b.link_url ? 'Saiba Mais' : 'Explorar Catálogo',
+            href: getStoreBannerHref(b.link_url),
+          },
+          desktopImage: b.image_url,
+          mobileImage: b.mobile_image_url || b.image_url,
+          theme: 'dark',
+        }))
+      : FALLBACK_HERO_BANNERS
 
   const secondaryBanner: SecondaryBannerItem | null = secondaryBannerRow
     ? {

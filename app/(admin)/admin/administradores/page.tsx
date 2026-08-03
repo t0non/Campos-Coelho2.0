@@ -55,7 +55,7 @@ export default async function AdminUsersPage() {
         </div>
       </div>
 
-      {loadError ? (
+      {loadError || !context.user ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-950">
           <p className="font-extrabold">Não foi possível carregar os administradores.</p>
           <p className="mt-1 text-red-800">
@@ -63,7 +63,7 @@ export default async function AdminUsersPage() {
           </p>
         </div>
       ) : (
-        <AdminUserManager admins={admins} currentUserId={context.user!.id} />
+        <AdminUserManager admins={admins} currentUserId={context.user.id} />
       )}
     </div>
   )
