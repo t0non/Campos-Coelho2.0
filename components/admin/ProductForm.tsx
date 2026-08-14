@@ -22,6 +22,15 @@ export function ProductForm({ initialData, categories, brands }: ProductFormProp
   const [categoryWasManuallyChanged, setCategoryWasManuallyChanged] = useState(
     Boolean(initialData?.category_id),
   )
+  const [slugWasManuallyChanged, setSlugWasManuallyChanged] = useState(
+    Boolean(initialData?.slug),
+  )
+  const [seoTitleWasManuallyChanged, setSeoTitleWasManuallyChanged] = useState(
+    Boolean(initialData?.seo_title),
+  )
+  const [seoDescriptionWasManuallyChanged, setSeoDescriptionWasManuallyChanged] = useState(
+    Boolean(initialData?.seo_description),
+  )
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
     slug: initialData?.slug || '',
@@ -47,13 +56,52 @@ export function ProductForm({ initialData, categories, brands }: ProductFormProp
     if (name === 'category_id') {
       setCategoryWasManuallyChanged(true)
     }
+    if (name === 'slug') {
+      setSlugWasManuallyChanged(true)
+    }
+    if (name === 'seo_title') {
+      setSeoTitleWasManuallyChanged(true)
+    }
+    if (name === 'seo_description') {
+      setSeoDescriptionWasManuallyChanged(true)
+    }
 
     setFormData((current) => {
       const next = { ...current, [name]: value }
 
-      if (name === 'name' && !categoryWasManuallyChanged) {
-        const suggestedSlug = inferProductCategorySlug(value)
-        next.category_id = categories.find((category) => category.slug === suggestedSlug)?.id ?? ''
+      if (name === 'name') {
+        if (!categoryWasManuallyChanged) {
+          const suggestedSlug = inferProductCategorySlug(value)
+          next.category_id = categories.find((category) => category.slug === suggestedSlug)?.id ?? ''
+        }
+        if (!slugWasManuallyChanged) {
+          next.slug = value
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-z0-9\s-]/g, '')
+            .trim()
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+        }
+        if (!seoTitleWasManuallyChanged) {
+          next.seo_title = value
+        }
+        if (!seoDescriptionWasManuallyChanged && !next.short_description) {
+          next.seo_description = value 
+            ? `Compre ${value} no atacado com o melhor preço na Campos & Coelho. Condições exclusivas de revenda B2B e entrega rápida. Confira!`
+            : ''
+        }
+      }
+
+      if (name === 'short_description') {
+        if (!seoDescriptionWasManuallyChanged) {
+          next.seo_description = value 
+            ? value.slice(0, 160)
+            : (next.name 
+                ? `Compre ${next.name} no atacado com o melhor preço na Campos & Coelho. Condições exclusivas de revenda B2B e entrega rápida. Confira!`
+                : '')
+        }
       }
 
       return next

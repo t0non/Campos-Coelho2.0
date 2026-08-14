@@ -3,7 +3,7 @@
 // ============================================================
 
 // Pedido mínimo em reais
-export const MINIMUM_ORDER_VALUE = 1000
+export const MINIMUM_ORDER_VALUE = 500
 
 // Número máximo de itens no carrinho
 export const MAX_CART_ITEMS = 100

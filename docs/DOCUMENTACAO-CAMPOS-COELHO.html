@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Documentação da Plataforma B2B Campos & Coelho</title>
+<style>
+  @page { size: A4; margin: 20mm 18mm; }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Montserrat', Arial, Helvetica, sans-serif;
+    color: #171717;
+    background: #ffffff;
+    margin: 0;
+    line-height: 1.55;
+    font-size: 11pt;
+  }
+  .page { max-width: 800px; margin: 0 auto; padding: 24px; }
+  .cover {
+    min-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    page-break-after: always;
+    padding: 60px 24px;
+    text-align: center;
+    background: #ffffff;
+  }
+  .cover img.logo { max-width: 220px; margin: 0 auto 40px; display: block; }
+  .cover h1 {
+    font-size: 28pt;
+    font-weight: 800;
+    color: #111111;
+    margin: 0 0 12px;
+    letter-spacing: -0.5px;
+  }
+  .cover .subtitle {
+    font-size: 13pt;
+    color: #666666;
+    margin: 0 0 60px;
+    font-weight: 500;
+  }
+  .cover .meta {
+    border-top: 1px solid #dedede;
+    padding-top: 24px;
+    font-size: 10.5pt;
+    color: #444444;
+    display: grid;
+    gap: 6px;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .cover .meta strong { color: #111111; }
+  .cover .version-badge {
+    display: inline-block;
+    background: #111111;
+    color: #fff;
+    font-weight: 700;
+    font-size: 10pt;
+    padding: 6px 16px;
+    border-radius: 999px;
+    margin-bottom: 24px;
+    letter-spacing: 0.03em;
+  }
+
+  h1, h2, h3 { color: #111111; font-weight: 800; }
+  h2 {
+    font-size: 17pt;
+    border-bottom: 2px solid #111111;
+    padding-bottom: 8px;
+    margin-top: 44px;
+    page-break-after: avoid;
+  }
+  h3 { font-size: 12.5pt; margin-top: 22px; }
+  p { margin: 0 0 12px; }
+
+  .toc { page-break-after: always; }
+  .toc ol { padding-left: 20px; }
+  .toc li { margin-bottom: 10px; font-size: 12pt; }
+  .toc a { color: #171717; text-decoration: none; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 20px;
+    font-size: 10pt;
+  }
+  th, td {
+    border: 1px solid #dedede;
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { background: #f5f5f5; font-weight: 700; color: #111111; }
+  tr:nth-child(even) td { background: #fafafa; }
+
+  .flow {
+    background: #f7f7f7;
+    border: 1px solid #ededed;
+    border-radius: 12px;
+    padding: 20px;
+    font-size: 10.5pt;
+    line-height: 2;
+    text-align: center;
+    color: #333;
+    margin: 16px 0 24px;
+  }
+  .flow .step { display: block; }
+  .flow .arrow { color: #999; }
+
+  .callout {
+    background: #f5f5f5;
+    border-left: 4px solid #111111;
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin: 16px 0;
+    font-size: 10.5pt;
+  }
+  .callout.pending { border-left-color: #999999; background: #fafafa; }
+  .callout strong { color: #111111; }
+
+  .screenshot-box {
+    border: 2px dashed #c2c2c2;
+    border-radius: 10px;
+    padding: 40px 20px;
+    text-align: center;
+    color: #888;
+    font-size: 10pt;
+    background: #fafafa;
+    margin: 14px 0 20px;
+  }
+  .screenshot-box .label { font-weight: 700; color: #444; display: block; margin-bottom: 4px; }
+
+  .status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0 20px;
+  }
+  .status-col {
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 9.5pt;
+  }
+  .status-col h4 { margin: 0 0 10px; font-size: 10.5pt; }
+  .status-col ul { margin: 0; padding-left: 16px; }
+  .status-col li { margin-bottom: 6px; }
+  .status-col.done { background: #f0f0f0; border: 1px solid #d4d4d4; }
+  .status-col.homolog { background: #fafafa; border: 1px dashed #bbb; }
+  .status-col.next { background: #ffffff; border: 1px dotted #999; }
+
+  .checklist { list-style: none; padding: 0; margin: 16px 0; }
+  .checklist li {
+    padding: 8px 10px 8px 34px;
+    position: relative;
+    border-bottom: 1px solid #ededed;
+    font-size: 10.5pt;
+  }
+  .checklist li::before {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 9px;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #171717;
+    border-radius: 4px;
+  }
+
+  .footer-note {
+    margin-top: 60px;
+    padding-top: 16px;
+    border-top: 1px solid #dedede;
+    font-size: 9pt;
+    color: #999;
+    text-align: center;
+  }
+
+  .closing {
+    background: #111111;
+    color: #f5f5f5;
+    border-radius: 14px;
+    padding: 36px 30px;
+    margin-top: 20px;
+    text-align: center;
+  }
+  .closing p { color: #e5e5e5; }
+  .closing h2 { color: #fff; border: none; margin-top: 0; }
+
+  section { page-break-inside: avoid; }
+  .no-break { page-break-inside: avoid; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div>
+    <img class="logo" src="data:image/png;base64,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" alt="Campos & Coelho" />
+    <span class="version-badge">Versão da plataforma: 1.0 – Homologação</span>
+    <h1>Documentação da Plataforma B2B<br>Campos & Coelho</h1>
+    <p class="subtitle">Apresentação, funcionalidades e orientações de utilização</p>
+  </div>
+  <div class="meta">
+    <div><strong>Data da documentação:</strong> 03 de agosto de 2026</div>
+    <div><strong>Empresa:</strong> Distribuidora Campos & Coelho Ltda</div>
+    <div><strong>Responsável pelo desenvolvimento:</strong> Eduardo Soares Tonon</div>
+    <div><strong>CNPJ:</strong> 64.510.611/0001-62</div>
+  </div>
+</div>
+
+<div class="page toc">
+  <h2 style="margin-top:0;border:none;">Sumário</h2>
+  <ol>
+    <li><a href="#visao-geral">Visão Geral</a></li>
+    <li><a href="#como-funciona">Como a Plataforma Funciona</a></li>
+    <li><a href="#perfis">Perfis de Acesso</a></li>
+    <li><a href="#funcionalidades">Funcionalidades do Site</a></li>
+    <li><a href="#painel">Painel Administrativo</a></li>
+    <li><a href="#manual">Manual Rápido</a></li>
+    <li><a href="#tecnologias">Tecnologias Utilizadas</a></li>
+    <li><a href="#seguranca">Segurança</a></li>
+    <li><a href="#versionamento">Versionamento, Backup e Recuperação</a></li>
+    <li><a href="#status">Status da Entrega</a></li>
+    <li><a href="#suporte">Suporte e Manutenção</a></li>
+    <li><a href="#acessos">Acessos e Titularidade</a></li>
+    <li><a href="#checklist">Checklist de Homologação</a></li>
+    <li><a href="#encerramento">Encerramento</a></li>
+  </ol>
+</div>
+
+<div class="page">
+
+<section id="visao-geral">
+<h2>1. Visão Geral</h2>
+<p>A plataforma foi desenvolvida para dar à Campos & Coelho uma operação comercial digital própria, pensada especificamente para o modelo de negócio de atacado (venda para empresas, não para o consumidor final).</p>
+<p>Ela foi construída para:</p>
+<ul>
+  <li><strong>Organizar e apresentar o catálogo</strong> de produtos de forma clara, com fotos, categorias e marcas.</li>
+  <li><strong>Permitir o cadastro de clientes empresariais</strong> (lojistas, revendedores) diretamente pelo site, com CNPJ.</li>
+  <li><strong>Controlar o acesso aos preços</strong> — só empresas com cadastro aprovado veem valores e conseguem fazer pedidos.</li>
+  <li><strong>Facilitar a gestão do dia a dia</strong>: produtos, estoque, clientes e pedidos, tudo em um painel administrativo único.</li>
+  <li><strong>Preparar a base</strong> para a operação comercial digital da empresa, com espaço para crescer em funcionalidades futuras.</li>
+</ul>
+</section>
+
+<section id="como-funciona">
+<h2>2. Como a Plataforma Funciona</h2>
+<div class="flow">
+  <span class="step">Visitante acessa o catálogo</span>
+  <span class="arrow">↓</span>
+  <span class="step">Realiza o cadastro empresarial (CNPJ, dados da empresa, responsável)</span>
+  <span class="arrow">↓</span>
+  <span class="step">O cadastro é analisado pela equipe Campos & Coelho</span>
+  <span class="arrow">↓</span>
+  <span class="step">Cliente aprovado realiza login</span>
+  <span class="arrow">↓</span>
+  <span class="step">Os preços são liberados para esse cliente</span>
+  <span class="arrow">↓</span>
+  <span class="step">O cliente adiciona produtos ao carrinho</span>
+  <span class="arrow">↓</span>
+  <span class="step">O pedido segue o fluxo comercial definido pela empresa</span>
+</div>
+<p>Enquanto o cadastro não é aprovado, o visitante pode navegar pelo catálogo, mas não vê preços — aparece uma chamada para fazer login ou se cadastrar.</p>
+</section>
+
+<section id="perfis">
+<h2>3. Perfis de Acesso</h2>
+<div class="callout"><strong>Cadastro (CNPJ)</strong>: é o "documento de identidade" da empresa cliente dentro do sistema — só depois que ele existe é que a empresa pode ver preços e comprar.</div>
+<table>
+<thead><tr><th>Perfil</th><th>O que pode ver</th><th>O que pode fazer</th></tr></thead>
+<tbody>
+<tr><td><strong>Visitante</strong> (sem login)</td><td>Catálogo, sem preços</td><td>Navegar, buscar produtos, iniciar cadastro</td></tr>
+<tr><td><strong>Cliente com cadastro pendente</strong></td><td>Catálogo, sem preços</td><td>Acompanhar o status do próprio cadastro</td></tr>
+<tr><td><strong>Cliente aprovado</strong></td><td>Catálogo com preços</td><td>Ver preços, montar carrinho, acompanhar pedidos, gerenciar dados da própria conta</td></tr>
+<tr><td><strong>Cliente recusado ou suspenso</strong></td><td>Catálogo, sem preços</td><td>Ver o motivo da recusa/suspensão informado pela empresa</td></tr>
+<tr><td><strong>Vendedor</strong></td><td>Catálogo com preços, clientes vinculados a ele</td><td>Consultar clientes sob sua responsabilidade</td></tr>
+<tr><td><strong>Administrador</strong></td><td>Acesso completo</td><td>Gerenciar produtos, categorias, marcas, estoque, clientes, pedidos, banners, campanhas e configurações</td></tr>
+</tbody>
+</table>
+</section>
+
+<section id="funcionalidades">
+<h2>4. Funcionalidades do Site</h2>
+
+<h3>Página inicial</h3>
+<p>Apresenta banners de destaque, campanhas sazonais (ex.: "Dia dos Pais") e produtos em destaque, organizados por categoria.</p>
+<div class="screenshot-box"><span class="label">Captura de tela 1</span>Página inicial (banners e campanha)</div>
+
+<h3>Banners e campanhas</h3>
+<p>A equipe administrativa pode trocar as imagens do carrossel principal e criar campanhas temáticas (com imagem, nome e lista de produtos) diretamente pelo painel, sem depender de alteração de código.</p>
+
+<h3>Catálogo, busca, filtros, categorias e marcas</h3>
+<p>O catálogo completo pode ser navegado por categoria ou marca, e há uma busca por nome, SKU (código do produto) ou palavra-chave. Filtros ajudam o visitante a refinar por categoria, marca e faixa de produtos em destaque.</p>
+<div class="screenshot-box"><span class="label">Captura de tela 2</span>Catálogo de produtos</div>
+
+<h3>Página individual de produto</h3>
+<p>Mostra fotos, nome, código, categoria e — para clientes aprovados — o preço e a quantidade mínima de compra. Para quem ainda não tem cadastro aprovado, aparece um convite para login ou cadastro no lugar do preço.</p>
+<div class="screenshot-box"><span class="label">Captura de tela 3</span>Página individual de produto</div>
+
+<h3>Cadastro empresarial</h3>
+<p>Feito em três etapas simples: (1) dados da empresa e do responsável, (2) perfil comercial e endereço, (3) documentos e criação de senha. O cliente acompanha o status do cadastro (pendente, aprovado, recusado) diretamente na própria conta.</p>
+<div class="screenshot-box"><span class="label">Captura de tela 4</span>Cadastro empresarial — etapa 1 (campos vazios)</div>
+
+<h3>Login e recuperação de acesso</h3>
+<p>O login pode ser feito por e-mail ou CNPJ. Existe uma tela de recuperação de senha, que envia instruções por e-mail.</p>
+
+<h3>Exibição de preços para clientes aprovados</h3>
+<p>Os preços só aparecem para empresas com cadastro aprovado — essa é uma regra de segurança de negócio, validada tanto na tela quanto no banco de dados.</p>
+
+<h3>Carrinho</h3>
+<p>O cliente aprovado pode adicionar produtos, ajustar quantidades e remover itens. O carrinho é salvo automaticamente e continua disponível mesmo se o cliente sair e voltar depois.</p>
+
+<h3>Área do cliente ("Minha Conta")</h3>
+<p>Reúne os dados cadastrais da empresa, o histórico de pedidos e a opção de logout.</p>
+
+<h3>Responsividade</h3>
+<p>O site foi testado e funciona em celular, tablet e computador, adaptando o layout para cada tamanho de tela.</p>
+</section>
+
+<section id="painel">
+<h2>5. Painel Administrativo</h2>
+<p>O painel administrativo é o centro de controle da operação, acessível apenas por usuários com perfil de administrador.</p>
+<div class="screenshot-box"><span class="label">Captura de tela 5</span>Dashboard administrativo (nome do administrador ocultado)</div>
+<table>
+<thead><tr><th>Área</th><th>O que faz</th></tr></thead>
+<tbody>
+<tr><td><strong>Dashboard</strong></td><td>Visão geral: total de produtos ativos, cadastros pendentes, pedidos em andamento e banners ativos</td></tr>
+<tr><td><strong>Produtos</strong></td><td>Cadastrar, editar e importar produtos em planilha; buscar e filtrar por categoria, marca e situação</td></tr>
+<tr><td><strong>Categorias</strong></td><td>Criar e editar as categorias do catálogo</td></tr>
+<tr><td><strong>Marcas</strong></td><td>Criar e editar as marcas exibidas no catálogo</td></tr>
+<tr><td><strong>Estoque</strong></td><td>Consultar e ajustar a quantidade disponível de cada produto</td></tr>
+<tr><td><strong>Tabelas de preços</strong></td><td>Gerenciar diferentes tabelas comerciais e os preços vinculados a cada uma</td></tr>
+<tr><td><strong>Clientes</strong></td><td>Consultar empresas cadastradas, ver documentos enviados e aprovar ou recusar cadastros</td></tr>
+<tr><td><strong>Pedidos</strong></td><td>Consultar pedidos e acompanhar cada etapa do atendimento</td></tr>
+<tr><td><strong>Banners e campanhas</strong></td><td>Trocar as imagens de destaque da página inicial e montar campanhas temáticas</td></tr>
+<tr><td><strong>Administradores</strong></td><td>Cadastrar novos acessos administrativos</td></tr>
+<tr><td><strong>Configurações</strong></td><td>Ajustes gerais da operação comercial</td></tr>
+<tr><td><strong>Logout</strong></td><td>Encerrar a sessão administrativa com segurança</td></tr>
+</tbody>
+</table>
+<div class="screenshot-box"><span class="label">Captura de tela 6</span>Listagem de produtos (admin)</div>
+<div class="screenshot-box"><span class="label">Captura de tela 7</span>Estoque (admin)</div>
+<div class="screenshot-box"><span class="label">Captura de tela 8</span>Listagem de clientes (admin) — dados de teste ocultados</div>
+<div class="screenshot-box"><span class="label">Captura de tela 9</span>Listagem de pedidos (admin)</div>
+<div class="callout"><strong>Sobre remoção de produtos:</strong> hoje o painel permite editar, publicar/despublicar e ajustar o estoque de cada produto individualmente. Uma ação de arquivamento ou desativação individual de produto está prevista como aprimoramento operacional futuro (ver seção 10).</div>
+</section>
+
+<section id="manual">
+<h2>6. Manual Rápido</h2>
+<p>Orientações objetivas para as tarefas mais comuns do dia a dia.</p>
+<h3>Fazer login</h3>
+<p>1. Acesse a página de login. 2. Informe e-mail e senha (ou CNPJ e senha). 3. Clique em "Entrar".</p>
+<h3>Editar um produto</h3>
+<p>1. No menu, acesse "Produtos". 2. Localize o produto pela busca ou pelos filtros. 3. Clique em "Editar", ajuste as informações e salve.</p>
+<h3>Atualizar estoque</h3>
+<p>1. No menu, acesse "Estoque". 2. Localize o produto. 3. Ajuste a quantidade disponível.</p>
+<h3>Cadastrar categoria</h3>
+<p>1. No menu, acesse "Categorias". 2. Clique em "Nova Categoria" e preencha nome e posição de exibição.</p>
+<h3>Cadastrar marca</h3>
+<p>1. No menu, acesse "Marcas". 2. Clique em "Nova Marca" e informe o nome (e logo, se houver).</p>
+<h3>Consultar clientes</h3>
+<p>1. No menu, acesse "Clientes". 2. Use os filtros de status (pendente, aprovado, recusado, suspenso) para localizar a empresa desejada.</p>
+<h3>Aprovar um cadastro</h3>
+<p>1. Em "Clientes", clique em "Analisar" na empresa desejada. 2. Escreva uma mensagem explicando a aprovação (obrigatório). 3. Clique em "Aprovar Cadastro".</p>
+<h3>Consultar pedidos</h3>
+<p>1. No menu, acesse "Pedidos". 2. Use a busca por número ou os filtros de status.</p>
+<h3>Sair da conta</h3>
+<p>1. Clique no botão "Sair da Conta", disponível no topo do painel (desktop e celular). 2. Você será redirecionado para a tela de login.</p>
+</section>
+
+<section id="tecnologias">
+<h2>7. Tecnologias Utilizadas</h2>
+<table>
+<thead><tr><th>Tecnologia</th><th>O que é, em uma frase</th></tr></thead>
+<tbody>
+<tr><td><strong>TypeScript e JavaScript</strong></td><td>As linguagens de programação usadas para construir o sistema.</td></tr>
+<tr><td><strong>Next.js e React</strong></td><td>A estrutura (framework) que organiza como as páginas do site são construídas e exibidas.</td></tr>
+<tr><td><strong>Supabase e PostgreSQL</strong></td><td>O serviço responsável por guardar os dados (produtos, clientes, pedidos) e cuidar do login dos usuários.</td></tr>
+<tr><td><strong>Vercel</strong></td><td>O serviço que hospeda o site atualmente, usado para testes e homologação.</td></tr>
+<tr><td><strong>Hostinger</strong></td><td>O ambiente definitivo previsto após a aprovação, sujeito à compatibilidade do plano contratado.</td></tr>
+</tbody>
+</table>
+<div class="callout">A plataforma está atualmente publicada na Vercel como ambiente de testes, apresentação e homologação. Após a aprovação da Campos & Coelho, será realizada a configuração do ambiente definitivo e a publicação na Hostinger, mediante confirmação de que o plano contratado é compatível com a estrutura técnica da aplicação.</div>
+</section>
+
+<section id="seguranca">
+<h2>8. Segurança</h2>
+<ul>
+<li><strong>Autenticação de usuários</strong>: cada pessoa acessa com login e senha próprios; não existe senha compartilhada.</li>
+<li><strong>Separação de permissões por perfil</strong>: um cliente não consegue acessar telas de administrador, e vice-versa — isso é verificado tanto na tela quanto no servidor.</li>
+<li><strong>Proteção de páginas privadas</strong>: áreas como carrinho, checkout, conta do cliente e painel administrativo exigem login; tentativas de acesso direto sem login são redirecionadas para a tela de entrada.</li>
+<li><strong>Regras de segurança no banco de dados</strong>: existe uma camada de proteção diretamente no banco de dados (tecnicamente chamada de <em>RLS — Row Level Security</em>, ou "segurança em nível de linha"), que impede que um usuário veja ou altere dados que não são dele, mesmo em caso de falha na tela.</li>
+<li><strong>Proteção das credenciais do sistema</strong>: as chaves e senhas que o sistema usa para se conectar ao banco de dados e a outros serviços ficam guardadas de forma protegida, nunca expostas publicamente.</li>
+<li><strong>Bloqueio de acesso administrativo</strong>: só contas cadastradas como administrador acessam o painel — qualquer outra tentativa é redirecionada automaticamente.</li>
+<li><strong>Cuidados com dados pessoais e LGPD</strong>: o sistema tem uma política de privacidade publicada, um canal de contato para pedidos relacionados a dados pessoais, e coleta apenas as informações necessárias para a operação comercial.</li>
+</ul>
+<div class="callout">O sistema possui diferentes camadas de proteção e segue boas práticas de segurança. Como qualquer aplicação online, requer atualizações, monitoramento e manutenção contínua.</div>
+</section>
+
+<section id="versionamento">
+<h2>9. Versionamento, Backup e Recuperação</h2>
+<h3>A) Código do sistema</h3>
+<ul>
+<li>Todo o histórico de alterações do sistema fica registrado (ferramenta técnica chamada <em>Git</em>), permitindo saber exatamente o que mudou, quando e por quê.</li>
+<li>É possível <strong>voltar a uma versão anterior</strong> do sistema rapidamente, caso uma alteração cause algum problema.</li>
+<li>Existe um <strong>histórico completo de publicações</strong> — cada versão colocada no ar fica registrada.</li>
+<li>Antes de qualquer alteração chegar ao site principal, ela passa por um <strong>ambiente de testes (Preview)</strong>, separado do ambiente que os clientes usam.</li>
+</ul>
+<h3>B) Banco de dados</h3>
+<div class="callout pending">A política de backup e retenção do banco de dados será confirmada de acordo com o plano de infraestrutura contratado.</div>
+<h3>C) Procedimento em caso de falha</h3>
+<ol>
+<li><strong>Identificar</strong> o problema relatado.</li>
+<li><strong>Reproduzir</strong> o problema em ambiente controlado, para confirmar a causa.</li>
+<li><strong>Corrigir</strong> em ambiente de teste, isolado do site em uso.</li>
+<li><strong>Validar</strong> que a correção resolve o problema sem gerar efeitos colaterais.</li>
+<li><strong>Publicar</strong> a correção no site principal.</li>
+<li>Em caso de <strong>problema crítico</strong>, é possível <strong>restaurar a versão anterior</strong> rapidamente, minimizando o tempo de indisponibilidade.</li>
+</ol>
+</section>
+
+<section id="status">
+<h2>10. Status da Entrega</h2>
+<div class="status-grid">
+  <div class="status-col done">
+    <h4>✅ Entregue e validado</h4>
+    <ul>
+      <li>Catálogo, busca, filtros, categorias e marcas</li>
+      <li>Cadastro empresarial em três etapas</li>
+      <li>Login, recuperação de senha e proteção de rotas</li>
+      <li>Exibição de preços para clientes aprovados</li>
+      <li>Carrinho de compras com persistência</li>
+      <li>Painel administrativo completo</li>
+      <li>Aprovação/recusa de cadastros</li>
+      <li>Responsividade</li>
+      <li>Logout administrativo</li>
+    </ul>
+  </div>
+  <div class="status-col homolog">
+    <h4>🟡 Em homologação</h4>
+    <ul>
+      <li>Conversão do carrinho em pedido definitivo</li>
+      <li>Condições comerciais finais do checkout</li>
+    </ul>
+  </div>
+  <div class="status-col next">
+    <h4>⚪ Próximas etapas</h4>
+    <ul>
+      <li>Arquivamento/desativação individual de produto</li>
+      <li>Integração com o ambiente definitivo (Hostinger)</li>
+      <li>Evoluções conforme o crescimento da operação</li>
+    </ul>
+  </div>
+</div>
+<div class="callout"><strong>Sobre o checkout:</strong> o checkout possui atualmente sua estrutura visual. A conversão definitiva do carrinho em pedido e as condições comerciais estão em fase de homologação. A operação será exclusivamente por retirada no estabelecimento, portanto não haverá cálculo ou seleção de frete.</div>
+</section>
+
+<section id="suporte">
+<h2>11. Suporte e Manutenção</h2>
+<ul>
+<li><strong>Correção de bugs</strong>: falhas identificadas no funcionamento já entregue são corrigidas sem custo adicional, dentro do prazo definido em contrato.</li>
+<li><strong>Manutenção técnica</strong>: inclui monitoramento, atualizações de segurança e ajustes necessários para manter o sistema funcionando corretamente.</li>
+<li><strong>Prazo de avaliação inicial de chamados</strong>: até 48 horas úteis, em dias úteis (segunda a sexta-feira), das 9h às 18h. Esse é o prazo para a <strong>avaliação inicial</strong> do chamado — o tempo de correção definitiva pode variar conforme a complexidade do problema.</li>
+<li><strong>Diferença entre correção e nova funcionalidade</strong>: correção é ajustar algo que já existe e não está funcionando como deveria; nova funcionalidade é adicionar algo que não fazia parte do escopo entregue — esse segundo caso é tratado como uma nova etapa do projeto.</li>
+<li><strong>Atividades sob responsabilidade da Campos & Coelho</strong>: cadastro e atualização de produtos, aprovação de clientes, gestão de pedidos e conteúdo comercial (banners, campanhas) são atividades operacionais do dia a dia, realizadas pela própria equipe da empresa dentro do painel administrativo.</li>
+</ul>
+</section>
+
+<section id="acessos">
+<h2>12. Acessos e Titularidade</h2>
+<p>Os ativos digitais e o código desenvolvido para este projeto pertencem à Campos & Coelho, conforme contrato.</p>
+<table>
+<thead><tr><th>Ativo</th><th>Titularidade / situação</th></tr></thead>
+<tbody>
+<tr><td>Domínio</td><td>A confirmar com a Campos & Coelho</td></tr>
+<tr><td>Repositório de código</td><td>Campos & Coelho (código-fonte do projeto)</td></tr>
+<tr><td>Vercel (hospedagem atual)</td><td>A confirmar com a Campos & Coelho</td></tr>
+<tr><td>Hostinger (hospedagem definitiva)</td><td>A confirmar com a Campos & Coelho</td></tr>
+<tr><td>Supabase (banco de dados)</td><td>A confirmar com a Campos & Coelho</td></tr>
+<tr><td>Contas de anúncios</td><td>A confirmar com a Campos & Coelho</td></tr>
+<tr><td>Google Analytics</td><td>A confirmar com a Campos & Coelho</td></tr>
+<tr><td>Google Search Console</td><td>A confirmar com a Campos & Coelho</td></tr>
+</tbody>
+</table>
+<p style="font-size:9.5pt;color:#777;">Nenhuma senha, token ou chave de acesso é exibida neste documento. Os acessos devem ser entregues ou compartilhados por meio seguro, combinado diretamente entre as partes.</p>
+</section>
+
+<section id="checklist">
+<h2>13. Checklist de Homologação</h2>
+<ul class="checklist">
+<li>Identidade visual (cores, logotipo, tipografia)</li>
+<li>Catálogo de produtos</li>
+<li>Busca de produtos</li>
+<li>Cadastro de novos clientes</li>
+<li>Acesso e login do cliente</li>
+<li>Exibição de preços para clientes aprovados</li>
+<li>Carrinho de compras</li>
+<li>Painel administrativo (acesso e navegação)</li>
+<li>Cadastro e edição de produtos</li>
+<li>Controle de estoque</li>
+<li>Gestão de clientes (aprovação/recusa)</li>
+<li>Funcionamento no celular</li>
+<li>Regras comerciais (retirada no estabelecimento, pedido mínimo)</li>
+<li>Checkout (em homologação)</li>
+<li>Ambiente definitivo (Hostinger, a configurar)</li>
+</ul>
+</section>
+
+<section id="encerramento">
+<h2 style="border:none;">14. Encerramento</h2>
+<div class="closing">
+  <h2>Pronta para crescer com o seu negócio</h2>
+  <p>A plataforma foi estruturada desde o início pensando em crescimento. Isso significa que novas funcionalidades, integrações e melhorias podem ser incorporadas ao sistema conforme a operação da Campos & Coelho evoluir, sem a necessidade de reconstruir o que já foi entregue.</p>
+  <p>Este documento reflete o estágio atual da plataforma na data informada na capa e será atualizado conforme novas etapas forem concluídas.</p>
+</div>
+</section>
+
+<div class="footer-note">
+  Documentação da Plataforma B2B Campos & Coelho — Versão 1.0 – Homologação — 03 de agosto de 2026
+</div>
+
+</div>
+</body>
+</html>
