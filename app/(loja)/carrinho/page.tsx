@@ -7,6 +7,7 @@ import { readActiveCart } from '@/lib/data/cart'
 import { Container } from '@/components/ui/container'
 import { formatPrice } from '@/lib/utils/format'
 import { getProductDisplayName } from '@/lib/utils/product-display-name'
+import { MINIMUM_ORDER_VALUE } from '@/lib/utils/constants'
 import { CartPageActions } from '@/components/cart/cart-page-actions'
 import { ShoppingBag, AlertTriangle, ArrowLeft, ArrowRight, Info } from 'lucide-react'
 
@@ -239,13 +240,31 @@ export default async function CarrinhoPage() {
                       <p className="text-[10px] text-slate-400 mb-4">
                         Valores e disponibilidade confirmados ao finalizar.
                       </p>
-                      <Link
-                        href="/checkout"
-                        className="flex w-full items-center justify-center gap-2 rounded-xl bg-black px-4 py-3.5 text-sm font-bold text-white shadow-md transition-colors hover:bg-neutral-800"
-                      >
-                        <span>Finalizar pedido</span>
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
+                      {estimatedSubtotal > 0 && estimatedSubtotal < MINIMUM_ORDER_VALUE && (
+                        <div className="mb-4 rounded-lg bg-red-50 p-3 text-[11px] text-red-700 border border-red-200 font-medium">
+                          <span className="block mb-1">O pedido mínimo é de <strong>{formatPrice(MINIMUM_ORDER_VALUE)}</strong>.</span>
+                          Faltam <strong>{formatPrice(MINIMUM_ORDER_VALUE - estimatedSubtotal)}</strong> para finalizar a compra.
+                        </div>
+                      )}
+                      
+                      {estimatedSubtotal < MINIMUM_ORDER_VALUE || hasUnavailable ? (
+                        <Link
+                          href="/catalogo"
+                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-orange-500 px-4 py-3.5 text-sm font-bold text-white shadow-md transition-colors hover:bg-orange-600"
+                        >
+                          <span>Continuar comprando</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      ) : (
+                        <Link
+                          href="/checkout"
+                          className="flex w-full items-center justify-center gap-2 rounded-xl bg-black px-4 py-3.5 text-sm font-bold text-white shadow-md transition-colors hover:bg-neutral-800"
+                        >
+                          <span>Finalizar pedido</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </Link>
+                      )}
+                      
                       {hasUnavailable && (
                         <p className="text-[11px] text-red-500 text-center mt-2">
                           Remova os itens indisponíveis antes de finalizar.

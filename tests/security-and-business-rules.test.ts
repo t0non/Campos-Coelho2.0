@@ -76,8 +76,8 @@ test('transições finais de pedido são irreversíveis', () => {
   assert.equal(canTransitionOrderStatus('cancelled', 'pending'), false)
 })
 
-test('pedido mínimo oficial é de mil reais', () => {
-  assert.equal(MINIMUM_ORDER_VALUE, 1000)
+test('pedido mínimo oficial é de 500 reais', () => {
+  assert.equal(MINIMUM_ORDER_VALUE, 500)
 })
 
 test('rate limit aceita a chave secreta usada pelo cliente administrativo', () => {

@@ -23,7 +23,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   INVALID_MULTIPLE: 'A quantidade de um item não respeita mais o múltiplo de embalagem.',
   NO_PRICE_AVAILABLE: 'O preço de um item não está mais disponível.',
   INSUFFICIENT_STOCK: 'Estoque insuficiente para um dos itens do pedido.',
-  MINIMUM_ORDER_NOT_REACHED: 'O pedido mínimo para finalizar a compra é de R$ 1.000,00.',
+  MINIMUM_ORDER_NOT_REACHED: 'O pedido mínimo para finalizar a compra é de R$ 500,00.',
 }
 
 function mapError(code: string): string {

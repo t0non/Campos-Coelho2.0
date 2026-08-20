@@ -164,7 +164,7 @@ export function ProductForm({ initialData, categories, brands }: ProductFormProp
             <input required name="slug" value={formData.slug} onChange={handleChange} className="w-full flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" />
           </div>
           <div>
-            <label className="text-sm block mb-1">SKU *</label>
+            <label className="text-sm block mb-1">Nº de Referência *</label>
             <input required name="sku" value={formData.sku} onChange={handleChange} className="w-full flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" />
           </div>
           <div>
@@ -205,7 +205,7 @@ export function ProductForm({ initialData, categories, brands }: ProductFormProp
             <input required type="number" min="1" name="min_quantity" value={formData.min_quantity} onChange={handleChange} className="w-full flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" />
           </div>
           <div>
-            <label className="text-sm block mb-1">Múltiplo</label>
+            <label className="text-sm block mb-1">Caixa Master</label>
             <input required type="number" min="1" name="multiple_quantity" value={formData.multiple_quantity} onChange={handleChange} className="w-full flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm" />
           </div>
           <div>

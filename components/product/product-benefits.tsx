@@ -5,7 +5,7 @@ export function ProductBenefits() {
     { icon: Store, title: 'Retirada presencial', text: 'Loja no bairro Planalto' },
     { icon: Headset, title: 'Atendimento comercial', text: 'WhatsApp e telefone' },
     { icon: Building2, title: 'Venda empresarial', text: 'Cadastro com CNPJ' },
-    { icon: PackageCheck, title: 'Pedido mínimo', text: 'R$ 1.000 no site' },
+    { icon: PackageCheck, title: 'Pedido mínimo', text: 'R$ 500 no site' },
   ]
 
   return (

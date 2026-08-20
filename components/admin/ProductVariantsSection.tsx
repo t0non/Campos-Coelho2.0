@@ -52,7 +52,7 @@ export function ProductVariantsSection({ productId, variants }: ProductVariantsS
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>SKU / Barcode</TableHead>
+              <TableHead>Nº de Referência</TableHead>
               <TableHead>Nome</TableHead>
               <TableHead>Atributos</TableHead>
               <TableHead>Estoque</TableHead>

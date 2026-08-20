@@ -186,7 +186,7 @@ export function Header({
     <>
       {/* Faixa institucional */}
       <div className="flex min-h-[40px] items-center justify-center bg-black px-4 py-2 text-center text-[10px] font-semibold uppercase leading-4 tracking-[0.1em] text-white/90 sm:text-[11px]">
-        Venda para empresas com CNPJ ativo · Inscrição Estadual quando aplicável · Pedido mínimo R$ 1.000,00
+        Venda para empresas com CNPJ ativo · Inscrição Estadual quando aplicável · Pedido mínimo R$ 500,00
       </div>
 
       {/* 2. Main Header Bar - White Background */}
